@@ -1,0 +1,206 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root {
+}
+
+@Layer base {
+  html {
+    @apply text-[16px];
+    font-family: Poppins, sans-serif;
+  }
+}
+
+@Layer components {
+  .header {
+    backdrop-filter: blur(5px);
+    height: 80px;
+    z-index: -2;
+
+    /* background: rgba(19, 17, 22, 0.2); */
+    @apply absolute w-screen top-0 bg-base-100/40 left-0;
+  }
+  
+}
+
+
+@Layer utilities {
+
+}
+
+html {
+  font-family: Poppins, sans-serif;
+  @apply md:text-[16px] text-[14px];
+}
+
+h1 {
+  /* font-size: 96px; */
+  @apply text-3xl md:text-5xl font-semibold;
+}
+
+h2 {
+  @apply  text-2xl md:text-4xl font-semibold;
+}
+
+h3{
+  @apply text-xl md:text-3xl font-semibold;
+}
+
+h4 {
+  @apply text-base md:text-lg font-semibold;
+}
+
+.container {
+    @apply rounded-[10px] bg-card-primary/60 border-[0.5px] border-content-primary/10 shadow-[0_2px_2px_rgb(0,0,0,0.2)] box-border;
+  }
+
+.btn {
+  @apply rounded-3xl py-3.5 px-6 font-medium text-sm normal-case text-center;
+}
+.btn:disabled {
+  @apply opacity-50;
+}
+.btn-disabled {
+  @apply opacity-50;
+}
+.btn-connected {
+  background: rgba(19, 17, 22, 0.5);
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  @apply text-white
+}
+.btn-primary {
+  @apply text-primary-content font-medium;
+}
+.card {
+  @apply rounded-[10px] z-0 bg-[#403945] hover:outline-1 hover:outline hover:outline-neutral hover:brightness-[1.15];
+} 
+.card-body {
+  @apply text-base text-content-primary;
+}
+.content p {
+  @apply my-3;
+}
+.content ul {
+  @apply my-3;
+}
+
+.input {
+  @apply bg-base-50 w-full;
+}
+
+.input-primary {
+  @apply border-neutral-focus focus:outline-neutral-focus border-[0.3px]
+}
+
+#search-input {
+  background: url('../svg/search.svg') no-repeat;
+  background-size: 20px;
+  background-position: 4%;
+  @apply pl-9 bg-base-50 w-72;
+  
+}
+.textarea {
+  @apply bg-base-50 w-full min-w-full px-2 py-1 border-neutral-focus focus:outline-neutral-focus border-[0.3px];
+}
+
+.file-drop {
+  @apply bg-base-50 w-full min-w-full px-2 py-1 border-neutral focus:outline-neutral-focus border-[1px] rounded-[8px] border-dashed outline-offset-2 hover:outline;
+}
+
+.range::-webkit-slider-thumb {
+  height: 15px;
+  width: 15px;
+}
+
+.blur0 {
+  position: absolute;
+  width: 527px;
+  height: 430px;
+  left: 900px;
+  top: -275px;
+
+  background: radial-gradient(62.47% 65.01% at 64.05% 109.82%, rgba(163, 230, 53, 0.343) 0%, rgba(163, 230, 53, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
+  filter: blur(100px);
+  z-index: -96;
+  @apply md:block hidden
+}
+
+.blur1 {
+  position: absolute;
+  width: 825.75px;
+  height: 604.74px;
+  left: 65px;
+  top: -170px;
+
+  background: radial-gradient(57.83% 75.75% at 70.11% 109.82%, rgba(255, 122, 0, 0.294) 0%, rgba(255, 122, 0, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
+  filter: blur(100px);
+  transform: rotate(-28.34deg);
+  z-index: -50;
+  @apply md:block hidden
+
+}
+
+.blur2 {
+  position: absolute;
+  width: 754px;
+  height: 615px;
+  left: 220px;
+  top: -280px;
+
+  background: radial-gradient(62.47% 65.01% at 64.05% 109.82%, rgba(163, 230, 53, 0.343) 0%, rgba(163, 230, 53, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
+  filter: blur(100px);
+  z-index: -100;
+  @apply md:block hidden
+
+}
+
+.a-modal {
+  background-color:#131116 !important;
+  color: #FAFAFA !important;
+  padding-bottom: 0px;
+  border-radius: 10px !important;
+  border-color: #131116;
+  @apply border-[0.1px];
+}
+
+.ant-modal-content {
+  background-color:#131116 !important;
+  color: #FAFAFA !important;
+  border-color: #131116;
+}
+
+/* modal's background */
+.a-modal-bg {
+  @apply bg-base-200/70 ;
+} 
+
+.ant-modal-close-icon {
+  color: #FAFAFA;
+}
+
+
+/* Hide arrows in number input */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.disable-link {
+  pointer-events: none;
+}
+
+a {
+  cursor:pointer;
+}
