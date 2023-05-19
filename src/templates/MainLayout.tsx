@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import Meta from '@/components/Meta';
+import WalletConnect from '@/components/WalletConnect';
 import logo from '@/svg/logo.svg';
 
 interface IMainProps {
@@ -39,7 +40,7 @@ const MainLayout = (props: IMainProps) => (
             </div>
           </div>
           <div className='py-2'>
-            <button className='btn-primary btn'>Connect</button>
+            <WalletConnect text='Connect' />
           </div>
         </div>
         <div className='m-2 min-h-screen rounded-2xl border-slate-800 p-2'>

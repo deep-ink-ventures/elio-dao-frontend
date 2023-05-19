@@ -21,7 +21,7 @@ module.exports = {
     extend: {
       colors: {
         white: '#FAFAFA',
-        black: '#16141A',
+        black: '#1A1829',
         content: {
           primary: '#FAFAFA',
         },
@@ -56,18 +56,19 @@ module.exports = {
           'neutral': '#FAFAFA',
           'neutral-focus': '#ABABAB',
           'neutral-content': '#1E1B21',
-          "base-100": "#1E1B21",
-          'base-200': '#16141A',
-          'base-300': '#0D0B0E',
+          "base-100": "#201B32",
+          'base-200': '#1A1829',
+          'base-300': '#151321',
           'base-content': '#FAFAFA',
-          "info": "#22D3EE",
-          'info-content': '#083B43',
-          "success": "#34D399",
-          'success-content': '#0E3B2B',
+          'base-container': '#050215',
+          "info": "#38BDF8",
+          'info-content': '#002B3D',
+          "success": "#A3E635",
+          'success-content': '#233800',
           "warning": "#FB923C",
-          'warning-content': '#44182F',
+          'warning-content': '#3D1C00',
           "error": "#FDA4AF",
-          'error-content': '#3F0814'
+          'error-content': '#52000A'
         }
       },
       'night'

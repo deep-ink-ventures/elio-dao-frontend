@@ -1,7 +1,6 @@
 import Image from 'next/image';
 
 import ExploreDaos from '@/components/ExploreDaos';
-import circleBG from '@/svg/BG.svg';
 import handAndBalls from '@/svg/handandballs.svg';
 import justice from '@/svg/justice.svg';
 import scale from '@/svg/scale.svg';
@@ -87,9 +86,6 @@ const Index = () => {
                   <p className='ml-4'>Get rewarded with tokens</p>
                 </li>
               </ul>
-            </div>
-            <div className='absolute z-[-20] hidden opacity-50 mix-blend-soft-light md:block'>
-              <Image src={circleBG} alt='circle bg' height={459} width={598} />
             </div>
           </div>
           <div className='my-10 flex min-w-[50%] flex-auto flex-col justify-between px-10 pb-20 text-center md:px-14 '>

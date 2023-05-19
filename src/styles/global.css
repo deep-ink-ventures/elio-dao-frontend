@@ -118,43 +118,30 @@ h4 {
 }
 
 .blur0 {
-  position: absolute;
-  width: 527px;
-  height: 430px;
-  left: 900px;
-  top: -275px;
+  
+position: absolute;
+width: 641.2px;
+height: 469.59px;
+left: 302px;
+top: -83.1px;
 
-  background: radial-gradient(62.47% 65.01% at 64.05% 109.82%, rgba(163, 230, 53, 0.343) 0%, rgba(163, 230, 53, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
+  
+background: radial-gradient(57.83% 75.75% at 70.11% 109.82%, rgba(216, 43, 43, 0.6) 0%, rgba(216, 43, 43, 0.084) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
   filter: blur(100px);
+  transform: rotate(-30.44deg);
   z-index: -96;
   @apply md:block hidden
 }
 
 .blur1 {
   position: absolute;
-  width: 825.75px;
-  height: 604.74px;
-  left: 65px;
-  top: -170px;
-
-  background: radial-gradient(57.83% 75.75% at 70.11% 109.82%, rgba(255, 122, 0, 0.294) 0%, rgba(255, 122, 0, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
-  filter: blur(100px);
-  transform: rotate(-28.34deg);
+width: 739px;
+height: 676px;
+left: 354px;
+top: -295px;
+background: radial-gradient(65.97% 72.04% at 42.13% 53.85%, rgba(255, 169, 39, 0.279) 0%, rgba(255, 143, 39, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
+filter: blur(100px);
   z-index: -50;
-  @apply md:block hidden
-
-}
-
-.blur2 {
-  position: absolute;
-  width: 754px;
-  height: 615px;
-  left: 220px;
-  top: -280px;
-
-  background: radial-gradient(62.47% 65.01% at 64.05% 109.82%, rgba(163, 230, 53, 0.343) 0%, rgba(163, 230, 53, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
-  filter: blur(100px);
-  z-index: -100;
   @apply md:block hidden
 
 }
