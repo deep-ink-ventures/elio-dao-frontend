@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import DaoCards from '@/components/DaoCards';
 import Spinner from '@/components/Spinner';
-import { daoArray } from '@/store/fakeData';
+import { daoArray } from '@/stores/fakeData';
 import telescope from '@/svg/telescope.svg';
 
 const ExploreDaos = () => {

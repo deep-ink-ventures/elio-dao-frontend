@@ -1,6 +1,9 @@
 import Image from 'next/image';
 
+import CreateDaoModal from '@/components/CreateDaoModal';
 import ExploreDaos from '@/components/ExploreDaos';
+import WalletConnect from '@/components/WalletConnect';
+import useElioStore from '@/stores/elioStore';
 import handAndBalls from '@/svg/handandballs.svg';
 import justice from '@/svg/justice.svg';
 import scale from '@/svg/scale.svg';
@@ -8,6 +11,17 @@ import sticker from '@/svg/sticker.svg';
 import MainLayout from '@/templates/MainLayout';
 
 const Index = () => {
+  const [currentWalletAccount, updateIsStartModalOpen] = useElioStore((s) => [
+    s.currentWalletAccount,
+    s.updateIsStartModalOpen,
+  ]);
+
+  const handleStartModal = () => {
+    if (currentWalletAccount?.publicKey) {
+      updateIsStartModalOpen(true);
+    }
+  };
+
   return (
     <MainLayout
       title='elioDAO - DAO Platform On Stellar'
@@ -100,10 +114,18 @@ const Index = () => {
               </p>
             </div>
             <div className='my-3 md:my-0'>
-              <button className='btn-primary btn' onClick={() => {}}>
-                Create a New DAO
-              </button>
+              {currentWalletAccount ? (
+                <button className='btn-primary btn' onClick={handleStartModal}>
+                  Create a New DAO
+                </button>
+              ) : (
+                <WalletConnect
+                  text={'Connect & Create DAO'}
+                  onClose={handleStartModal}
+                />
+              )}
             </div>
+            <CreateDaoModal />
           </div>
         </div>
         <ExploreDaos />
