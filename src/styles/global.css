@@ -59,7 +59,7 @@ h4 {
   }
 
 .btn {
-  @apply rounded-3xl py-3.5 px-6 font-medium text-sm normal-case text-center;
+  @apply rounded-3xl py-3.5 px-4 font-medium text-sm normal-case text-center;
 }
 .btn:disabled {
   @apply opacity-50;
@@ -146,20 +146,21 @@ filter: blur(100px);
 
 }
 
-.a-modal {
+.a-modal .ant-modal-content{
   background-color:#131116 !important;
   color: #FAFAFA !important;
   padding-bottom: 0px;
-  border-radius: 10px !important;
+  border-radius: 10px;
   border-color: #131116;
   @apply border-[0.1px];
 }
 
-.ant-modal-content {
+/* .ant-modal-content {
   background-color:#131116 !important;
   color: #FAFAFA !important;
   border-color: #131116;
-}
+  border-radius: 10px !important
+} */
 
 /* modal's background */
 .a-modal-bg {
@@ -168,6 +169,10 @@ filter: blur(100px);
 
 .ant-modal-close-icon {
   color: #FAFAFA;
+}
+
+.wallet-modal .ant-modal-content {
+@apply w-[550px] h-[470px] bg-base-200 text-white rounded-[20px] p-10;
 }
 
 

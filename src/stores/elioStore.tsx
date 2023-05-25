@@ -1,4 +1,12 @@
+import type { StellarWalletsKit } from 'stellar-wallets-kit';
 import { create } from 'zustand';
+
+export type DaoPage = 'dashboard' | 'proposals';
+
+export interface CreateDaoData {
+  daoId: string;
+  daoName: string;
+}
 
 export interface DaoDetail {
   daoId: string;
@@ -26,17 +34,28 @@ export declare enum WalletNetwork {
   TESTNET = 'Test SDF Network ; September 2015',
 }
 
+export declare enum WalletType {
+  XBULL = 'XBULL',
+  FREIGHTER = 'FREIGHTER',
+  ALBEDO = 'ALBEDO',
+  RABET = 'RABET',
+  WALLET_CONNECT = 'WALLET_CONNECT',
+}
+
 export interface WalletAccount {
   publicKey: string;
   network: WalletNetwork;
+  kit: StellarWalletsKit;
 }
 
 export interface ElioState {
   currentDao: DaoDetail | null;
   currentWalletAccount: WalletAccount | null;
   isConnectModalOpen: boolean;
-  walletConnected: boolean;
+  isWalletConnected: boolean;
   txnProcessing: boolean;
+  daoPage: DaoPage;
+  isStartModalOpen: boolean;
 }
 
 export interface ElioActions {
@@ -45,6 +64,8 @@ export interface ElioActions {
   updateIsConnectModalOpen: (isOpen: boolean) => void;
   updateWalletConnected: (connected: boolean) => void;
   updateTxnProcessing: (txnProcessing: boolean) => void;
+  updateDaoPage: (daoPage: DaoPage) => void;
+  updateIsStartModalOpen: (isStartModalOpen: boolean) => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -53,15 +74,19 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   currentDao: null,
   currentWalletAccount: null,
   isConnectModalOpen: false,
-  walletConnected: false,
+  isWalletConnected: false,
   txnProcessing: false,
-
+  daoPage: 'dashboard',
+  isStartModalOpen: false,
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateCurrentWalletAccount: (currentWalletAccount) =>
     set({ currentWalletAccount }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
-  updateWalletConnected: (walletConnected) => set({ walletConnected }),
+  updateWalletConnected: (isWalletConnected) => set({ isWalletConnected }),
   updateTxnProcessing: (txnProcessing) => set({ txnProcessing }),
+  updateDaoPage: (daoPage) => set(() => ({ daoPage })),
+  updateIsStartModalOpen: (isStartModalOpen) =>
+    set(() => ({ isStartModalOpen })),
 }));
 
 export default useElioStore;

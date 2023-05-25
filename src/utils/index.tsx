@@ -1,3 +1,5 @@
+import type BN from 'bn.js';
+
 // @ts-ignore
 export const truncateMiddle = (str?, start = 4, end = 4) => {
   if (str && str.length) {
@@ -61,4 +63,18 @@ export const getProposalEndTime = (
     h,
     m,
   };
+};
+
+// eslint-disable-next-line
+export const uiTokens = (rawAmount: BN | null, tokenType?: 'native' | 'dao', unitName?: string) => {
+
+  // const units = tokenType === 'native' ? NATIVE_UNITS : DAO_UNITS
+
+  // formatBalance.setDefaults({ decimals: 0, unit: unitName || 'UNITS'});
+
+  // return formatBalance(rawAmount?.div(new BN(units) || new BN(0)).toString(),{
+  //   forceUnit: unitName,
+  //   withZero: false,
+  // } )
+  return `${rawAmount?.toString()} Units`;
 };

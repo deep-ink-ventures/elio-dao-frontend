@@ -1,28 +1,24 @@
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import {
-  StellarWalletsKit,
-  WalletNetwork,
-  WalletType,
-} from 'stellar-wallets-kit';
+import { useState } from 'react';
 
-import useElioStore from '@/store/elioStore';
+import WalletConnectModal from '@/components/WalletConnectModal';
+import useElioStore from '@/stores/elioStore';
 import avatar from '@/svg/avatar.svg';
 import wallet from '@/svg/wallet.svg';
 
 import { truncateMiddle } from '../utils/index';
 
-const kit = new StellarWalletsKit({
-  network: WalletNetwork.FUTURENET,
-  selectedWallet: WalletType.FREIGHTER,
-});
+interface WalletConnectProps {
+  text: string;
+  onClose?: () => void;
+}
 
-const WalletConnect = (props: { text: string }) => {
+const WalletConnect = (props: WalletConnectProps) => {
   const [
     isConnectModalOpen,
     updateIsConnectModalOpen,
     currentWalletAccount,
-    walletConnected,
+    isWalletConnected,
     updateCurrentWalletAccount,
     updateWalletConnected,
     txnProcessing,
@@ -30,7 +26,7 @@ const WalletConnect = (props: { text: string }) => {
     s.isConnectModalOpen,
     s.updateIsConnectModalOpen,
     s.currentWalletAccount,
-    s.walletConnected,
+    s.isWalletConnected,
     s.updateCurrentWalletAccount,
     s.updateWalletConnected,
     s.txnProcessing,
@@ -56,12 +52,6 @@ const WalletConnect = (props: { text: string }) => {
     setDropdownOpen(false);
   };
 
-  useEffect(() => {
-    kit.getPublicKey().then((pubkey) => {
-      console.log('pubkey', pubkey);
-    });
-  });
-
   return (
     <div className='relative flex flex-col'>
       <button
@@ -71,10 +61,10 @@ const WalletConnect = (props: { text: string }) => {
             ? 'btn-primary'
             : 'btn-connected hover:bg-base-100'
         }
-            ${isConnectModalOpen && 'loading'} 
+            ${isConnectModalOpen && !isWalletConnected && 'loading'} 
             ${txnProcessing && 'loading'}
             `}
-        onClick={!walletConnected ? handleModalOpen : handleDropDown}>
+        onClick={!isWalletConnected ? handleModalOpen : handleDropDown}>
         {currentWalletAccount ? (
           <div className='mr-2'>
             <Image src={avatar} alt='avatar' height='18' width='18'></Image>
@@ -112,6 +102,7 @@ const WalletConnect = (props: { text: string }) => {
         onClick={handleDisconnect}>
         Disconnect
       </div>
+      <WalletConnectModal />
     </div>
   );
 };
