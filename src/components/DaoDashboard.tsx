@@ -1,4 +1,4 @@
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 import Link from 'next/link';
 
 // import DestroyDao from '@/components/DestroyDao';

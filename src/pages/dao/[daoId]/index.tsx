@@ -1,4 +1,4 @@
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
