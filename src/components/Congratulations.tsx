@@ -6,7 +6,7 @@ import congratsImage from '@/svg/congrats.svg';
 
 const Congratulations = (props: { daoId: string | null }) => {
   const router = useRouter();
-  const [daos, updateCreateDaoSteps] = useElioStore((s) => [
+  const [daos] = useElioStore((s) => [
     s.daos,
     s.updateCreateDaoSteps,
   ]);
