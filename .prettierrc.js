@@ -4,6 +4,6 @@ module.exports = {
   semi: true,
   bracketSameLine: true,
   plugins: [require('prettier-plugin-tailwindcss')],
-
+  organizeImportsSkipDestructiveCodeActions: true,
 };
 
