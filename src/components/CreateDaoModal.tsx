@@ -19,7 +19,7 @@ const CreateDaoModal = () => {
   } = useForm<CreateDaoData>();
   const [hasEnoughTokens, _setHasEnoughTokens] = useState(true);
   const isStartModalOpen = useElioStore((s) => s.isStartModalOpen);
-  const txnProcessing = useElioStore((s) => s.txnProcessing);
+  const isTxnProcessing = useElioStore((s) => s.isTxnProcessing);
 
   const [updateIsStartModalOpen] = useElioStore((s) => [
     s.updateIsStartModalOpen,
@@ -98,7 +98,7 @@ const CreateDaoModal = () => {
     <>
       <Modal
         open={isStartModalOpen}
-        confirmLoading={txnProcessing}
+        confirmLoading={isTxnProcessing}
         wrapClassName='a-modal-bg'
         className='a-modal'
         onCancel={handleCancel}
@@ -211,11 +211,11 @@ const CreateDaoModal = () => {
               <div className='flex justify-center'>
                 <button
                   className={`btn-primary btn w-96 ${
-                    txnProcessing ? 'loading' : null
+                    isTxnProcessing ? 'loading' : null
                   }`}
                   type='submit'
                   disabled={!hasEnoughTokens}>
-                  {txnProcessing ? 'Processing' : 'Submit and Sign'}
+                  {isTxnProcessing ? 'Processing' : 'Submit and Sign'}
                 </button>
               </div>
             </form>

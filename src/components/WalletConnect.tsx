@@ -29,7 +29,7 @@ const WalletConnect = (props: WalletConnectProps) => {
     s.isWalletConnected,
     s.updateCurrentWalletAccount,
     s.updateWalletConnected,
-    s.txnProcessing,
+    s.isTxnProcessing,
   ]);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
