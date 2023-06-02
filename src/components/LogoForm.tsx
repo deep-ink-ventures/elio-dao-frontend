@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form';
 
 import type { LogoFormValues } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
-import { readFileAsB64 } from '@/utils';
 import upload from '@/svg/upload.svg';
+import { readFileAsB64 } from '@/utils';
 
 const LogoForm = (props: { daoId: string | null }) => {
   const [daoLogo, setDaoLogo] = useState(null);

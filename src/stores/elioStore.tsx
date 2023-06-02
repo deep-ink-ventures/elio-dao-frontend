@@ -4,6 +4,12 @@ import { create } from 'zustand';
 
 import { daoArray } from './fakeData';
 
+export interface TransferFormValues {
+  assetId: number;
+  toAddress: string;
+  amount: BN;
+}
+
 export interface TokenRecipient {
   walletAddress: string;
   tokens: BN; // this is before adding DAO units

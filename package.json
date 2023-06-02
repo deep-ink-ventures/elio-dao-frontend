@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "@hookform/error-message": "^2.0.1",
+    "@soroban-react/contracts": "^5.0.3",
+    "@soroban-react/core": "^5.0.3",
     "@stellar/freighter-api": "^1.4.0",
     "antd": "^5.2.2",
     "bn.js": "^5.2.1",

@@ -8,9 +8,11 @@ import type { MajorityModelValues } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 
 const MajorityModel = (props: { daoId: string | null }) => {
-  const [currentDao, isTxnProcessing] = useElioStore(
-    (s) => [s.currentDao, s.isTxnProcessing, s.currentWalletAccount]
-  );
+  const [currentDao, isTxnProcessing] = useElioStore((s) => [
+    s.currentDao,
+    s.isTxnProcessing,
+    s.currentWalletAccount,
+  ]);
 
   const {
     register,

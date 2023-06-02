@@ -7,9 +7,9 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { DAO_UNITS } from '@/config';
 import type { CouncilTokensValues } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
-import { truncateMiddle, uiTokens } from '@/utils';
 import d from '@/svg/delete.svg';
 import plus from '@/svg/plus.svg';
+import { truncateMiddle, uiTokens } from '@/utils';
 
 const CouncilTokens = (props: { daoId: string | null }) => {
   const [isTxnProcessing, currentDao, currentWalletAccount] = useElioStore(
