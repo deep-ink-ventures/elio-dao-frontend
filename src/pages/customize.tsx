@@ -80,8 +80,8 @@ const Customize = () => {
 
   return (
     <MainLayout
-      title='Create a DAO - GenesisDAO'
-      description='Create a DAO - GenesisDAO'>
+      title='Create a DAO - ElioDAO'
+      description='Create a DAO - ElioDAO'>
       <div className='container mx-auto mt-5 min-w-[600px] max-w-[820px] px-12 py-5'>
         {showPage && display()}
         {!showPage && <Loading />}
