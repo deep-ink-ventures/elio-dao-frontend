@@ -4,6 +4,37 @@ import { create } from 'zustand';
 
 import { daoArray } from './fakeData';
 
+export enum ProposalStatus {
+  Active = 'Active',
+  Counting = 'Counting',
+  Accepted = 'Accepted',
+  Rejected = 'Rejected',
+  Faulty = 'Faulty',
+}
+
+export interface ProposalDetail {
+  proposalId: string;
+  daoId: string;
+  creator: string;
+  birthBlock: number;
+  metadataUrl: string | null;
+  metadataHash: string | null;
+  status: ProposalStatus | null;
+  inFavor: BN;
+  against: BN;
+  proposalName: string | null;
+  description: string | null;
+  link: string | null;
+}
+
+export interface TxnNotification {
+  title: string;
+  message: string;
+  type: TxnResponse;
+  timestamp: number;
+  txnHash?: string;
+}
+
 export interface TransferFormValues {
   assetId: number;
   toAddress: string;
@@ -74,6 +105,9 @@ export interface DaoDetail {
   daoCreatorAddress: string;
   setupComplete: boolean;
   daoAssetId: number | null;
+  proposalDuration: number | null;
+  proposalTokenDeposit: number;
+  minimumMajority: number | null;
   metadataUrl: string | null;
   metadataHash: string | null;
   descriptionShort: string | null;
@@ -117,6 +151,8 @@ export interface ElioState {
   daoPage: DaoPage;
   isStartModalOpen: boolean;
   createDaoSteps: number;
+  txnNotifications: TxnNotification[];
+  currentProposals: ProposalDetail[] | null;
 }
 
 export interface ElioActions {
@@ -128,6 +164,8 @@ export interface ElioActions {
   updateDaoPage: (daoPage: DaoPage) => void;
   updateIsStartModalOpen: (isStartModalOpen: boolean) => void;
   updateCreateDaoSteps: (createDaoSteps: number) => void;
+  addTxnNotification: (txnNotification: TxnNotification) => void;
+  removeTxnNotification: () => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -142,6 +180,8 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   isStartModalOpen: false,
   createDaoSteps: 1,
   daos: daoArray,
+  txnNotifications: [],
+  currentProposals: null,
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateCurrentWalletAccount: (currentWalletAccount) =>
     set({ currentWalletAccount }),
@@ -173,6 +213,18 @@ const useElioStore = create<ElioStore>()((set, get) => ({
     // get().addTxnNotification(newNoti);
   },
   updateCreateDaoSteps: (createDaoSteps) => set({ createDaoSteps }),
+  addTxnNotification: (newNotification) => {
+    const oldTxnNotis = get().txnNotifications;
+    // add the new noti to first index because we will start displaying notis from the last index
+    const newNotis = [newNotification, ...oldTxnNotis];
+    set({ txnNotifications: newNotis });
+  },
+  removeTxnNotification: () => {
+    // first in first out
+    const currentTxnNotis = get().txnNotifications;
+    const newNotis = currentTxnNotis.slice(0, -1);
+    set({ txnNotifications: newNotis });
+  },
 }));
 
 export default useElioStore;
