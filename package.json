@@ -33,6 +33,7 @@
     "react-hook-form": "^7.42.1",
     "soroban-client": "^0.5.1",
     "stellar-wallets-kit": "github:Creit-Tech/Stellar-Wallets-Kit",
+    "uuid": "^9.0.0",
     "zustand": "^4.3.2"
   },
   "devDependencies": {
@@ -48,6 +49,7 @@
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.26",
     "@types/retry": "^0.12.2",
+    "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.47.1",
     "@typescript-eslint/parser": "^5.47.1",
     "autoprefixer": "^10.4.13",
