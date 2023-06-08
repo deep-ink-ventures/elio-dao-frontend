@@ -4,6 +4,17 @@ import { create } from 'zustand';
 
 import { daoArray } from './fakeData';
 
+export interface FaultyReport {
+  proposalId: string;
+  reason: string;
+}
+
+export interface ProposalCreationValues {
+  title: string;
+  description: string;
+  url: string;
+}
+
 export enum ProposalStatus {
   Active = 'Active',
   Counting = 'Counting',
@@ -145,6 +156,8 @@ export interface ElioState {
   currentDao: DaoDetail | null;
   daos: DaoDetail[] | null;
   currentWalletAccount: WalletAccount | null;
+  currentProposalFaultyReports: FaultyReport[] | null;
+  daoTokenBalance: BN | null;
   isConnectModalOpen: boolean;
   isWalletConnected: boolean;
   isTxnProcessing: boolean;
@@ -153,6 +166,9 @@ export interface ElioState {
   createDaoSteps: number;
   txnNotifications: TxnNotification[];
   currentProposals: ProposalDetail[] | null;
+  proposalCreationValues: ProposalCreationValues | null;
+  isFaultyModalOpen: boolean;
+  isFaultyReportsOpen: boolean;
 }
 
 export interface ElioActions {
@@ -160,12 +176,17 @@ export interface ElioActions {
   updateCurrentWalletAccount: (walletAccount: WalletAccount | null) => void;
   updateIsConnectModalOpen: (isOpen: boolean) => void;
   updateWalletConnected: (connected: boolean) => void;
-  updateTxnProcessing: (txnProcessing: boolean) => void;
+  updateIsTxnProcessing: (txnProcessing: boolean) => void;
   updateDaoPage: (daoPage: DaoPage) => void;
   updateIsStartModalOpen: (isStartModalOpen: boolean) => void;
   updateCreateDaoSteps: (createDaoSteps: number) => void;
   addTxnNotification: (txnNotification: TxnNotification) => void;
   removeTxnNotification: () => void;
+  updateProposalCreationValues: (
+    proposalCreationValues: ProposalCreationValues
+  ) => void;
+  updateIsFaultyModalOpen: (isFaultyModalOpen: boolean) => void;
+  updateIsFaultyReportsOpen: (isFaultyReportsOpen: boolean) => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -182,12 +203,17 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   daos: daoArray,
   txnNotifications: [],
   currentProposals: null,
+  proposalCreationValues: null,
+  daoTokenBalance: null,
+  isFaultyModalOpen: false,
+  isFaultyReportsOpen: false,
+  currentProposalFaultyReports: null,
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateCurrentWalletAccount: (currentWalletAccount) =>
     set({ currentWalletAccount }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
   updateWalletConnected: (isWalletConnected) => set({ isWalletConnected }),
-  updateTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
+  updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
   updateDaoPage: (daoPage) => set(() => ({ daoPage })),
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
@@ -212,7 +238,6 @@ const useElioStore = create<ElioStore>()((set, get) => ({
     set({ isTxnProcessing: false });
     // get().addTxnNotification(newNoti);
   },
-  updateCreateDaoSteps: (createDaoSteps) => set({ createDaoSteps }),
   addTxnNotification: (newNotification) => {
     const oldTxnNotis = get().txnNotifications;
     // add the new noti to first index because we will start displaying notis from the last index
@@ -225,6 +250,13 @@ const useElioStore = create<ElioStore>()((set, get) => ({
     const newNotis = currentTxnNotis.slice(0, -1);
     set({ txnNotifications: newNotis });
   },
+  updateCreateDaoSteps: (createDaoSteps) => set({ createDaoSteps }),
+
+  updateProposalCreationValues: (proposalCreationValues) =>
+    set({ proposalCreationValues }),
+  updateIsFaultyModalOpen: (isFaultyModalOpen) => set({ isFaultyModalOpen }),
+  updateIsFaultyReportsOpen: (isFaultyReportsOpen) =>
+    set({ isFaultyReportsOpen }),
 }));
 
 export default useElioStore;
