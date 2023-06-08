@@ -7,7 +7,7 @@ import ReviewProposal from '@/components/ReviewProposal';
 import WalletConnect from '@/components/WalletConnect';
 import useElioStore from '@/stores/elioStore';
 import MainLayout from '@/templates/MainLayout';
-import arrowLeft from '@/svg/arrow-left.svg';
+import arrowLeft from '@/svg/arrowLeft.svg';
 
 const CreateProposalPage = () => {
   const [currentWalletAccount, currentDao, updateDaoPage] = useElioStore(
