@@ -1,4 +1,5 @@
-import type BN from 'bn.js';
+import type BigNumber from 'bignumber.js';
+import * as SorobanClient from 'soroban-client';
 
 // @ts-ignore
 export const truncateMiddle = (str?, start = 4, end = 4) => {
@@ -66,7 +67,7 @@ export const getProposalEndTime = (
 };
 
 // eslint-disable-next-line
-export const uiTokens = (rawAmount: BN | null, tokenType?: 'native' | 'dao', unitName?: string) => {
+export const uiTokens = (rawAmount: BigNumber | null, tokenType?: 'native' | 'dao', unitName?: string) => {
 
   // const units = tokenType === 'native' ? NATIVE_UNITS : DAO_UNITS
 
@@ -77,4 +78,26 @@ export const uiTokens = (rawAmount: BN | null, tokenType?: 'native' | 'dao', uni
   //   withZero: false,
   // } )
   return `${rawAmount?.toString()} Units`;
+};
+
+export const formatTokenAmount = (amount: BigNumber, decimals: number) => {
+  let formatted = amount.shiftedBy(-decimals).toFixed(decimals).toString();
+
+  // Trim trailing zeros
+  while (formatted[formatted.length - 1] === '0') {
+    formatted = formatted.substring(0, formatted.length - 1);
+  }
+
+  if (formatted.endsWith('.')) {
+    formatted = formatted.substring(0, formatted.length - 1);
+  }
+  return formatted;
+};
+
+export const accountToScVal = (account: string) =>
+  new SorobanClient.Address(account).toScVal();
+
+export const decodeBytesN = (xdr: string) => {
+  const val = SorobanClient.xdr.ScVal.fromXDR(xdr, 'base64');
+  return val.bytes().toString();
 };

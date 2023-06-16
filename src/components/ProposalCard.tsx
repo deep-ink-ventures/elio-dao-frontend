@@ -5,6 +5,7 @@ import { DAO_UNITS } from '@/config';
 import type { ProposalDetail } from '@/stores/elioStore';
 import useGenesisStore from '@/stores/elioStore';
 import { getProposalEndTime } from '@/utils';
+import BigNumber from 'bignumber.js';
 
 export const statusColors = {
   Active: 'bg-neutral text-base-100',
@@ -35,20 +36,20 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
   const inFavorPercentageMemo = useMemo(() => {
     const inFavorVotes = props.p?.inFavor || new BN(0);
     const againstVotes = props.p?.against || new BN(0);
-    const totalVotes = inFavorVotes.add(againstVotes);
+    const totalVotes = inFavorVotes.plus(againstVotes);
     const inFavorPercentage = inFavorVotes.isZero()
       ? new BN(0)
-      : inFavorVotes.mul(new BN(100)).div(totalVotes);
+      : inFavorVotes.multipliedBy(new BigNumber(100)).dividedBy(totalVotes);
     return inFavorPercentage.toString();
   }, [props.p]);
 
   const againstPercentageMemo = useMemo(() => {
     const inFavorVotes = props.p?.inFavor || new BN(0);
     const againstVotes = props.p?.against || new BN(0);
-    const totalVotes = inFavorVotes.add(againstVotes);
+    const totalVotes = inFavorVotes.plus(againstVotes);
     const againstPercentage = againstVotes.isZero()
       ? new BN(0)
-      : againstVotes.mul(new BN(100)).div(totalVotes);
+      : againstVotes.multipliedBy(new BigNumber(100)).dividedBy(totalVotes);
     return againstPercentage.toString();
   }, [props.p]);
 
@@ -103,7 +104,7 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
                 <div className='absolute p-1 text-sm'>
                   In Favor ({' '}
                   {props.p?.inFavor
-                    ? props.p.inFavor.div(new BN(DAO_UNITS)).toString()
+                    ? props.p.inFavor.div(new BigNumber(DAO_UNITS)).toString()
                     : new BN(0).toString()}
                   )
                 </div>
@@ -118,7 +119,7 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
                   <p className=''>
                     Against (
                     {props.p?.against
-                      ? props.p.against.div(new BN(DAO_UNITS)).toString()
+                      ? props.p.against.div(new BigNumber(DAO_UNITS)).toString()
                       : new BN(0).toString()}
                     )
                   </p>

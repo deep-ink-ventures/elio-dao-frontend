@@ -1,5 +1,4 @@
 import { ErrorMessage } from '@hookform/error-message';
-import BN from 'bn.js';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -10,13 +9,14 @@ import useElioStore from '@/stores/elioStore';
 import d from '@/svg/delete.svg';
 import plus from '@/svg/plus.svg';
 import { truncateMiddle, uiTokens } from '@/utils';
+import BigNumber from 'bignumber.js';
 
 const CouncilTokens = (props: { daoId: string | null }) => {
   const [isTxnProcessing, currentDao, currentWalletAccount] = useElioStore(
     (s) => [s.isTxnProcessing, s.currentDao, s.currentWalletAccount]
   );
 
-  const daoTokenBalance = new BN(100);
+  const daoTokenBalance = new BigNumber(100);
   const [membersCount, setMembersCount] = useState(2);
 
   const {
@@ -40,10 +40,10 @@ const CouncilTokens = (props: { daoId: string | null }) => {
       tokenRecipients: [
         {
           walletAddress: '',
-          tokens: new BN(0),
+          tokens: new BigNumber(0),
         },
       ],
-      treasuryTokens: new BN(0),
+      treasuryTokens: new BigNumber(0),
     },
   });
 
@@ -55,21 +55,21 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   const getTotalRecipientsTokens = (
     recipients: CouncilTokensValues['tokenRecipients']
   ) => {
-    let total = new BN(0);
+    let total = new BigNumber(0);
     if (!recipients) {
-      return new BN(0);
+      return new BigNumber(0);
     }
     // eslint-disable-next-line
     for (const item of recipients) {
-      total = total.add(item.tokens);
+      total = total.plus(item.tokens);
     }
     // multiply by DAO units to get the right tokens
     return total;
   };
 
   const remain = daoTokenBalance
-    ? daoTokenBalance.sub(getTotalRecipientsTokens(tokensValues))
-    : new BN(0);
+    ? daoTokenBalance.dividedBy(getTotalRecipientsTokens(tokensValues))
+    : new BigNumber(0);
 
   const {
     fields: councilMembersFields,
@@ -109,7 +109,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   const handleAddRecipient = () => {
     tokenRecipientsAppend({
       walletAddress: '',
-      tokens: new BN(0),
+      tokens: new BigNumber(0),
     });
   };
 
@@ -154,8 +154,8 @@ const CouncilTokens = (props: { daoId: string | null }) => {
                   required: 'Required',
                   min: { value: 1, message: 'Minimum is 1' },
                   setValueAs: (tokens) => {
-                    const bnTokens = new BN(tokens);
-                    return bnTokens.mul(new BN(DAO_UNITS));
+                    const bnTokens = new BigNumber(tokens);
+                    return bnTokens.multipliedBy(new BigNumber(DAO_UNITS));
                   },
                 })}
               />

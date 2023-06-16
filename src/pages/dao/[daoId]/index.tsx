@@ -1,4 +1,3 @@
-import BN from 'bn.js';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -18,6 +17,7 @@ import placeholderImage from '@/svg/placeholderImage.svg';
 import proposal from '@/svg/proposal.svg';
 import MainLayout from '@/templates/MainLayout';
 import { uiTokens } from '@/utils';
+import BigNumber from 'bignumber.js';
 
 const MainDaoPage = () => {
   const router = useRouter();
@@ -37,7 +37,7 @@ const MainDaoPage = () => {
     s.updateCurrentDao,
   ]);
 
-  const daoTokenBalance = new BN(250000000000000);
+  const daoTokenBalance = new BigNumber(250000000000000);
 
   const handleChangePage = (pageParam: DaoPage) => {
     updateDaoPage(pageParam);

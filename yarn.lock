@@ -1221,6 +1221,14 @@
   dependencies:
     "@sinonjs/commons" "^2.0.0"
 
+"@soroban-react/chains@^5.0.3":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@soroban-react/chains/-/chains-5.0.3.tgz#b376a13839e278917874f481b759704ee15d2d31"
+  integrity sha512-+jfoWayEGRqEIgJuMj6JxFJV0af+YNh0fXARkRifkywsu3ZUbC2j1fRL2bFPW3bDpN/wA9aYQ4+YuKU9Sg68Rg==
+  dependencies:
+    "@soroban-react/types" "^5.0.3"
+    soroban-client "0.8.0"
+
 "@soroban-react/contracts@^5.0.3":
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/@soroban-react/contracts/-/contracts-5.0.3.tgz#cccecb397b98deda9bbd421a43a111c133bf32b5"
@@ -1502,13 +1510,6 @@
   integrity sha512-enCvTL8m/EHS/zIvJno9nE+ndYPh1/oNFzRYRmtUqJICG2VnCSBzMLW5VN2KCQU91f23tsNKR8v7VJJQMatl7Q==
   dependencies:
     "@babel/types" "^7.3.0"
-
-"@types/bn.js@^5.1.1":
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.1.1.tgz#b51e1b55920a4ca26e9285ff79936bbdec910682"
-  integrity sha512-qNrYbZqMx0uJAfKnKclPh+dTwK33KfLHYqtyODwd5HnXOjnkhc4qgn3BrK6RWyGZm5+sIFE7Q7Vz6QQtJB7w7g==
-  dependencies:
-    "@types/node" "*"
 
 "@types/domutils@*":
   version "1.7.4"
@@ -2541,7 +2542,7 @@ bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.11.9:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.12.0.tgz#775b3f278efbb9718eec7361f483fb36fbbfea88"
   integrity sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==
 
-bn.js@^5.0.0, bn.js@^5.1.1, bn.js@^5.2.1:
+bn.js@^5.0.0, bn.js@^5.1.1:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.1.tgz#0bc527a6a0d18d0aa8d5b0538ce4a77dccfa7b70"
   integrity sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==

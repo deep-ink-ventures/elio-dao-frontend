@@ -1,5 +1,4 @@
 import { ErrorMessage } from '@hookform/error-message';
-import BN from 'bn.js';
 import { useEffect } from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
@@ -8,13 +7,14 @@ import { DAO_UNITS } from '@/config';
 import type { TransferFormValues } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import { uiTokens } from '@/utils';
+import BigNumber from 'bignumber.js';
 
 const TransferForm = (props: { assetId: number; daoId: string }) => {
   const [isTxnProcessing, currentWalletAccount] = useElioStore((s) => [
     s.isTxnProcessing,
     s.currentWalletAccount,
   ]);
-  const daoTokenBalance = new BN(100);
+  const daoTokenBalance = new BigNumber(100);
   const {
     register,
     handleSubmit,
@@ -46,7 +46,7 @@ const TransferForm = (props: { assetId: number; daoId: string }) => {
         {
           assetId: props.assetId,
           toAddress: '',
-          amount: new BN(0),
+          amount: new BigNumber(0),
         },
         { keepErrors: true }
       );
@@ -96,7 +96,7 @@ const TransferForm = (props: { assetId: number; daoId: string }) => {
                 message: 'The Amount is zero or too small',
               },
               setValueAs: (tokens) => {
-                return new BN(tokens * DAO_UNITS);
+                return new BigNumber(tokens * DAO_UNITS);
               },
             })}
           />
