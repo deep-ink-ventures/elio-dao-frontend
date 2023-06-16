@@ -1,5 +1,4 @@
 import type BigNumber from 'bignumber.js';
-import type BN from 'bn.js';
 import type { StellarWalletsKit } from 'stellar-wallets-kit';
 import { create } from 'zustand';
 import { daoArray } from './fakeData';
@@ -157,7 +156,7 @@ export interface ElioState {
   daos: DaoDetail[] | null;
   currentWalletAccount: WalletAccount | null;
   currentProposalFaultyReports: FaultyReport[] | null;
-  daoTokenBalance: BN | null;
+  daoTokenBalance: BigNumber | null;
   isConnectModalOpen: boolean;
   isWalletConnected: boolean;
   isTxnProcessing: boolean;

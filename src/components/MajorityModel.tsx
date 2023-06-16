@@ -1,11 +1,11 @@
 import { ErrorMessage } from '@hookform/error-message';
-import BN from 'bn.js';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
 import { DAO_UNITS } from '@/config';
 import type { MajorityModelValues } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
+import BigNumber from 'bignumber.js';
 
 const MajorityModel = (props: { daoId: string | null }) => {
   const [currentDao, isTxnProcessing] = useElioStore((s) => [
@@ -21,7 +21,7 @@ const MajorityModel = (props: { daoId: string | null }) => {
     formState: { errors },
   } = useForm<MajorityModelValues>({
     defaultValues: {
-      tokensToIssue: new BN(0),
+      tokensToIssue: new BigNumber(0),
       proposalTokensCost: 0,
       minimumMajority: 10,
       votingDays: 1,
@@ -67,8 +67,8 @@ const MajorityModel = (props: { daoId: string | null }) => {
                     min: { value: 1, message: 'Minimum is 1' },
                     max: { value: 900000000, message: 'Max is 900,000,000' },
                     setValueAs: (tokens) => {
-                      const bnTokens = new BN(tokens);
-                      return bnTokens.mul(new BN(DAO_UNITS));
+                      const bnTokens = new BigNumber(tokens);
+                      return bnTokens.multipliedBy(new BigNumber(DAO_UNITS));
                     },
                   })}
                 />

@@ -1,15 +1,15 @@
-import BN from 'bn.js';
 import Link from 'next/link';
 
 // import DestroyDao from '@/components/DestroyDao';
 import useElioStore from '@/stores/elioStore';
+import BigNumber from 'bignumber.js';
 
 const DaoDashboard = () => {
   const [currentWalletAccount, currentDao] = useElioStore((s) => [
     s.currentWalletAccount,
     s.currentDao,
   ]);
-  const daoTokenBalance = new BN(25000);
+  const daoTokenBalance = new BigNumber(25000);
 
   return (
     <div className='flex flex-col gap-y-4'>
@@ -73,7 +73,7 @@ const DaoDashboard = () => {
             disabled={
               !currentWalletAccount ||
               daoTokenBalance?.isZero() ||
-              !daoTokenBalance?.gt(new BN(0))
+              !daoTokenBalance?.gt(new BigNumber(0))
             }>
             Send Tokens
           </button>

@@ -1,4 +1,3 @@
-import { BN } from 'bn.js';
 import { useMemo } from 'react';
 
 import { DAO_UNITS } from '@/config';
@@ -34,21 +33,21 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
   }, [props.p, currentBlockNumber, currentDao?.proposalDuration]);
 
   const inFavorPercentageMemo = useMemo(() => {
-    const inFavorVotes = props.p?.inFavor || new BN(0);
-    const againstVotes = props.p?.against || new BN(0);
+    const inFavorVotes = props.p?.inFavor || new BigNumber(0);
+    const againstVotes = props.p?.against || new BigNumber(0);
     const totalVotes = inFavorVotes.plus(againstVotes);
     const inFavorPercentage = inFavorVotes.isZero()
-      ? new BN(0)
+      ? new BigNumber(0)
       : inFavorVotes.multipliedBy(new BigNumber(100)).dividedBy(totalVotes);
     return inFavorPercentage.toString();
   }, [props.p]);
 
   const againstPercentageMemo = useMemo(() => {
-    const inFavorVotes = props.p?.inFavor || new BN(0);
-    const againstVotes = props.p?.against || new BN(0);
+    const inFavorVotes = props.p?.inFavor || new BigNumber(0);
+    const againstVotes = props.p?.against || new BigNumber(0);
     const totalVotes = inFavorVotes.plus(againstVotes);
     const againstPercentage = againstVotes.isZero()
-      ? new BN(0)
+      ? new BigNumber(0)
       : againstVotes.multipliedBy(new BigNumber(100)).dividedBy(totalVotes);
     return againstPercentage.toString();
   }, [props.p]);
@@ -105,7 +104,7 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
                   In Favor ({' '}
                   {props.p?.inFavor
                     ? props.p.inFavor.div(new BigNumber(DAO_UNITS)).toString()
-                    : new BN(0).toString()}
+                    : new BigNumber(0).toString()}
                   )
                 </div>
               </div>
@@ -120,7 +119,7 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
                     Against (
                     {props.p?.against
                       ? props.p.against.div(new BigNumber(DAO_UNITS)).toString()
-                      : new BN(0).toString()}
+                      : new BigNumber(0).toString()}
                     )
                   </p>
                 </div>

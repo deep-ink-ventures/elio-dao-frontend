@@ -1,7 +1,7 @@
 import 'react-quill/dist/quill.snow.css';
 
 import { ErrorMessage } from '@hookform/error-message';
-import BN from 'bn.js';
+
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,6 +10,7 @@ import { DAO_UNITS } from '@/config';
 import type { DaoDetail } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 
+import BigNumber from 'bignumber.js';
 import Spinner from './Spinner';
 
 const Quill = dynamic(
@@ -80,7 +81,9 @@ const CreateProposal = (props: {
       return false;
     }
     return daoTokenBalance?.gte(
-      new BN(currentDao?.proposalTokenDeposit).mul(new BN(DAO_UNITS))
+      new BigNumber(currentDao?.proposalTokenDeposit).multipliedBy(
+        new BigNumber(DAO_UNITS)
+      )
     );
   }, [currentDao, daoTokenBalance]);
 
