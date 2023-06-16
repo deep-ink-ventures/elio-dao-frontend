@@ -1,7 +1,6 @@
-import type BN from 'bn.js';
+import type BigNumber from 'bignumber.js';
 import type { StellarWalletsKit } from 'stellar-wallets-kit';
 import { create } from 'zustand';
-
 import { daoArray } from './fakeData';
 
 export interface FaultyReport {
@@ -31,8 +30,8 @@ export interface ProposalDetail {
   metadataUrl: string | null;
   metadataHash: string | null;
   status: ProposalStatus | null;
-  inFavor: BN;
-  against: BN;
+  inFavor: BigNumber;
+  against: BigNumber;
   proposalName: string | null;
   description: string | null;
   link: string | null;
@@ -49,12 +48,12 @@ export interface TxnNotification {
 export interface TransferFormValues {
   assetId: number;
   toAddress: string;
-  amount: BN;
+  amount: BigNumber;
 }
 
 export interface TokenRecipient {
   walletAddress: string;
-  tokens: BN; // this is before adding DAO units
+  tokens: BigNumber; // this is before adding DAO units
 }
 
 export interface CouncilMember {
@@ -77,7 +76,7 @@ export interface LogoFormValues {
 }
 
 export interface MajorityModelValues {
-  tokensToIssue: BN; // fixme BN
+  tokensToIssue: BigNumber; // fixme BN
   proposalTokensCost: number;
   minimumMajority: number; // percentage or decimals
   votingDays: number; // in days
@@ -92,7 +91,7 @@ export interface CouncilFormValues {
 
 export interface IssueTokensValues {
   tokenRecipients: TokenRecipient[];
-  treasuryTokens: BN;
+  treasuryTokens: BigNumber;
 }
 
 export enum TxnResponse {
@@ -157,7 +156,7 @@ export interface ElioState {
   daos: DaoDetail[] | null;
   currentWalletAccount: WalletAccount | null;
   currentProposalFaultyReports: FaultyReport[] | null;
-  daoTokenBalance: BN | null;
+  daoTokenBalance: BigNumber | null;
   isConnectModalOpen: boolean;
   isWalletConnected: boolean;
   isTxnProcessing: boolean;

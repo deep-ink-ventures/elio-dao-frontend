@@ -6,8 +6,8 @@ import CreateProposal from '@/components/CreateProposal';
 import ReviewProposal from '@/components/ReviewProposal';
 import WalletConnect from '@/components/WalletConnect';
 import useElioStore from '@/stores/elioStore';
-import MainLayout from '@/templates/MainLayout';
 import arrowLeft from '@/svg/arrowLeft.svg';
+import MainLayout from '@/templates/MainLayout';
 
 const CreateProposalPage = () => {
   const [currentWalletAccount, currentDao, updateDaoPage] = useElioStore(
