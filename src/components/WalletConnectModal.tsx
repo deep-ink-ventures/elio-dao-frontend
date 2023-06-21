@@ -33,7 +33,7 @@ const WalletConnectModal = () => {
       kit.getPublicKey().then((key) => {
         updateCurrentWalletAccount({
           publicKey: key,
-          network: WalletNetwork.FUTURENET,
+          network: 'Test SDF Future Network ; October 2022',
           kit,
         });
       });

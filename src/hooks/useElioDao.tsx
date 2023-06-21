@@ -1,8 +1,8 @@
 import useElioStore from '@/stores/elioStore';
-import { useContractValue } from '@soroban-react/contracts';
-import { useSorobanReact } from '@soroban-react/core';
-import type { xdr } from 'soroban-client';
+import { accountToScVal } from '@/utils';
 import * as SorobanClient from 'soroban-client';
+import { WalletNetwork } from 'stellar-wallets-kit';
+import { BASE_FEE, ELIO_CORE_CONTRACT_ID } from '../config/index';
 
 export enum TxnStatus {
   PENDING = 'pending',
@@ -10,38 +10,41 @@ export enum TxnStatus {
 }
 
 const useElioDao = () => {
-  // const { sendTransaction } = useSendTransaction()
-  const sorobanContext = useSorobanReact();
-  const [currentWalletAccount] = useElioStore((s) => [s.currentWalletAccount]);
+  const [currentWalletAccount, sorobanServer, networkPassphrase] = useElioStore(
+    (s) => [s.currentWalletAccount, s.sorobanServer, s.networkPassphrase]
+  );
 
-  // Call the contract to get user's balance of the token
-  const useLoadToken = (
-    account: string,
-    tokenId: string,
-    params: xdr.ScVal[]
-  ): any => {
-    return {
-      userBalance: useContractValue({
-        contractId: tokenId,
-        method: 'balance',
-        params: [new SorobanClient.Address(account).toScVal() as any], // fixme
-        sorobanContext,
-      }),
-      decimals: useContractValue({
-        contractId: tokenId,
-        method: 'decimals',
-        sorobanContext,
-      }),
-      symbol: useContractValue({
-        contractId: tokenId,
-        method: 'symbol',
-        sorobanContext,
-      }),
-    };
+  const getTxnBuilder = async (publicKey: string) => {
+    const sourceAccount = await sorobanServer.getAccount(publicKey);
+    return new SorobanClient.TransactionBuilder(sourceAccount, {
+      fee: BASE_FEE,
+      networkPassphrase,
+    });
+  };
+
+  const makeCreateDaoTxn = async (
+    daoId: string,
+    daoName: string,
+    owner: string
+  ) => {
+    const txnBuilder = await getTxnBuilder(owner);
+    const contract = await new SorobanClient.Contract(ELIO_CORE_CONTRACT_ID);
+    const txn = txnBuilder
+      .addOperation(
+        contract.call(
+          'create_dao',
+          SorobanClient.xdr.ScVal.scvString(daoId),
+          SorobanClient.xdr.ScVal.scvString(daoName),
+          accountToScVal(owner)
+        )
+      )
+      .setTimeout(0)
+      .build();
+
+    return txn;
   };
 
   const makeContractTxn = (
-    networkPassphrase: string,
     source: SorobanClient.Account,
     contractId: string,
     method: string,
@@ -49,8 +52,7 @@ const useElioDao = () => {
   ): SorobanClient.Transaction => {
     const contract = new SorobanClient.Contract(contractId);
     return new SorobanClient.TransactionBuilder(source, {
-      // TODO: Figure out the fee
-      fee: '100',
+      fee: BASE_FEE,
       networkPassphrase,
     })
       .addOperation(contract.call(method, ...params))
@@ -75,8 +77,7 @@ const useElioDao = () => {
 
   const makeTokenSymbolTxn = async (
     tokenId: string,
-    txBuilder: SorobanClient.TransactionBuilder,
-    server: SorobanClient.Server
+    txBuilder: SorobanClient.TransactionBuilder
   ) => {
     const contract = new SorobanClient.Contract(tokenId);
     const tx = txBuilder
@@ -113,16 +114,23 @@ const useElioDao = () => {
     return tx;
   };
 
-  const sendTxn = async (
-    signedXDR: string,
-    networkPassphrase: string,
-    server: SorobanClient.Server
-  ) => {
+  const prepareTxn = async (unpreparedTxn: any) => {
+    const preparedTxn = await sorobanServer.prepareTransaction(
+      unpreparedTxn,
+      networkPassphrase
+    );
+
+    return preparedTxn.toXDR();
+  };
+
+  const sendTxn = async (signedXDR: string) => {
     const tx = SorobanClient.TransactionBuilder.fromXDR(
       signedXDR,
       networkPassphrase
     );
-    const sendResponse = await server.sendTransaction(tx);
+    const res = await sorobanServer.simulateTransaction(tx);
+    console.log(res);
+    const sendResponse = await sorobanServer.sendTransaction(tx);
 
     if (sendResponse.errorResultXdr) {
       console.log(`can't send txn`);
@@ -130,11 +138,11 @@ const useElioDao = () => {
 
     if (sendResponse.status === 'PENDING') {
       // eslint-disable-next-line
-      let txResponse = await server.getTransaction(sendResponse.hash);
+      let txResponse = await sorobanServer.getTransaction(sendResponse.hash);
 
       while (txResponse.status === 'NOT_FOUND') {
         // eslint-disable-next-line
-        txResponse = await server.getTransaction(sendResponse.hash);
+        txResponse = await sorobanServer.getTransaction(sendResponse.hash);
         // eslint-disable-next-line
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
@@ -148,12 +156,14 @@ const useElioDao = () => {
     }
   };
 
-  const signTxn = async (xdr: any) => {
+  const signTxn = async (xdr: string) => {
     if (!currentWalletAccount) {
       return;
     }
     const { signedXDR } = await currentWalletAccount.kit.sign({
       xdr,
+      publicKey: currentWalletAccount.publicKey,
+      network: WalletNetwork.FUTURENET,
     });
     // eslint-disable-next-line
     return signedXDR;
@@ -161,13 +171,14 @@ const useElioDao = () => {
 
   return {
     makeContractTxn,
-    useLoadToken,
     makeTokenBalanceTxn,
     makeTokenNameTxn,
     getTokenDecimalsTxn,
     makeTokenSymbolTxn,
     sendTxn,
     signTxn,
+    prepareTxn,
+    makeCreateDaoTxn,
   };
 };
 

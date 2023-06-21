@@ -1,6 +1,9 @@
 import type BigNumber from 'bignumber.js';
+import type { Account } from 'soroban-client';
+import * as SorobanClient from 'soroban-client';
 import type { StellarWalletsKit } from 'stellar-wallets-kit';
 import { create } from 'zustand';
+import { SOROBAN_RPC_ENDPOINT } from '../config/index';
 import { daoArray } from './fakeData';
 
 export interface FaultyReport {
@@ -131,7 +134,7 @@ export interface DaoDetail {
   };
 }
 
-export declare enum WalletNetwork {
+export declare enum NetworkPassphrase {
   PUBLIC = 'Public Global Stellar Network ; September 2015',
   FUTURENET = 'Test SDF Future Network ; October 2022',
   TESTNET = 'Test SDF Network ; September 2015',
@@ -147,7 +150,7 @@ export declare enum WalletType {
 
 export interface WalletAccount {
   publicKey: string;
-  network: WalletNetwork;
+  network: string;
   kit: StellarWalletsKit;
 }
 
@@ -168,6 +171,9 @@ export interface ElioState {
   proposalCreationValues: ProposalCreationValues | null;
   isFaultyModalOpen: boolean;
   isFaultyReportsOpen: boolean;
+  sorobanServer: SorobanClient.Server;
+  account: Account | null;
+  networkPassphrase: string;
 }
 
 export interface ElioActions {
@@ -186,6 +192,7 @@ export interface ElioActions {
   ) => void;
   updateIsFaultyModalOpen: (isFaultyModalOpen: boolean) => void;
   updateIsFaultyReportsOpen: (isFaultyReportsOpen: boolean) => void;
+  fetchAccount: (publicKey: string) => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -207,6 +214,9 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   isFaultyModalOpen: false,
   isFaultyReportsOpen: false,
   currentProposalFaultyReports: null,
+  sorobanServer: new SorobanClient.Server(SOROBAN_RPC_ENDPOINT),
+  account: null,
+  networkPassphrase: 'Test SDF Future Network ; October 2022',
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateCurrentWalletAccount: (currentWalletAccount) =>
     set({ currentWalletAccount }),
@@ -256,6 +266,18 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   updateIsFaultyModalOpen: (isFaultyModalOpen) => set({ isFaultyModalOpen }),
   updateIsFaultyReportsOpen: (isFaultyReportsOpen) =>
     set({ isFaultyReportsOpen }),
+  fetchAccount: (publicKey: string) => {
+    if (get().sorobanServer) {
+      get()
+        .sorobanServer?.getAccount(publicKey)
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  },
 }));
 
 export default useElioStore;
