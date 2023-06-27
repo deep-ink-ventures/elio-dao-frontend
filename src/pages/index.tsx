@@ -9,37 +9,18 @@ import justice from '@/svg/justice.svg';
 import scale from '@/svg/scale.svg';
 import sticker from '@/svg/sticker.svg';
 import MainLayout from '@/templates/MainLayout';
-import { getNetwork, isConnected } from '@stellar/freighter-api';
-import { useEffect } from 'react';
 
 const Index = () => {
-  const [currentWalletAccount, updateIsStartModalOpen, fetchAccount] =
-    useElioStore((s) => [
-      s.currentWalletAccount,
-      s.updateIsStartModalOpen,
-      s.fetchAccount,
-    ]);
+  const [currentWalletAccount, updateIsStartModalOpen] = useElioStore((s) => [
+    s.currentWalletAccount,
+    s.updateIsStartModalOpen,
+  ]);
 
   const handleStartModal = () => {
     if (currentWalletAccount?.publicKey) {
       updateIsStartModalOpen(true);
     }
   };
-
-  useEffect(() => {
-    if (!currentWalletAccount?.publicKey) {
-      return;
-    }
-    fetchAccount(currentWalletAccount?.publicKey);
-  });
-
-  useEffect(() => {
-    const getFreighter = async () => {
-      console.log('is freighter connected', await isConnected());
-      console.log('what network', await getNetwork());
-    };
-    getFreighter();
-  });
 
   return (
     <MainLayout

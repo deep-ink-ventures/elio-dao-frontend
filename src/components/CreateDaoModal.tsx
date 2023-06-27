@@ -45,7 +45,7 @@ const CreateDaoModal = () => {
       const txn = await makeCreateDaoTxn(
         data.daoId,
         data.daoName,
-        currentWalletAccount.publicKey
+        currentWalletAccount?.publicKey
       );
       const preparedTxn = await prepareTxn(txn);
       const signedTxn = await signTxn(preparedTxn);
@@ -54,7 +54,7 @@ const CreateDaoModal = () => {
         return;
       }
       const response = await sendTxn(signedTxn);
-      console.log(response);
+      console.log('send txn resss', response);
     } catch (err) {
       console.log(err);
     }
