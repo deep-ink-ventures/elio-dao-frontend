@@ -1,11 +1,11 @@
+import useElioDao from '@/hooks/useElioDao';
+import type { CreateDaoData } from '@/stores/elioStore';
+import useElioStore from '@/stores/elioStore';
 import { ErrorMessage } from '@hookform/error-message';
 import Modal from 'antd/lib/modal';
 import { useEffect, useState } from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
-
-import type { CreateDaoData } from '@/stores/elioStore';
-import useElioStore from '@/stores/elioStore';
 
 // import { NATIVE_UNITS } from '../config/index';
 
@@ -18,9 +18,14 @@ const CreateDaoModal = () => {
     formState: { errors, isSubmitSuccessful },
   } = useForm<CreateDaoData>();
   const [hasEnoughTokens, _setHasEnoughTokens] = useState(true);
-  const isStartModalOpen = useElioStore((s) => s.isStartModalOpen);
-  const isTxnProcessing = useElioStore((s) => s.isTxnProcessing);
+  const [isStartModalOpen, isTxnProcessing, currentWalletAccount] =
+    useElioStore((s) => [
+      s.isStartModalOpen,
+      s.isTxnProcessing,
+      s.currentWalletAccount,
+    ]);
 
+  const { makeCreateDaoTxn, sendTxn, signTxn, prepareTxn } = useElioDao();
   const [updateIsStartModalOpen] = useElioStore((s) => [
     s.updateIsStartModalOpen,
   ]);
@@ -32,6 +37,28 @@ const CreateDaoModal = () => {
     data: CreateDaoData
   ) => {
     console.log(data);
+    if (!currentWalletAccount) {
+      return;
+    }
+
+    try {
+      const txn = await makeCreateDaoTxn(
+        data.daoId,
+        data.daoName,
+        currentWalletAccount.publicKey
+      );
+      const preparedTxn = await prepareTxn(txn);
+      const signedTxn = await signTxn(preparedTxn);
+      if (!signedTxn) {
+        console.log(signedTxn, 'not signed');
+        return;
+      }
+      const response = await sendTxn(signedTxn);
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
+
     updateIsStartModalOpen(false);
   };
 
