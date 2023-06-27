@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { NODE_URL } from '@/config';
 import { truncateMiddle } from '@/utils';
 
 import useElioStore, { TxnResponse } from '../stores/elioStore';
@@ -76,9 +75,7 @@ const NotificationToast = (props: ToastProps) => {
   };
 
   const makeExplorerLink = (hash: string) => {
-    const prefix = `https://polkadot.js.org/apps/?rpc=${encodeURIComponent(
-      NODE_URL
-    )}#/explorer/query/`;
+    const prefix = ``; // fixme
     return prefix + hash;
   };
 

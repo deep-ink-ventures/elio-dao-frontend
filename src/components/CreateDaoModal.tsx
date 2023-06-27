@@ -54,7 +54,7 @@ const CreateDaoModal = () => {
         return;
       }
       const response = await sendTxn(signedTxn);
-      console.log(response);
+      console.log('send txn resss', response);
     } catch (err) {
       console.log(err);
     }

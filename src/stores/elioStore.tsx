@@ -1,7 +1,10 @@
+import {
+  getNetworkDetails,
+  getPublicKey,
+  isConnected,
+} from '@stellar/freighter-api';
 import type BigNumber from 'bignumber.js';
-import type { Account } from 'soroban-client';
 import * as SorobanClient from 'soroban-client';
-import type { StellarWalletsKit } from 'stellar-wallets-kit';
 import { create } from 'zustand';
 import { SOROBAN_RPC_ENDPOINT } from '../config/index';
 import { daoArray } from './fakeData';
@@ -134,24 +137,12 @@ export interface DaoDetail {
   };
 }
 
-export declare enum NetworkPassphrase {
-  PUBLIC = 'Public Global Stellar Network ; September 2015',
-  FUTURENET = 'Test SDF Future Network ; October 2022',
-  TESTNET = 'Test SDF Network ; September 2015',
-}
-
-export declare enum WalletType {
-  XBULL = 'XBULL',
-  FREIGHTER = 'FREIGHTER',
-  ALBEDO = 'ALBEDO',
-  RABET = 'RABET',
-  WALLET_CONNECT = 'WALLET_CONNECT',
-}
-
 export interface WalletAccount {
+  isConnected: boolean;
   publicKey: string;
   network: string;
-  kit: StellarWalletsKit;
+  networkUrl: string;
+  networkPassphrase: string;
 }
 
 export interface ElioState {
@@ -161,7 +152,6 @@ export interface ElioState {
   currentProposalFaultyReports: FaultyReport[] | null;
   daoTokenBalance: BigNumber | null;
   isConnectModalOpen: boolean;
-  isWalletConnected: boolean;
   isTxnProcessing: boolean;
   daoPage: DaoPage;
   isStartModalOpen: boolean;
@@ -172,15 +162,12 @@ export interface ElioState {
   isFaultyModalOpen: boolean;
   isFaultyReportsOpen: boolean;
   sorobanServer: SorobanClient.Server;
-  account: Account | null;
   networkPassphrase: string;
 }
 
 export interface ElioActions {
   updateCurrentDao: (dao: DaoDetail | null) => void;
-  updateCurrentWalletAccount: (walletAccount: WalletAccount | null) => void;
   updateIsConnectModalOpen: (isOpen: boolean) => void;
-  updateWalletConnected: (connected: boolean) => void;
   updateIsTxnProcessing: (txnProcessing: boolean) => void;
   updateDaoPage: (daoPage: DaoPage) => void;
   updateIsStartModalOpen: (isStartModalOpen: boolean) => void;
@@ -192,7 +179,7 @@ export interface ElioActions {
   ) => void;
   updateIsFaultyModalOpen: (isFaultyModalOpen: boolean) => void;
   updateIsFaultyReportsOpen: (isFaultyReportsOpen: boolean) => void;
-  fetchAccount: (publicKey: string) => void;
+  getWallet: () => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -201,7 +188,6 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   currentDao: null,
   currentWalletAccount: null,
   isConnectModalOpen: false,
-  isWalletConnected: false,
   isTxnProcessing: false,
   daoPage: 'dashboard',
   isStartModalOpen: false,
@@ -215,13 +201,13 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   isFaultyReportsOpen: false,
   currentProposalFaultyReports: null,
   sorobanServer: new SorobanClient.Server(SOROBAN_RPC_ENDPOINT),
-  account: null,
   networkPassphrase: 'Test SDF Future Network ; October 2022',
+  contracts: {
+    elioCoreAddress: '',
+    elioVotesAddress: '',
+  },
   updateCurrentDao: (currentDao) => set({ currentDao }),
-  updateCurrentWalletAccount: (currentWalletAccount) =>
-    set({ currentWalletAccount }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
-  updateWalletConnected: (isWalletConnected) => set({ isWalletConnected }),
   updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
   updateDaoPage: (daoPage) => set(() => ({ daoPage })),
   updateIsStartModalOpen: (isStartModalOpen) =>
@@ -266,17 +252,18 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   updateIsFaultyModalOpen: (isFaultyModalOpen) => set({ isFaultyModalOpen }),
   updateIsFaultyReportsOpen: (isFaultyReportsOpen) =>
     set({ isFaultyReportsOpen }),
-  fetchAccount: (publicKey: string) => {
-    if (get().sorobanServer) {
-      get()
-        .sorobanServer?.getAccount(publicKey)
-        .then((data) => {
-          console.log(data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
+  getWallet: async () => {
+    const connected = await isConnected();
+    const networkDetails = await getNetworkDetails();
+    const publicKey = await getPublicKey();
+    const wallet: WalletAccount = {
+      isConnected: connected,
+      network: networkDetails.network,
+      networkPassphrase: networkDetails.networkPassphrase,
+      publicKey,
+      networkUrl: networkDetails.networkUrl,
+    };
+    set({ currentWalletAccount: wallet });
   },
 }));
 
