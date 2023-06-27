@@ -18,17 +18,13 @@ const WalletConnect = (props: WalletConnectProps) => {
     isConnectModalOpen,
     updateIsConnectModalOpen,
     currentWalletAccount,
-    isWalletConnected,
     updateCurrentWalletAccount,
-    updateWalletConnected,
-    txnProcessing,
+    isTxnProcessing,
   ] = useElioStore((s) => [
     s.isConnectModalOpen,
     s.updateIsConnectModalOpen,
     s.currentWalletAccount,
-    s.isWalletConnected,
     s.updateCurrentWalletAccount,
-    s.updateWalletConnected,
     s.isTxnProcessing,
   ]);
 
@@ -48,7 +44,6 @@ const WalletConnect = (props: WalletConnectProps) => {
 
   const handleDisconnect = () => {
     updateCurrentWalletAccount(null);
-    updateWalletConnected(false);
     setDropdownOpen(false);
   };
 
@@ -61,10 +56,10 @@ const WalletConnect = (props: WalletConnectProps) => {
             ? 'btn-primary'
             : 'btn-connected hover:bg-base-100'
         }
-            ${isConnectModalOpen && !isWalletConnected && 'loading'} 
-            ${txnProcessing && 'loading'}
+            ${isConnectModalOpen && !currentWalletAccount?.isConnected && 'loading'} 
+            ${isTxnProcessing && 'loading'}
             `}
-        onClick={!isWalletConnected ? handleModalOpen : handleDropDown}>
+        onClick={!currentWalletAccount?.isConnected ? handleModalOpen : handleDropDown}>
         {currentWalletAccount ? (
           <div className='mr-2'>
             <Image src={avatar} alt='avatar' height='18' width='18'></Image>

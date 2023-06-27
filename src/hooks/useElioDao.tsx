@@ -132,7 +132,6 @@ const useElioDao = () => {
       signedXDR,
       networkPassphrase
     );
-    const res = await sorobanServer.simulateTransaction(tx);
     const sendResponse = await sorobanServer.sendTransaction(tx);
 
     console.log('send response', sendResponse);

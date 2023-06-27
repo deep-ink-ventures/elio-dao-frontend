@@ -180,6 +180,7 @@ export interface ElioActions {
   updateIsFaultyModalOpen: (isFaultyModalOpen: boolean) => void;
   updateIsFaultyReportsOpen: (isFaultyReportsOpen: boolean) => void;
   getWallet: () => void;
+  updateCurrentWalletAccount: (currentWalletAccount: WalletAccount | null) => void
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -202,13 +203,10 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   currentProposalFaultyReports: null,
   sorobanServer: new SorobanClient.Server(SOROBAN_RPC_ENDPOINT),
   networkPassphrase: 'Test SDF Future Network ; October 2022',
-  contracts: {
-    elioCoreAddress: '',
-    elioVotesAddress: '',
-  },
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
   updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
+  updateCurrentWalletAccount: (currentWalletAccount) => set({currentWalletAccount}),
   updateDaoPage: (daoPage) => set(() => ({ daoPage })),
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
