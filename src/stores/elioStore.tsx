@@ -180,7 +180,10 @@ export interface ElioActions {
   updateIsFaultyModalOpen: (isFaultyModalOpen: boolean) => void;
   updateIsFaultyReportsOpen: (isFaultyReportsOpen: boolean) => void;
   getWallet: () => void;
-  updateCurrentWalletAccount: (currentWalletAccount: WalletAccount | null) => void
+  updateCurrentWalletAccount: (
+    currentWalletAccount: WalletAccount | null
+  ) => void;
+  handleErrors: (err: Error | string) => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -206,7 +209,8 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
   updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
-  updateCurrentWalletAccount: (currentWalletAccount) => set({currentWalletAccount}),
+  updateCurrentWalletAccount: (currentWalletAccount) =>
+    set({ currentWalletAccount }),
   updateDaoPage: (daoPage) => set(() => ({ daoPage })),
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
@@ -227,9 +231,9 @@ const useElioStore = create<ElioStore>()((set, get) => ({
 
     console.log(newNoti);
     // eslint-disable-next-line
-      console.error(err)
+      console.error('errros', err)
     set({ isTxnProcessing: false });
-    // get().addTxnNotification(newNoti);
+    get().addTxnNotification(newNoti);
   },
   addTxnNotification: (newNotification) => {
     const oldTxnNotis = get().txnNotifications;

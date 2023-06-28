@@ -56,10 +56,16 @@ const WalletConnect = (props: WalletConnectProps) => {
             ? 'btn-primary'
             : 'btn-connected hover:bg-base-100'
         }
-            ${isConnectModalOpen && !currentWalletAccount?.isConnected && 'loading'} 
+            ${
+              isConnectModalOpen &&
+              !currentWalletAccount?.isConnected &&
+              'loading'
+            } 
             ${isTxnProcessing && 'loading'}
             `}
-        onClick={!currentWalletAccount?.isConnected ? handleModalOpen : handleDropDown}>
+        onClick={
+          !currentWalletAccount?.isConnected ? handleModalOpen : handleDropDown
+        }>
         {currentWalletAccount ? (
           <div className='mr-2'>
             <Image src={avatar} alt='avatar' height='18' width='18'></Image>
