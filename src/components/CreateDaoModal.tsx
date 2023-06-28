@@ -25,7 +25,7 @@ const CreateDaoModal = () => {
       s.currentWalletAccount,
     ]);
 
-  const { makeCreateDaoTxn, sendTxn, signTxn, prepareTxn } = useElioDao();
+  const { createDao, doChallenge } = useElioDao();
   const [updateIsStartModalOpen] = useElioStore((s) => [
     s.updateIsStartModalOpen,
   ]);
@@ -42,21 +42,12 @@ const CreateDaoModal = () => {
     }
 
     try {
-      const txn = await makeCreateDaoTxn(
-        data.daoId,
-        data.daoName,
-        currentWalletAccount?.publicKey
-      );
-      const preparedTxn = await prepareTxn(txn);
-      const signedTxn = await signTxn(preparedTxn);
-      if (!signedTxn) {
-        console.log(signedTxn, 'not signed');
-        return;
-      }
-      const response = await sendTxn(signedTxn);
-      console.log('send txn resss', response);
+      const res = await createDao(data);
+      console.log(res);
+      const string = doChallenge('QQQ');
+      console.log(string);
     } catch (err) {
-      console.log(err);
+      console.log('create dao', err);
     }
 
     updateIsStartModalOpen(false);
