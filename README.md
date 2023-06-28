@@ -1,4 +1,4 @@
-# elio DAO frontend
+# Elio DAO frontend
 
 ### Building from source
 1. Install node packages
