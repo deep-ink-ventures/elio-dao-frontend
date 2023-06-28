@@ -25,7 +25,7 @@ const CreateDaoModal = () => {
       s.currentWalletAccount,
     ]);
 
-  const { createDao, doChallenge } = useElioDao();
+  const { createDao } = useElioDao();
   const [updateIsStartModalOpen] = useElioStore((s) => [
     s.updateIsStartModalOpen,
   ]);
@@ -42,10 +42,7 @@ const CreateDaoModal = () => {
     }
 
     try {
-      const res = await createDao(data);
-      console.log(res);
-      const string = doChallenge('QQQ');
-      console.log(string);
+      await createDao(data);
     } catch (err) {
       console.log('create dao', err);
     }
