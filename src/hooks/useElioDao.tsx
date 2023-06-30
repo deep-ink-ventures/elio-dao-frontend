@@ -1,6 +1,6 @@
-import type { CreateDaoData } from '@/stores/elioStore';
+import type { CreateDaoData, DaoMetadataValues } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
-import { accountToScVal } from '@/utils';
+import { accountToScVal, stringToScVal } from '@/utils';
 import { signTransaction } from '@stellar/freighter-api';
 import * as SorobanClient from 'soroban-client';
 import {
@@ -56,6 +56,11 @@ const useElioDao = () => {
       if (txResponse.status === 'SUCCESS') {
         handleTxnSuccess(txResponse, successMsg);
       }
+
+      if (txResponse.status === 'FAILED') {
+        handleErrors(errorMsg);
+      }
+
       return txResponse;
       // eslint-disable-next-line no-else-return
     } else {
@@ -72,6 +77,25 @@ const useElioDao = () => {
       fee: BASE_FEE,
       networkPassphrase: NETWORK_PASSPHRASE,
     });
+  };
+
+  const makeContractTxn = async (
+    sourcePublicKey: string,
+    contractAddress: string,
+    method: string,
+    ...params: SorobanClient.xdr.ScVal[]
+  ): Promise<SorobanClient.Transaction> => {
+    const contract = new SorobanClient.Contract(contractAddress);
+    return new SorobanClient.TransactionBuilder(
+      await sorobanServer.getAccount(sourcePublicKey),
+      {
+        fee: BASE_FEE,
+        networkPassphrase,
+      }
+    )
+      .addOperation(contract.call(method, ...params))
+      .setTimeout(SorobanClient.TimeoutInfinite)
+      .build();
   };
 
   const prepareTxn = async (
@@ -105,6 +129,7 @@ const useElioDao = () => {
     return sendResponse;
   };
 
+  // use this to send transaction
   const submitTxn = async (
     unpreparedTxn: SorobanClient.Transaction<
       SorobanClient.Memo<SorobanClient.MemoType>
@@ -128,16 +153,13 @@ const useElioDao = () => {
     owner: string
   ) => {
     const txnBuilder = await getTxnBuilder(owner);
-    const daoIdBuffer = Buffer.from(createDaoData.daoId);
-    const daoNameBuffer = Buffer.from(createDaoData.daoName);
     const contract = await new SorobanClient.Contract(CORE_CONTRACT_ADDRESS);
     const txn = txnBuilder
       .addOperation(
         contract.call(
           'create_dao',
-          // convert input value to buffer then ScVal
-          SorobanClient.xdr.ScVal.scvBytes(daoIdBuffer),
-          SorobanClient.xdr.ScVal.scvBytes(daoNameBuffer),
+          stringToScVal(createDaoData.daoId),
+          stringToScVal(createDaoData.daoName),
           accountToScVal(owner)
         )
       )
@@ -164,74 +186,58 @@ const useElioDao = () => {
     }
   };
 
-  const makeContractTxn = (
-    source: SorobanClient.Account,
-    contractId: string,
-    method: string,
-    ...params: SorobanClient.xdr.ScVal[]
-  ): SorobanClient.Transaction => {
-    const contract = new SorobanClient.Contract(contractId);
-    return new SorobanClient.TransactionBuilder(source, {
-      fee: BASE_FEE,
-      networkPassphrase,
-    })
-      .addOperation(contract.call(method, ...params))
-      .setTimeout(SorobanClient.TimeoutInfinite)
-      .build();
+  // post dao metadata to the DB
+  const postDaoMetadata = async (daoId: string, data: DaoMetadataValues) => {
+    const jsonData = JSON.stringify({
+      email: data.email,
+      description_short: data.shortOverview,
+      description_long: data.longDescription,
+      logo: data.imageString,
+    });
+
+    const metadataResponse = await fetch(
+      `${SERVICE_URL}/daos/${daoId}/metadata/`,
+      {
+        method: 'POST',
+        body: jsonData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const metadata = await metadataResponse.json();
+    if (!metadata.metadata_url) {
+      handleErrors('Not able to upload metadata');
+    }
+    return metadata;
   };
 
-  const makeTokenBalanceTxn = async (
-    address: string,
-    tokenId: string,
-    txBuilder: SorobanClient.TransactionBuilder
+  // set metadata onchain
+  const setDaoMetadata = async (
+    publicKey: string,
+    daoId: string,
+    data: DaoMetadataValues
   ) => {
-    const params = [new SorobanClient.Address(address).toScVal()];
-    const contract = new SorobanClient.Contract(tokenId);
-    const tx = txBuilder
-      .addOperation(contract.call('balance', ...params))
-      .setTimeout(SorobanClient.TimeoutInfinite)
-      .build();
+    const metadata = await postDaoMetadata(daoId, data);
 
-    return tx;
-  };
-
-  const makeTokenSymbolTxn = async (
-    tokenId: string,
-    txBuilder: SorobanClient.TransactionBuilder
-  ) => {
-    const contract = new SorobanClient.Contract(tokenId);
-    const tx = txBuilder
-      .addOperation(contract.call('symbol'))
-      .setTimeout(SorobanClient.TimeoutInfinite)
-      .build();
-
-    return tx;
-  };
-
-  const makeTokenNameTxn = async (
-    tokenId: string,
-    txBuilder: SorobanClient.TransactionBuilder
-  ) => {
-    const contract = new SorobanClient.Contract(tokenId);
-    const tx = txBuilder
-      .addOperation(contract.call('name'))
-      .setTimeout(SorobanClient.TimeoutInfinite)
-      .build();
-
-    return tx;
-  };
-
-  const getTokenDecimalsTxn = async (
-    tokenId: string,
-    txBuilder: SorobanClient.TransactionBuilder
-  ) => {
-    const contract = new SorobanClient.Contract(tokenId);
-    const tx = txBuilder
-      .addOperation(contract.call('decimals'))
-      .setTimeout(SorobanClient.TimeoutInfinite)
-      .build();
-
-    return tx;
+    try {
+      const setMetadataTxn = await makeContractTxn(
+        publicKey,
+        CORE_CONTRACT_ADDRESS,
+        'set_metadata',
+        stringToScVal(daoId),
+        stringToScVal(metadata.metadata_url),
+        stringToScVal(metadata.metadata_hash)
+      );
+      await submitTxn(
+        setMetadataTxn,
+        'Metadata set successfully',
+        'Set Metadata Transaction failed'
+      );
+    } catch (err) {
+      handleErrors(err);
+    }
   };
 
   const doChallenge = async (daoId: string) => {
@@ -251,7 +257,6 @@ const useElioDao = () => {
         return null;
       }
 
-      console.log(signerResult);
       return signerResult;
     } catch (err) {
       handleErrors(err);
@@ -261,10 +266,6 @@ const useElioDao = () => {
 
   return {
     makeContractTxn,
-    makeTokenBalanceTxn,
-    makeTokenNameTxn,
-    getTokenDecimalsTxn,
-    makeTokenSymbolTxn,
     sendTxn,
     signTxn,
     prepareTxn,
@@ -273,6 +274,7 @@ const useElioDao = () => {
     createDao,
     doChallenge,
     handleTxnResponse,
+    setDaoMetadata,
   };
 };
 

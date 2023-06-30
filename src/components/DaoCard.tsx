@@ -35,7 +35,7 @@ const DaoCard = (props: DaoCardProps) => {
       className={`card z-0 m-1 h-40 w-36 break-words text-center shadow-xl hover:cursor-pointer md:h-60 md:w-56`}>
       <Link href={`/dao/${encodeURIComponent(props.daoId)}`}>
         <div className='card-body text-center'>
-          <div className='mb-2 hidden items-center justify-center md:flex'>
+          <div className='mb-2 items-center justify-center md:flex'>
             {displayImage()}
           </div>
           <div className='md:overflow-visible'>
@@ -47,7 +47,7 @@ const DaoCard = (props: DaoCardProps) => {
             </h4>
             <p className='text-sm text-accent'>{`DAO ID: ${props.daoId}`}</p>
           </div>
-          <p className='mt-5 hidden text-sm underline underline-offset-2 md:block'>{`See more >`}</p>
+          <p className='mt-5  text-sm underline underline-offset-2 md:block'>{`See more >`}</p>
         </div>
       </Link>
     </div>
