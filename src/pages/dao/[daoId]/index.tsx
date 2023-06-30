@@ -6,9 +6,8 @@ import DaoDashboard from '@/components/DaoDashboard';
 // import Proposals from '@/components/Proposals';
 import Spinner from '@/components/Spinner';
 import WalletConnect from '@/components/WalletConnect';
-import type { DaoDetail, DaoPage } from '@/stores/elioStore';
+import type { DaoPage } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
-import { daoArray } from '@/stores/fakeData';
 import arrowLeft from '@/svg/arrowLeft.svg';
 import arrowRight from '@/svg/arrowRight.svg';
 import dashboard from '@/svg/dashboard.svg';
@@ -23,19 +22,14 @@ const MainDaoPage = () => {
   const router = useRouter();
   const { daoId } = router.query;
 
-  const [
-    currentWalletAccount,
-    currentDao,
-    updateDaoPage,
-    daoPage,
-    updateCurrentDao,
-  ] = useElioStore((s) => [
-    s.currentWalletAccount,
-    s.currentDao,
-    s.updateDaoPage,
-    s.daoPage,
-    s.updateCurrentDao,
-  ]);
+  const [currentWalletAccount, currentDao, updateDaoPage, daoPage, fetchDaoDB] =
+    useElioStore((s) => [
+      s.currentWalletAccount,
+      s.currentDao,
+      s.updateDaoPage,
+      s.daoPage,
+      s.fetchDaoDB,
+    ]);
 
   const daoTokenBalance = new BigNumber(250000000000000);
 
@@ -43,37 +37,12 @@ const MainDaoPage = () => {
     updateDaoPage(pageParam);
   };
 
-  // useEffect(() => {
-  //   if (!daoId) {
-  //     return;
-  //   }
-  //   fetchDaoFromDB(daoId as string);
-  //   fetchDao(daoId as string);
-  // }, [daoId, fetchDaoFromDB, fetchDao]);
-
-  // useEffect(() => {
-  //   if (currentDao?.daoAssetId && currentWalletAccount) {
-  //     fetchDaoTokenBalanceFromDB(
-  //       currentDao?.daoAssetId,
-  //       currentWalletAccount.address
-  //     );
-  //   } else {
-  //     updateDaoTokenBalance(new BN(0));
-  //   }
-  // }, [
-  //   currentDao,
-  //   currentWalletAccount,
-  //   fetchDaoTokenBalanceFromDB,
-  //   updateDaoTokenBalance,
-  // ]);
-
   useEffect(() => {
     if (!daoId) {
       return;
     }
-    const index = Number(daoId) - 1;
-    updateCurrentDao(daoArray[index] as DaoDetail);
-  }, [daoId]);
+    fetchDaoDB(daoId as string);
+  }, [daoId, fetchDaoDB]);
 
   const displayImage = () => {
     if (!currentDao || !currentDao.images.medium) {

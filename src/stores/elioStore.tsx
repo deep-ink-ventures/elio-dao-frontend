@@ -28,6 +28,14 @@ export interface ProposalCreationValues {
   url: string;
 }
 
+export interface DaoMetadataValues {
+  email: string;
+  shortOverview: string;
+  longDescription: string;
+  logoImage: FileList;
+  imageString: string;
+}
+
 export enum ProposalStatus {
   Active = 'Active',
   Counting = 'Counting',
@@ -197,6 +205,7 @@ export interface ElioActions {
     successMsg: string
   ) => void;
   fetchDaosDB: () => void;
+  fetchDaoDB: (daoId: string) => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -337,6 +346,64 @@ const useElioStore = create<ElioStore>()((set, get) => ({
         };
       });
       set({ daos: newDaos });
+    } catch (err) {
+      get().handleErrors(err);
+    }
+  },
+  fetchDaoDB: async (daoId: string) => {
+    try {
+      const daoDetail: DaoDetail = {
+        daoId: '{N/A}',
+        daoName: '{N/A}',
+        daoOwnerAddress: '{N/A}',
+        daoCreatorAddress: '{N/A}',
+        setupComplete: false,
+        proposalDuration: null,
+        proposalTokenDeposit: 0,
+        minimumMajority: null,
+        daoAssetId: null,
+        metadataUrl: null,
+        metadataHash: null,
+        descriptionShort: null,
+        descriptionLong: null,
+        email: null,
+        images: {
+          contentType: null,
+          small: null,
+          medium: null,
+          large: null,
+        },
+      };
+      const response = await fetch(
+        `${SERVICE_URL}/daos/${encodeURIComponent(daoId as string)}/`
+      );
+      if (response.status === 404) {
+        throw new Error('Fetching failed. Status 404.');
+      }
+      const d = await response.json();
+      daoDetail.daoId = d.id;
+      daoDetail.daoName = d.name;
+      daoDetail.daoAssetId = d.asset_id;
+      daoDetail.daoOwnerAddress = d.owner_id;
+      daoDetail.daoCreatorAddress = d.creator_id;
+      daoDetail.proposalDuration = d.proposal_duration;
+      daoDetail.proposalTokenDeposit = d.proposal_token_deposit;
+      daoDetail.minimumMajority = d.minimum_majority_per_1024;
+      daoDetail.metadataUrl = d.metadata_url;
+      daoDetail.metadataHash = d.metadata_hash;
+      daoDetail.setupComplete = d.setup_complete;
+
+      if (d.metadata) {
+        daoDetail.descriptionShort = d.metadata.description_short;
+        daoDetail.descriptionLong = d.metadata.description_long;
+        daoDetail.email = d.metadata.email;
+        daoDetail.images.contentType = d.metadata.images.logo.content_type;
+        daoDetail.images.small = d.metadata.images.logo.small.url;
+        daoDetail.images.medium = d.metadata.images.logo.medium.url;
+        daoDetail.images.large = d.metadata.images.logo.large.url;
+      }
+
+      get().updateCurrentDao(daoDetail);
     } catch (err) {
       get().handleErrors(err);
     }

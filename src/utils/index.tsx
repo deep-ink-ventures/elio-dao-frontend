@@ -101,3 +101,9 @@ export const decodeBytesN = (xdr: string) => {
   const val = SorobanClient.xdr.ScVal.fromXDR(xdr, 'base64');
   return val.bytes().toString();
 };
+
+export const stringToScVal = (str: string) => {
+  const b = Buffer.from(str);
+  const scVal = SorobanClient.xdr.ScVal.scvBytes(b);
+  return scVal;
+};
