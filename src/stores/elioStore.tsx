@@ -6,8 +6,16 @@ import {
 import type BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
 import { create } from 'zustand';
-import { SOROBAN_RPC_ENDPOINT } from '../config/index';
+import { SERVICE_URL, SOROBAN_RPC_ENDPOINT } from '../config/index';
 import { daoArray } from './fakeData';
+
+export const errorCodeMessages: ErrorCodeMessages = {
+  1: 'DAO already exists',
+};
+
+export interface ErrorCodeMessages {
+  [key: string]: string;
+}
 
 export interface FaultyReport {
   proposalId: string;
@@ -183,7 +191,12 @@ export interface ElioActions {
   updateCurrentWalletAccount: (
     currentWalletAccount: WalletAccount | null
   ) => void;
-  handleErrors: (err: Error | string) => void;
+  handleErrors: (errMsg: string, err?: Error) => void;
+  handleTxnSuccess: (
+    response: SorobanClient.SorobanRpc.GetTransactionResponse,
+    successMsg: string
+  ) => void;
+  fetchDaosDB: () => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -214,12 +227,28 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   updateDaoPage: (daoPage) => set(() => ({ daoPage })),
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
-  handleErrors: (err: Error | string) => {
-    let message: string;
+  handleErrors: (errMsg: string, err?: Error | string) => {
+    let message = '';
+
     if (typeof err === 'object') {
       message = err.message;
     } else {
-      message = err;
+      message = errMsg;
+    }
+
+    if (typeof err === 'string' && err.includes('ContractError(')) {
+      const i = err.indexOf('ContractError(');
+      const indexOfErrorCode = i + 14;
+      // fixme when we have double digits error codes
+      const errorCode = err.substring(indexOfErrorCode, indexOfErrorCode + 1);
+      if (errorCodeMessages[errorCode]) {
+        if (typeof err === 'object') {
+          message = errorCodeMessages[errorCode] as string;
+        } else {
+          console.log('add err code in front of the msg');
+          message = `${errorCodeMessages[errorCode] as string} - ${message}`;
+        }
+      }
     }
 
     const newNoti = {
@@ -229,11 +258,24 @@ const useElioStore = create<ElioStore>()((set, get) => ({
       timestamp: Date.now(),
     };
 
-    console.log(newNoti);
     // eslint-disable-next-line
-      console.error('errros', err)
     set({ isTxnProcessing: false });
     get().addTxnNotification(newNoti);
+  },
+  handleTxnSuccess(txnResponse, successMsg) {
+    if (txnResponse.status !== 'SUCCESS') {
+      return;
+    }
+
+    const noti = {
+      title: TxnResponse.Success,
+      message: successMsg,
+      type: TxnResponse.Success,
+      timestamp: Date.now(),
+      // txnHash?: string;
+    };
+    set({ isTxnProcessing: false });
+    get().addTxnNotification(noti);
   },
   addTxnNotification: (newNotification) => {
     const oldTxnNotis = get().txnNotifications;
@@ -248,7 +290,6 @@ const useElioStore = create<ElioStore>()((set, get) => ({
     set({ txnNotifications: newNotis });
   },
   updateCreateDaoSteps: (createDaoSteps) => set({ createDaoSteps }),
-
   updateProposalCreationValues: (proposalCreationValues) =>
     set({ proposalCreationValues }),
   updateIsFaultyModalOpen: (isFaultyModalOpen) => set({ isFaultyModalOpen }),
@@ -266,6 +307,39 @@ const useElioStore = create<ElioStore>()((set, get) => ({
       networkUrl: networkDetails.networkUrl,
     };
     set({ currentWalletAccount: wallet });
+  },
+  fetchDaosDB: async () => {
+    try {
+      const getDaosResponse = await fetch(
+        `${SERVICE_URL}/daos/?order_by=id&limit=100`
+      );
+      const daosRes = await getDaosResponse.json();
+      const daosArr = daosRes.results;
+      const newDaos: DaoDetail[] = daosArr?.map((dao: any) => {
+        return {
+          daoId: dao.id,
+          daoName: dao.name,
+          daoAssetId: dao.asset_id,
+          daoOwnerAddress: dao.owner_id,
+          daoCreatorAddress: dao.creator_id,
+          setupComplete: dao.setup_complete,
+          metadataUrl: dao.metadata_url,
+          metadataHash: dao.metadata_hash,
+          email: dao.metadata?.email || null,
+          descriptionShort: dao.metadata?.description_short || null,
+          descriptionLong: dao.metadata?.description_long || null,
+          images: {
+            contentType: dao.metadata?.images.logo.content_type || null,
+            small: dao.metadata?.images.logo.small.url || null,
+            medium: dao.metadata?.images.logo.medium.url || null,
+            large: dao.metadata?.images.logo.medium.url || null,
+          },
+        };
+      });
+      set({ daos: newDaos });
+    } catch (err) {
+      get().handleErrors(err);
+    }
   },
 }));
 

@@ -1,20 +1,28 @@
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import DaoCards from '@/components/DaoCards';
 import Spinner from '@/components/Spinner';
-import { daoArray } from '@/stores/fakeData';
+import useElioStore from '@/stores/elioStore';
 import telescope from '@/svg/telescope.svg';
 
 const ExploreDaos = () => {
   const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredDaos = daoArray?.filter((dao) => {
+  const [fetchDaosDB, daos] = useElioStore((s) => [s.fetchDaosDB, s.daos]);
+  const filteredDaos = daos?.filter((dao) => {
     return (
       dao.daoName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dao.daoId.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchDaosDB();
+    }, 500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line
+  }, []);
 
   const handleSearch = (e: any) => {
     setSearchTerm(e.target.value);

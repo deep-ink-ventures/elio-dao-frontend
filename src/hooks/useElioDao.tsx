@@ -23,13 +23,48 @@ const useElioDao = () => {
     networkPassphrase,
     updateIsTxnProcessing,
     handleErrors,
+    handleTxnSuccess,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.sorobanServer,
     s.networkPassphrase,
     s.updateIsTxnProcessing,
     s.handleErrors,
+    s.handleTxnSuccess,
   ]);
+
+  const handleTxnResponse = async (
+    sendTxnResponse: SorobanClient.SorobanRpc.SendTransactionResponse,
+    successMsg: string,
+    errorMsg: string
+  ) => {
+    if (sendTxnResponse.errorResultXdr) {
+      console.log(`can't send txn`);
+    }
+
+    if (sendTxnResponse.status === 'PENDING') {
+      // eslint-disable-next-line
+      let txResponse = await sorobanServer.getTransaction(sendTxnResponse.hash);
+
+      while (txResponse.status === 'NOT_FOUND') {
+        // eslint-disable-next-line
+        txResponse = await sorobanServer.getTransaction(sendTxnResponse.hash);
+        // eslint-disable-next-line
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      if (txResponse.status === 'SUCCESS') {
+        handleTxnSuccess(txResponse, successMsg);
+      }
+      return txResponse;
+      // eslint-disable-next-line no-else-return
+    } else {
+      // handle error here
+      throw new Error(
+        `Unabled to submit transaction, status: ${sendTxnResponse.status}`
+      );
+    }
+  };
 
   const getTxnBuilder = async (publicKey: string) => {
     const sourceAccount = await sorobanServer.getAccount(publicKey);
@@ -58,7 +93,6 @@ const useElioDao = () => {
       network: NETWORK,
       accountToSign: currentWalletAccount?.publicKey,
     });
-    // eslint-disable-next-line
     return signedResponse;
   };
 
@@ -68,49 +102,24 @@ const useElioDao = () => {
       networkPassphrase
     );
     const sendResponse = await sorobanServer.sendTransaction(tx);
-
-    console.log('send response', sendResponse);
-
-    if (sendResponse.errorResultXdr) {
-      console.log(`can't send txn`);
-    }
-
-    if (sendResponse.status === 'PENDING') {
-      // eslint-disable-next-line
-      let txResponse = await sorobanServer.getTransaction(sendResponse.hash);
-
-      while (txResponse.status === 'NOT_FOUND') {
-        // eslint-disable-next-line
-        txResponse = await sorobanServer.getTransaction(sendResponse.hash);
-        // eslint-disable-next-line
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      console.log('tx reseponse', txResponse);
-      return txResponse;
-      // eslint-disable-next-line no-else-return
-    } else {
-      // handle error here
-      throw new Error(
-        `Unabled to submit transaction, status: ${sendResponse.status}`
-      );
-    }
+    return sendResponse;
   };
 
   const submitTxn = async (
     unpreparedTxn: SorobanClient.Transaction<
       SorobanClient.Memo<SorobanClient.MemoType>
-    >
+    >,
+    successMsg: string,
+    errorMsg: string
   ) => {
     updateIsTxnProcessing(true);
     try {
       const preparedTxn = await prepareTxn(unpreparedTxn);
       const signedTxn = await signTxn(preparedTxn);
       const txResponse = await sendTxn(signedTxn);
-      console.log('submit txnResponse', txResponse);
-      return txResponse;
+      handleTxnResponse(txResponse, successMsg, errorMsg);
     } catch (err) {
-      handleErrors(err);
-      throw new Error(err);
+      handleErrors('Send Transaction failed', err);
     }
   };
 
@@ -148,10 +157,9 @@ const useElioDao = () => {
         createDaoData,
         currentWalletAccount.publicKey
       );
-      const txnResponse = await submitTxn(txn);
-      console.log('create dao txn response', txnResponse);
+      await submitTxn(txn, 'Created DAO successfully', 'DAO Creation failed');
     } catch (err) {
-      handleErrors(err);
+      handleErrors('Create Dao failed', err);
       console.log(err);
     }
   };
@@ -264,6 +272,7 @@ const useElioDao = () => {
     submitTxn,
     createDao,
     doChallenge,
+    handleTxnResponse,
   };
 };
 
