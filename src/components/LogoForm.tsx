@@ -3,7 +3,8 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import type { LogoFormValues } from '@/stores/elioStore';
+import useElioDao from '@/hooks/useElioDao';
+import type { DaoMetadataValues } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import upload from '@/svg/upload.svg';
 import { readFileAsB64 } from '@/utils';
@@ -16,7 +17,7 @@ const LogoForm = (props: { daoId: string | null }) => {
     watch,
     setValue,
     formState: { errors },
-  } = useForm<LogoFormValues>({
+  } = useForm<DaoMetadataValues>({
     defaultValues: {
       email: '',
       shortOverview: '',
@@ -24,14 +25,24 @@ const LogoForm = (props: { daoId: string | null }) => {
       imageString: '',
     },
   });
-  const [currentDao, isTxnProcessing] = useElioStore((s) => [
-    s.currentDao,
-    s.isTxnProcessing,
-  ]);
+  const [currentDao, isTxnProcessing, currentWalletAccount] = useElioStore(
+    (s) => [s.currentDao, s.isTxnProcessing, s.currentWalletAccount]
+  );
 
-  const onSubmit = async (data: LogoFormValues) => {
+  const { setDaoMetadata } = useElioDao();
+
+  const onSubmit = async (data: DaoMetadataValues) => {
     console.log(data);
     console.log(props.daoId);
+    if (!currentWalletAccount?.publicKey || !props.daoId) {
+      return;
+    }
+
+    try {
+      await setDaoMetadata(currentWalletAccount.publicKey, props.daoId, data);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const imageFile = watch('logoImage');
