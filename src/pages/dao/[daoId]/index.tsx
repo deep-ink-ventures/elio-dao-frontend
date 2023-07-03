@@ -78,7 +78,7 @@ const MainDaoPage = () => {
     // if (daoPage === 'proposals') {
     //   return <Proposals daoId={daoId as string} />;
     // }
-    return <DaoDashboard />;
+    return <DaoDashboard daoId={daoId as string} />;
   };
 
   const handleBack = () => {
