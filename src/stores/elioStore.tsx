@@ -89,14 +89,6 @@ export interface CouncilTokensValues
   isFinished: false;
 }
 
-export interface LogoFormValues {
-  email: string;
-  shortOverview: string;
-  longDescription: string;
-  logoImage: FileList;
-  imageString: string;
-}
-
 export interface MajorityModelValues {
   tokensToIssue: BigNumber; // fixme BN
   proposalTokensCost: number;
@@ -179,6 +171,7 @@ export interface ElioState {
   isFaultyReportsOpen: boolean;
   sorobanServer: SorobanClient.Server;
   networkPassphrase: string;
+  showCongrats: boolean;
 }
 
 export interface ElioActions {
@@ -200,12 +193,13 @@ export interface ElioActions {
     currentWalletAccount: WalletAccount | null
   ) => void;
   handleErrors: (errMsg: string, err?: Error) => void;
-  handleTxnSuccess: (
+  handleTxnSuccessNotification: (
     response: SorobanClient.SorobanRpc.GetTransactionResponse,
     successMsg: string
   ) => void;
   fetchDaosDB: () => void;
   fetchDaoDB: (daoId: string) => void;
+  updateShowCongrats: (showCongrats: boolean) => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -228,6 +222,7 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   currentProposalFaultyReports: null,
   sorobanServer: new SorobanClient.Server(SOROBAN_RPC_ENDPOINT),
   networkPassphrase: 'Test SDF Future Network ; October 2022',
+  showCongrats: false,
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
   updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
@@ -237,6 +232,8 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
   handleErrors: (errMsg: string, err?: Error | string) => {
+    // eslint-disable-next-line
+    console.log(errMsg);
     let message = '';
 
     if (typeof err === 'object') {
@@ -254,7 +251,6 @@ const useElioStore = create<ElioStore>()((set, get) => ({
         if (typeof err === 'object') {
           message = errorCodeMessages[errorCode] as string;
         } else {
-          console.log('add err code in front of the msg');
           message = `${errorCodeMessages[errorCode] as string} - ${message}`;
         }
       }
@@ -271,7 +267,7 @@ const useElioStore = create<ElioStore>()((set, get) => ({
     set({ isTxnProcessing: false });
     get().addTxnNotification(newNoti);
   },
-  handleTxnSuccess(txnResponse, successMsg) {
+  handleTxnSuccessNotification(txnResponse, successMsg) {
     if (txnResponse.status !== 'SUCCESS') {
       return;
     }
@@ -305,6 +301,7 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   updateIsFaultyReportsOpen: (isFaultyReportsOpen) =>
     set({ isFaultyReportsOpen }),
   getWallet: async () => {
+    // wallet is automatically injected to the window we just need to get the values
     const connected = await isConnected();
     const networkDetails = await getNetworkDetails();
     const publicKey = await getPublicKey();
@@ -408,6 +405,7 @@ const useElioStore = create<ElioStore>()((set, get) => ({
       get().handleErrors(err);
     }
   },
+  updateShowCongrats: (showCongrats) => set({ showCongrats }),
 }));
 
 export default useElioStore;

@@ -11,17 +11,32 @@ import useElioStore from '@/stores/elioStore';
 import MainLayout from '@/templates/MainLayout';
 
 const Customize = () => {
-  const [currentWalletAccount, currentDao, createDaoSteps] = useElioStore(
-    (s) => [s.currentWalletAccount, s.currentDao, s.createDaoSteps]
-  );
+  const [currentWalletAccount, currentDao, fetchDaoDB, showCongrats] =
+    useElioStore((s) => [
+      s.currentWalletAccount,
+      s.currentDao,
+      s.fetchDaoDB,
+      s.showCongrats,
+    ]);
 
   const router = useRouter();
   const { daoId } = router.query;
   const [showPage, setShowPage] = useState(false);
 
-  // const handleReturnToDashboard = () => {
-  //   router.push(`/dao/${encodeURIComponent(daoId as string)}`);
-  // };
+  const handleReturnToDashboard = () => {
+    router.push(`/dao/${encodeURIComponent(daoId as string)}`);
+  };
+
+  useEffect(() => {
+    if (!daoId) {
+      return;
+    }
+    const TO = setTimeout(() => {
+      fetchDaoDB(daoId as string);
+    }, 700);
+    // eslint-disable-next-line
+    return () => clearTimeout(TO);
+  }, [daoId, fetchDaoDB]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -40,39 +55,46 @@ const Customize = () => {
         </div>
       );
     }
-    // if (
-    //   currentWalletAccount.publicKey !== currentDaoFromChain?.daoOwnerAddress &&
-    //   !showCongrats
-    // ) {
-    //   return (
-    //     <div className='flex justify-center'>
-    //       <div className='flex flex-col items-center'>
-    //         <p className='my-2'>
-    //           Sorry, you are not the admin of {currentDao?.daoName}
-    //         </p>
-    //         <button
-    //           className='btn-primary btn'
-    //           onClick={handleReturnToDashboard}>
-    //           Return to Dashboard
-    //         </button>
-    //       </div>
-    //     </div>
-    //   );
-    // }
+    if (
+      currentWalletAccount.publicKey !== currentDao?.daoOwnerAddress &&
+      !showCongrats
+    ) {
+      return (
+        <div className='flex justify-center'>
+          <div className='flex flex-col items-center'>
+            <p className='my-2'>
+              Sorry, you are not the admin of {currentDao?.daoName}
+            </p>
+            <button
+              className='btn-primary btn'
+              onClick={handleReturnToDashboard}>
+              Return to Dashboard
+            </button>
+          </div>
+        </div>
+      );
+    }
 
-    if (createDaoSteps === 2) {
+    // fixme
+    if (!currentDao?.metadataHash) {
       return <LogoForm daoId={daoId as string} />;
     }
 
-    if (createDaoSteps === 3) {
+    if (currentDao && currentDao.metadataHash && !currentDao.daoAssetId) {
       return <GovernanceForm daoId={daoId as string} />;
     }
 
-    if (createDaoSteps === 4) {
+    if (
+      currentDao &&
+      currentDao.metadataHash &&
+      currentDao.daoAssetId &&
+      !currentDao.setupComplete &&
+      !showCongrats
+    ) {
       return <CouncilTokens daoId={daoId as string} />;
     }
 
-    if (createDaoSteps === 5) {
+    if ((currentDao && currentDao.setupComplete) || showCongrats) {
       return <Congratulations daoId={daoId as string} />;
     }
     return null;

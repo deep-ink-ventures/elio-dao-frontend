@@ -37,7 +37,7 @@ const WalletConnectModal = () => {
           <button
             className='btn h-16 w-[75%]'
             name={'Freighter'}
-            onClick={(e) => handleWalletSelect()}>
+            onClick={() => handleWalletSelect()}>
             <div className='flex w-full items-center justify-between'>
               <Image src={freight} height={35} width={35} alt='freight' />
               <div>{'Freighter'}</div>

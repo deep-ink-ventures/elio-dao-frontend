@@ -2,6 +2,7 @@ import type { CreateDaoData, DaoMetadataValues } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import { accountToScVal, stringToScVal } from '@/utils';
 import { signTransaction } from '@stellar/freighter-api';
+import { useRouter } from 'next/router';
 import * as SorobanClient from 'soroban-client';
 import {
   BASE_FEE,
@@ -17,26 +18,35 @@ export enum TxnStatus {
 }
 
 const useElioDao = () => {
+  const router = useRouter();
+
   const [
     currentWalletAccount,
     sorobanServer,
     networkPassphrase,
     updateIsTxnProcessing,
     handleErrors,
-    handleTxnSuccess,
+    handleTxnSuccessNotification,
+    updateIsStartModalOpen,
+    fetchDaoDB,
+    updateCreateDaoSteps,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.sorobanServer,
     s.networkPassphrase,
     s.updateIsTxnProcessing,
     s.handleErrors,
-    s.handleTxnSuccess,
+    s.handleTxnSuccessNotification,
+    s.updateIsStartModalOpen,
+    s.fetchDaoDB,
+    s.updateCreateDaoSteps,
   ]);
 
   const handleTxnResponse = async (
     sendTxnResponse: SorobanClient.SorobanRpc.SendTransactionResponse,
     successMsg: string,
-    errorMsg: string
+    errorMsg: string,
+    cb?: Function
   ) => {
     if (sendTxnResponse.errorResultXdr) {
       console.log(`can't send txn`);
@@ -54,7 +64,11 @@ const useElioDao = () => {
       }
 
       if (txResponse.status === 'SUCCESS') {
-        handleTxnSuccess(txResponse, successMsg);
+        console.log(txResponse.status);
+        handleTxnSuccessNotification(txResponse, successMsg);
+        if (cb) {
+          cb();
+        }
       }
 
       if (txResponse.status === 'FAILED') {
@@ -65,6 +79,7 @@ const useElioDao = () => {
       // eslint-disable-next-line no-else-return
     } else {
       // handle error here
+
       throw new Error(
         `Unabled to submit transaction, status: ${sendTxnResponse.status}`
       );
@@ -94,7 +109,7 @@ const useElioDao = () => {
       }
     )
       .addOperation(contract.call(method, ...params))
-      .setTimeout(SorobanClient.TimeoutInfinite)
+      .setTimeout(0)
       .build();
   };
 
@@ -135,15 +150,17 @@ const useElioDao = () => {
       SorobanClient.Memo<SorobanClient.MemoType>
     >,
     successMsg: string,
-    errorMsg: string
+    errorMsg: string,
+    cb?: Function
   ) => {
     updateIsTxnProcessing(true);
     try {
       const preparedTxn = await prepareTxn(unpreparedTxn);
       const signedTxn = await signTxn(preparedTxn);
       const txResponse = await sendTxn(signedTxn);
-      handleTxnResponse(txResponse, successMsg, errorMsg);
+      handleTxnResponse(txResponse, successMsg, errorMsg, cb);
     } catch (err) {
+      console.log(err);
       handleErrors('Send Transaction failed', err);
     }
   };
@@ -179,7 +196,19 @@ const useElioDao = () => {
         createDaoData,
         currentWalletAccount.publicKey
       );
-      await submitTxn(txn, 'Created DAO successfully', 'DAO Creation failed');
+      await submitTxn(
+        txn,
+        'Created DAO successfully',
+        'DAO Creation failed',
+        () => {
+          setTimeout(() => {
+            fetchDaoDB(createDaoData.daoId);
+            updateIsStartModalOpen(false);
+            updateCreateDaoSteps(2);
+            router.push(`/dao/${createDaoData.daoId}/customize`);
+          }, 1000);
+        }
+      );
     } catch (err) {
       handleErrors('Create Dao failed', err);
       console.log(err);
@@ -228,7 +257,8 @@ const useElioDao = () => {
         'set_metadata',
         stringToScVal(daoId),
         stringToScVal(metadata.metadata_url),
-        stringToScVal(metadata.metadata_hash)
+        stringToScVal(metadata.metadata_hash),
+        accountToScVal(publicKey)
       );
       await submitTxn(
         setMetadataTxn,
