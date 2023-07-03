@@ -270,6 +270,7 @@ const useElioDao = () => {
     }
   };
 
+  // to authenticate user access to post metadata to the DB
   const doChallenge = async (daoId: string) => {
     try {
       const challengeRes = await fetch(
@@ -294,6 +295,29 @@ const useElioDao = () => {
     }
   };
 
+  const destroyDao = async (daoId: string) => {
+    updateIsTxnProcessing(true);
+    if (!currentWalletAccount?.publicKey) {
+      throw new Error('Wallet not connected');
+    }
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount.publicKey,
+        CORE_CONTRACT_ADDRESS,
+        'destroy_dao',
+        stringToScVal(daoId),
+        accountToScVal(currentWalletAccount.publicKey)
+      );
+      await submitTxn(
+        txn,
+        `${daoId} has been destroyed`,
+        'Destroy DAO Transaction Failed'
+      );
+    } catch (err) {
+      handleErrors('Destroy DAO Transaction Failed', err);
+    }
+  };
+
   return {
     makeContractTxn,
     sendTxn,
@@ -305,6 +329,7 @@ const useElioDao = () => {
     doChallenge,
     handleTxnResponse,
     setDaoMetadata,
+    destroyDao,
   };
 };
 

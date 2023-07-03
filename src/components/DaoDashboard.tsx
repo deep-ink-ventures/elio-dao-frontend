@@ -1,15 +1,28 @@
+import useElioDao from '@/hooks/useElioDao';
 import Link from 'next/link';
 
 // import DestroyDao from '@/components/DestroyDao';
 import useElioStore from '@/stores/elioStore';
 import BigNumber from 'bignumber.js';
 
-const DaoDashboard = () => {
-  const [currentWalletAccount, currentDao] = useElioStore((s) => [
-    s.currentWalletAccount,
-    s.currentDao,
-  ]);
+const DaoDashboard = (props: { daoId: string }) => {
+  const [currentWalletAccount, currentDao, isTxnProcessing, handleErrors] =
+    useElioStore((s) => [
+      s.currentWalletAccount,
+      s.currentDao,
+      s.isTxnProcessing,
+      s.handleErrors,
+    ]);
+  const { destroyDao } = useElioDao();
   const daoTokenBalance = new BigNumber(25000);
+
+  const handleDestroyDao = async () => {
+    try {
+      await destroyDao(props.daoId);
+    } catch (err) {
+      handleErrors(err);
+    }
+  };
 
   return (
     <div className='flex flex-col gap-y-4'>
@@ -78,21 +91,18 @@ const DaoDashboard = () => {
             Send Tokens
           </button>
           {/* </Link> */}
-          {/* {currentDao &&
-            currentWalletAccount?.publicKey === currentDao.daoOwnerAddress && (
-              <DestroyDao
-                daoId={currentDao?.daoId}
-                assetId={currentDao.daoAssetId}
-              /> */}
+
           <button
-            className='btn-primary btn'
+            className={`btn-primary btn w-[180px] ${
+              isTxnProcessing ? 'loading' : ''
+            }`}
             disabled={
               !currentWalletAccount ||
               currentWalletAccount.publicKey !== currentDao?.daoOwnerAddress
-            }>
+            }
+            onClick={handleDestroyDao}>
             Destroy DAO
           </button>
-          {/* )} */}
         </div>
       </div>
       <div className='flex flex-col justify-end border-t-2 border-dashed'>
