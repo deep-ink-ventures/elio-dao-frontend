@@ -6,13 +6,36 @@ import {
 import type BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
 import { create } from 'zustand';
-import { SERVICE_URL, SOROBAN_RPC_ENDPOINT } from '../config/index';
+import {
+  NETWORK,
+  NETWORK_PASSPHRASE,
+  SERVICE_URL,
+  SOROBAN_RPC_ENDPOINT,
+} from '../config/index';
 import { daoArray } from './fakeData';
 
 export const errorCodeMessages: ErrorCodeMessages = {
   1: 'DAO already exists',
 };
 
+export enum Voting {
+  MAJORITY = 'MAJORITY',
+  CUSTOM = 'CUSTOM',
+}
+
+export interface ContractAddresses {
+  core: string;
+  assets: string;
+  votes: string;
+}
+
+export interface GovConfigValues {
+  daoId: string;
+  proposalDuration: number;
+  proposalTokenDeposit: BigNumber;
+  voting: Voting;
+  daoOwnerPublicKey: string;
+}
 export interface ErrorCodeMessages {
   [key: string]: string;
 }
@@ -171,6 +194,7 @@ export interface ElioState {
   isFaultyReportsOpen: boolean;
   sorobanServer: SorobanClient.Server;
   networkPassphrase: string;
+  network: string;
   showCongrats: boolean;
 }
 
@@ -221,7 +245,8 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   isFaultyReportsOpen: false,
   currentProposalFaultyReports: null,
   sorobanServer: new SorobanClient.Server(SOROBAN_RPC_ENDPOINT),
-  networkPassphrase: 'Test SDF Future Network ; October 2022',
+  networkPassphrase: NETWORK_PASSPHRASE,
+  network: NETWORK,
   showCongrats: false,
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
