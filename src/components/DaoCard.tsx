@@ -15,17 +15,30 @@ interface DaoCardProps {
 
 const DaoCard = (props: DaoCardProps) => {
   const displayImage = () => {
+    if (!props.imageUrl) {
+      return (
+        <>
+          <Image
+            src={placeholderImage}
+            alt='placeholder'
+            height={60}
+            width={60}
+          />
+          <div className='absolute'>
+            <Image src={mountain} alt='mountain' width={30} height={17}></Image>
+          </div>
+        </>
+      );
+    }
     return (
       <>
-        <Image
-          src={placeholderImage}
-          alt='placeholder'
+        <img
+          src={props.imageUrl}
+          alt={`${props.daoName} logo image`}
           height={60}
           width={60}
+          className='rounded-full'
         />
-        <div className='absolute'>
-          <Image src={mountain} alt='mountain' width={30} height={17}></Image>
-        </div>
       </>
     );
   };

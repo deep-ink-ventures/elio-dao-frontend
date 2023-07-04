@@ -5,7 +5,7 @@ import Congratulations from '@/components/Congratulations';
 import CouncilTokens from '@/components/CouncilTokens';
 import GovernanceForm from '@/components/GovernanceForm';
 import Loading from '@/components/Loading';
-import LogoForm from '@/components/LogoForm';
+import LogoForm from '@/components/MetadataForm';
 import WalletConnect from '@/components/WalletConnect';
 import useElioStore from '@/stores/elioStore';
 import MainLayout from '@/templates/MainLayout';
@@ -75,7 +75,6 @@ const Customize = () => {
       );
     }
 
-    // fixme
     if (!currentDao?.metadataHash) {
       return <LogoForm daoId={daoId as string} />;
     }

@@ -107,3 +107,30 @@ export const stringToScVal = (str: string) => {
   const scVal = SorobanClient.xdr.ScVal.scvBytes(b);
   return scVal;
 };
+
+export const numberToBuffer = (num: number) => {
+  const buffer = Buffer.alloc(4);
+  buffer.writeInt32BE(num, 0);
+  return buffer;
+};
+
+export const numberToScVal = (num: number) => {
+  const b = numberToBuffer(num);
+  const scVal = SorobanClient.xdr.ScVal.scvBytes(b);
+  return scVal;
+};
+
+export const isStellarPublicKey = (publicKey: string) => {
+  return SorobanClient.StrKey.isValidEd25519PublicKey(publicKey);
+};
+
+export const BigNumberToScVal = (bn: BigNumber) => {
+  let hexString = bn.toString(16); // Convert the BigNumber to a hex string
+
+  // Ensure hex string has even length
+  if (hexString.length % 2 !== 0) {
+    hexString = `0${hexString}`;
+  }
+
+  return SorobanClient.xdr.ScVal.scvBytes(Buffer.from(hexString, 'hex'));
+};

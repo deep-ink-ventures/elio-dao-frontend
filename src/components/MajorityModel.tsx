@@ -1,19 +1,18 @@
+import { DAO_UNITS } from '@/config';
+import useElioDao from '@/hooks/useElioDao';
+import type { GovConfigValues, MajorityModelValues } from '@/stores/elioStore';
+import useElioStore, { Voting } from '@/stores/elioStore';
 import { ErrorMessage } from '@hookform/error-message';
+import BigNumber from 'bignumber.js';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
-import { DAO_UNITS } from '@/config';
-import type { MajorityModelValues } from '@/stores/elioStore';
-import useElioStore from '@/stores/elioStore';
-import BigNumber from 'bignumber.js';
-
 const MajorityModel = (props: { daoId: string | null }) => {
-  const [currentDao, isTxnProcessing] = useElioStore((s) => [
-    s.currentDao,
-    s.isTxnProcessing,
-    s.currentWalletAccount,
-  ]);
+  const [currentDao, isTxnProcessing, currentWalletAccount] = useElioStore(
+    (s) => [s.currentDao, s.isTxnProcessing, s.currentWalletAccount]
+  );
 
+  const { setGovernanceConfig } = useElioDao();
   const {
     register,
     handleSubmit,
@@ -33,7 +32,21 @@ const MajorityModel = (props: { daoId: string | null }) => {
   const onSubmit: SubmitHandler<MajorityModelValues> = async (
     data: MajorityModelValues
   ) => {
-    console.log(data);
+    if (!currentWalletAccount?.publicKey || !currentDao?.daoId) {
+      return;
+    }
+    const config: GovConfigValues = {
+      daoId: currentDao.daoId,
+      proposalDuration: data.votingDays * 17280,
+      proposalTokenDeposit: BigNumber(data.proposalTokensCost),
+      voting: Voting.MAJORITY,
+      daoOwnerPublicKey: currentWalletAccount.publicKey,
+    };
+    try {
+      await setGovernanceConfig(config);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (

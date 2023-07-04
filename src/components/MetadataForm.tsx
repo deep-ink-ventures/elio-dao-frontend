@@ -9,7 +9,7 @@ import useElioStore from '@/stores/elioStore';
 import upload from '@/svg/upload.svg';
 import { readFileAsB64 } from '@/utils';
 
-const LogoForm = (props: { daoId: string | null }) => {
+const MetadataForm = (props: { daoId: string | null }) => {
   const [daoLogo, setDaoLogo] = useState(null);
   const {
     register,
@@ -25,23 +25,32 @@ const LogoForm = (props: { daoId: string | null }) => {
       imageString: '',
     },
   });
-  const [currentDao, isTxnProcessing, currentWalletAccount] = useElioStore(
-    (s) => [s.currentDao, s.isTxnProcessing, s.currentWalletAccount]
-  );
+  const [
+    currentDao,
+    isTxnProcessing,
+    currentWalletAccount,
+    fetchDaoDB,
+    handleErrors,
+  ] = useElioStore((s) => [
+    s.currentDao,
+    s.isTxnProcessing,
+    s.currentWalletAccount,
+    s.fetchDaoDB,
+    s.handleErrors,
+  ]);
 
   const { setDaoMetadata } = useElioDao();
 
   const onSubmit = async (data: DaoMetadataValues) => {
-    console.log(data);
-    console.log(props.daoId);
     if (!currentWalletAccount?.publicKey || !props.daoId) {
       return;
     }
 
     try {
       await setDaoMetadata(currentWalletAccount.publicKey, props.daoId, data);
+      await fetchDaoDB(props.daoId);
     } catch (err) {
-      console.log(err);
+      handleErrors(err);
     }
   };
 
@@ -229,4 +238,4 @@ const LogoForm = (props: { daoId: string | null }) => {
   );
 };
 
-export default LogoForm;
+export default MetadataForm;
