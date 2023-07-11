@@ -18,17 +18,19 @@ const CreateDaoModal = () => {
     formState: { errors, isSubmitSuccessful },
   } = useForm<CreateDaoData>();
   const [hasEnoughTokens, _setHasEnoughTokens] = useState(true);
-  const [isStartModalOpen, isTxnProcessing, currentWalletAccount] =
-    useElioStore((s) => [
-      s.isStartModalOpen,
-      s.isTxnProcessing,
-      s.currentWalletAccount,
-    ]);
-
-  const { createDao } = useElioDao();
-  const [updateIsStartModalOpen] = useElioStore((s) => [
+  const [
+    isStartModalOpen,
+    isTxnProcessing,
+    currentWalletAccount,
+    updateIsStartModalOpen,
+  ] = useElioStore((s) => [
+    s.isStartModalOpen,
+    s.isTxnProcessing,
+    s.currentWalletAccount,
     s.updateIsStartModalOpen,
   ]);
+
+  const { createDao } = useElioDao();
 
   const watchName = watch('daoName', '');
   const watchId = watch('daoId', '');
@@ -46,8 +48,6 @@ const CreateDaoModal = () => {
     } catch (err) {
       console.log('create dao', err);
     }
-
-    updateIsStartModalOpen(false);
   };
 
   useEffect(() => {
@@ -120,7 +120,7 @@ const CreateDaoModal = () => {
         footer={null}
         width={615}
         zIndex={99}>
-        <div className='flex flex-col items-center gap-y-6 px-16'>
+        <div className='flex flex-col items-center gap-y-6 px-16 pb-5'>
           <div className='text-center'>
             <h2 className='text-primary'>{`Let's get started!`}</h2>
             <p className='px-20'>

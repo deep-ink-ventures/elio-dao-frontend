@@ -3,10 +3,12 @@ import type {
   DaoMetadataValues,
   GovConfigValues,
 } from '@/stores/elioStore';
-import useElioStore from '@/stores/elioStore';
+import useElioStore, { Voting } from '@/stores/elioStore';
 import {
   accountToScVal,
   BigNumberToScVal,
+  decodeXdr,
+  hexToScVal,
   numberToScVal,
   stringToScVal,
 } from '@/utils';
@@ -15,8 +17,10 @@ import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import * as SorobanClient from 'soroban-client';
 import {
+  ASSETS_WASM_HASH,
   BASE_FEE,
   CORE_CONTRACT_ADDRESS,
+  DAO_UNITS,
   SERVICE_URL,
   VOTES_CONTRACT_ADDRESS,
 } from '../config/index';
@@ -60,7 +64,7 @@ const useElioDao = () => {
     cb?: Function
   ) => {
     if (sendTxnResponse.errorResultXdr) {
-      console.log(`can't send txn`);
+      console.log(`Cannot send transaction`);
     }
 
     if (sendTxnResponse.status === 'PENDING') {
@@ -149,6 +153,7 @@ const useElioDao = () => {
     updateIsTxnProcessing(true);
     try {
       const preparedTxn = await prepareTxn(unpreparedTxn, networkPassphrase);
+
       const signedTxn = await signTxn(
         preparedTxn,
         networkPassphrase,
@@ -158,7 +163,6 @@ const useElioDao = () => {
       const txResponse = await sendTxn(signedTxn, networkPassphrase);
       handleTxnResponse(txResponse, successMsg, errorMsg, cb);
     } catch (err) {
-      console.log(err);
       handleErrors('Send Transaction failed', err);
     }
   };
@@ -229,14 +233,14 @@ const useElioDao = () => {
           setTimeout(() => {
             fetchDaoDB(createDaoData.daoId);
             updateIsStartModalOpen(false);
+            updateIsTxnProcessing(false);
             updateCreateDaoSteps(2);
             router.push(`/dao/${createDaoData.daoId}/customize`);
-          }, 1000);
+          }, 3500);
         }
       );
     } catch (err) {
       handleErrors('Create Dao failed', err);
-      console.log(err);
     }
   };
 
@@ -291,7 +295,7 @@ const useElioDao = () => {
         'Set Metadata Transaction failed'
       );
     } catch (err) {
-      handleErrors(err);
+      handleErrors('set DAO Metadata failed', err);
     }
   };
 
@@ -361,8 +365,10 @@ const useElioDao = () => {
         'set_configuration',
         stringToScVal(config.daoId),
         numberToScVal(config.proposalDuration),
-        BigNumberToScVal(BigNumber(20000)),
-        stringToScVal(config.voting),
+        BigNumberToScVal(
+          config.proposalTokenDeposit.multipliedBy(new BigNumber(DAO_UNITS))
+        ),
+        stringToScVal(Voting.MAJORITY),
         accountToScVal(config.daoOwnerPublicKey)
       );
       await submitTxn(
@@ -370,6 +376,120 @@ const useElioDao = () => {
         'Governance has been set up successfully',
         'Governance setup failed'
       );
+    } catch (err) {
+      handleErrors('Setting governance configurations failed', err);
+    }
+  };
+
+  const createTokenContract = async (
+    daoId: string,
+    daoOwnerPublicKey: string
+  ) => {
+    updateIsTxnProcessing(true);
+    if (!currentWalletAccount?.publicKey) {
+      throw new Error('Wallet not connected');
+    }
+
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount.publicKey,
+        CORE_CONTRACT_ADDRESS,
+        'issue_token',
+        stringToScVal(daoId),
+        accountToScVal(daoOwnerPublicKey),
+        hexToScVal(ASSETS_WASM_HASH),
+        // random 32 bytes for salt
+        SorobanClient.xdr.ScVal.scvBytes(
+          SorobanClient.Keypair.random().rawSecretKey()
+        )
+      );
+      await submitTxn(
+        txn,
+        'Created token contract successfully',
+        'Token contract creation failed'
+      );
+    } catch (err) {
+      handleErrors('Token contract creation failed', err);
+    }
+  };
+
+  const mintToken = async (tokenAddress: string, supply: BigNumber) => {
+    updateIsTxnProcessing(true);
+    if (!currentWalletAccount?.publicKey) {
+      throw new Error('Wallet not connected');
+    }
+
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount.publicKey,
+        VOTES_CONTRACT_ADDRESS,
+        'mint_token',
+        accountToScVal(tokenAddress),
+        BigNumberToScVal(supply.multipliedBy(new BigNumber(DAO_UNITS)))
+      );
+      await submitTxn(
+        txn,
+        'Tokens minted successfully',
+        'Token minting failed'
+      );
+    } catch (err) {
+      handleErrors('Token minting failed', err);
+    }
+  };
+
+  const getAssetId = async (daoId: string) => {
+    updateIsTxnProcessing(true);
+    if (!currentWalletAccount?.publicKey) {
+      throw new Error('Wallet not connected');
+    }
+
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount.publicKey,
+        CORE_CONTRACT_ADDRESS,
+        'get_dao_asset_id',
+        stringToScVal(daoId)
+      );
+      const res = await sorobanServer.simulateTransaction(txn);
+      const xdr = res.results[0]?.xdr;
+      const val = decodeXdr(xdr as string);
+      return val;
+    } catch (err) {
+      handleErrors('getAssetId failed', err);
+      return null;
+    }
+  };
+
+  const issueTokenSetConfig = async ({
+    daoId,
+    daoOwnerPublicKey,
+    proposalDuration,
+    proposalTokenDeposit,
+    voting,
+    tokenSupply,
+  }: {
+    daoId: string;
+    daoOwnerPublicKey: string;
+    proposalDuration: number;
+    proposalTokenDeposit: BigNumber;
+    voting: Voting;
+    tokenSupply: BigNumber;
+  }) => {
+    try {
+      //  await createTokenContract(daoId, daoOwnerPublicKey)
+      const tokenContract = await getAssetId(daoId);
+      if (!tokenContract) {
+        handleErrors('Cannot find token contract address');
+        return;
+      }
+      await mintToken(tokenContract as string, tokenSupply);
+      await setGovernanceConfig({
+        daoId,
+        daoOwnerPublicKey,
+        proposalDuration,
+        proposalTokenDeposit,
+        voting,
+      });
     } catch (err) {
       handleErrors(err);
     }
@@ -382,6 +502,10 @@ const useElioDao = () => {
     setDaoMetadata,
     destroyDao,
     setGovernanceConfig,
+    createTokenContract,
+    mintToken,
+    getAssetId,
+    issueTokenSetConfig,
   };
 };
 
