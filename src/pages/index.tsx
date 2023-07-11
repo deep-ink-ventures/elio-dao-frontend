@@ -10,11 +10,18 @@ import scale from '@/svg/scale.svg';
 import sticker from '@/svg/sticker.svg';
 import MainLayout from '@/templates/MainLayout';
 
+import useElioDao from '@/hooks/useElioDao';
+
 const Index = () => {
   const [currentWalletAccount, updateIsStartModalOpen] = useElioStore((s) => [
     s.currentWalletAccount,
     s.updateIsStartModalOpen,
   ]);
+
+  const { getAssetId } = useElioDao();
+  const handleTest = () => {
+    getAssetId('ABC');
+  };
 
   const handleStartModal = () => {
     if (currentWalletAccount?.publicKey) {
@@ -129,6 +136,9 @@ const Index = () => {
           </div>
         </div>
         <ExploreDaos />
+        <button className='btn' onClick={handleTest}>
+          test
+        </button>
       </div>
     </MainLayout>
   );

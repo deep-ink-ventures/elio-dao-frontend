@@ -12,7 +12,6 @@ import {
   SERVICE_URL,
   SOROBAN_RPC_ENDPOINT,
 } from '../config/index';
-import { daoArray } from './fakeData';
 
 export const errorCodeMessages: ErrorCodeMessages = {
   1: 'DAO already exists',
@@ -236,7 +235,7 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   daoPage: 'dashboard',
   isStartModalOpen: false,
   createDaoSteps: 1,
-  daos: daoArray,
+  daos: null,
   txnNotifications: [],
   currentProposals: null,
   proposalCreationValues: null,
@@ -257,8 +256,9 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
   handleErrors: (errMsg: string, err?: Error | string) => {
+    set({ isTxnProcessing: false });
     // eslint-disable-next-line
-    console.log(errMsg);
+    console.log(errMsg, err);
     let message = '';
 
     if (typeof err === 'object') {
@@ -289,10 +289,10 @@ const useElioStore = create<ElioStore>()((set, get) => ({
     };
 
     // eslint-disable-next-line
-    set({ isTxnProcessing: false });
     get().addTxnNotification(newNoti);
   },
   handleTxnSuccessNotification(txnResponse, successMsg) {
+    // we don't turn off txnIsProcessing here
     if (txnResponse.status !== 'SUCCESS') {
       return;
     }
@@ -304,7 +304,6 @@ const useElioStore = create<ElioStore>()((set, get) => ({
       timestamp: Date.now(),
       // txnHash?: string;
     };
-    set({ isTxnProcessing: false });
     get().addTxnNotification(noti);
   },
   addTxnNotification: (newNotification) => {

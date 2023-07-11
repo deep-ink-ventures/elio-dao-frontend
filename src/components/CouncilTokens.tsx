@@ -15,7 +15,6 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   const [isTxnProcessing, currentDao, currentWalletAccount] = useElioStore(
     (s) => [s.isTxnProcessing, s.currentDao, s.currentWalletAccount]
   );
-
   const daoTokenBalance = new BigNumber(100);
   const [membersCount, setMembersCount] = useState(2);
 
