@@ -124,17 +124,6 @@ export const isStellarPublicKey = (publicKey: string) => {
   return SorobanClient.StrKey.isValidEd25519PublicKey(publicKey);
 };
 
-export const BigNumberToScVal = (bn: BigNumber): SorobanClient.xdr.ScVal => {
-  let hexString = bn.toString(16); // Convert the BigNumber to a hex string
-
-  // Ensure hex string has even length
-  if (hexString.length % 2 !== 0) {
-    hexString = `0${hexString}`;
-  }
-
-  return SorobanClient.xdr.ScVal.scvBytes(Buffer.from(hexString, 'hex'));
-};
-
 export const daoIdToAssetSaltScVal = (
   daoId: string
 ): SorobanClient.xdr.ScVal => {
@@ -160,6 +149,30 @@ export const hexToScVal = (hexString: string): SorobanClient.xdr.ScVal => {
   return SorobanClient.xdr.ScVal.scvBytes(Buffer.from(hexString, 'hex'));
 };
 
+// copied from https://github.com/stellar/soroban-react-payment/blob/main/src/helpers/soroban.ts
+
+export const bigNumberFromBytes = (
+  signed: boolean,
+  ...bytes: (string | number | bigint)[]
+): BigNumber => {
+  let sign = 1;
+  if (signed && bytes[0] === 0x80) {
+    // top bit is set, negative number.
+    sign = -1;
+    // eslint-disable-next-line
+    bytes[0] &= 0x7f;
+  }
+  // eslint-disable-next-line
+  let b = BigInt(0);
+  // eslint-disable-next-line
+  for (const byte of bytes) {
+    b <<= BigInt(8);
+    b |= BigInt(byte);
+  }
+  return BigNumber(b.toString()).multipliedBy(sign);
+};
+
+// Helper used in SCVal conversion
 export const bigintToBuf = (bn: bigint): Buffer => {
   let hex = BigInt(bn).toString(16).replace(/^-/, '');
   if (hex.length % 2) {
@@ -183,29 +196,10 @@ export const bigintToBuf = (bn: bigint): Buffer => {
   }
 
   return Buffer.from(u8);
+  // return toBufferBE(bn, 16)
 };
 
-export const bigNumberFromBytes = (
-  signed: boolean,
-  ...bytes: (string | number | bigint)[]
-): BigNumber => {
-  let sign = 1;
-  if (signed && bytes[0] === 0x80) {
-    // top bit is set, negative number.
-    sign = -1;
-    // eslint-disable-next-line
-    bytes[0] &= 0x7f;
-  }
-  // eslint-disable-next-line
-  let b = BigInt(0);
-  // eslint-disable-next-line
-  for (const byte of bytes) {
-    b <<= BigInt(8);
-    b |= BigInt(byte);
-  }
-  return BigNumber(b.toString()).multipliedBy(sign);
-};
-
+// Can be used whenever you need an i128 argument for a contract method
 export const bigNumberToScVal = (
   bigNum: BigNumber
 ): SorobanClient.xdr.ScVal => {
@@ -231,12 +225,12 @@ export const bigNumberToScVal = (
   }
 
   const hi = new SorobanClient.xdr.Int64(
-    bigNumberFromBytes(false, ...padded.slice(4, 8)).toNumber(),
-    bigNumberFromBytes(false, ...padded.slice(0, 4)).toNumber()
+    bigNumberFromBytes(false, ...padded.subarray(4, 8)).toNumber(),
+    bigNumberFromBytes(false, ...padded.subarray(0, 4)).toNumber()
   );
   const lo = new SorobanClient.xdr.Uint64(
-    bigNumberFromBytes(false, ...padded.slice(12, 16)).toNumber(),
-    bigNumberFromBytes(false, ...padded.slice(8, 12)).toNumber()
+    bigNumberFromBytes(false, ...padded.subarray(12, 16)).toNumber(),
+    bigNumberFromBytes(false, ...padded.subarray(8, 12)).toNumber()
   );
 
   return SorobanClient.xdr.ScVal.scvI128(
@@ -249,6 +243,7 @@ export const decodeu32 = (xdr: string) => {
   return val.u32();
 };
 
+// fixme add more val types
 export const decodeXdr = (xdr: string) => {
   const scVal = SorobanClient.xdr.ScVal.fromXDR(xdr as string, 'base64');
   switch (scVal.switch().name) {

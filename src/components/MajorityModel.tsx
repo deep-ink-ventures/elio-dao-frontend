@@ -1,4 +1,3 @@
-import { DAO_UNITS } from '@/config';
 import useElioDao from '@/hooks/useElioDao';
 import type { MajorityModelValues } from '@/stores/elioStore';
 import useElioStore, { Voting } from '@/stores/elioStore';
@@ -77,7 +76,7 @@ const MajorityModel = (props: { daoId: string | null }) => {
                     max: { value: 900000000, message: 'Max is 900,000,000' },
                     setValueAs: (tokens) => {
                       const bnTokens = new BigNumber(tokens);
-                      return bnTokens.multipliedBy(new BigNumber(DAO_UNITS));
+                      return bnTokens;
                     },
                   })}
                 />
