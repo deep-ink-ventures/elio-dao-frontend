@@ -483,14 +483,16 @@ const useElioDao = () => {
     tokenSupply: BigNumber;
   }) => {
     try {
-      await createTokenContract(daoId, daoOwnerPublicKey);
       const tokenContractAddress = await getAssetId(daoId);
       if (!tokenContractAddress) {
-        handleErrors('Cannot find token contract address');
-        return;
+        console.log('Creating token contract');
+        await createTokenContract(daoId, daoOwnerPublicKey);
+        const tokenAddress = await getAssetId(daoId);
+        await mintToken(tokenAddress as string, tokenSupply);
+      } else {
+        console.log('Token Address exists. Minting tokens.');
+        await mintToken(tokenContractAddress as string, tokenSupply);
       }
-      console.log('Token Address', tokenContractAddress);
-      await mintToken(tokenContractAddress as string, tokenSupply);
       // await setGovernanceConfig({
       //   daoId,
       //   daoOwnerPublicKey,
