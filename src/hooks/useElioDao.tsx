@@ -6,7 +6,7 @@ import type {
 import useElioStore, { Voting } from '@/stores/elioStore';
 import {
   accountToScVal,
-  BigNumberToScVal,
+  bigNumberToScVal,
   decodeXdr,
   hexToScVal,
   numberToScVal,
@@ -153,13 +153,14 @@ const useElioDao = () => {
     updateIsTxnProcessing(true);
     try {
       const preparedTxn = await prepareTxn(unpreparedTxn, networkPassphrase);
-
+      console.log('prepared', prepareTxn);
       const signedTxn = await signTxn(
         preparedTxn,
         networkPassphrase,
         network,
         currentWalletAccount.publicKey
       );
+      console.log('signed', signedTxn);
       const txResponse = await sendTxn(signedTxn, networkPassphrase);
       handleTxnResponse(txResponse, successMsg, errorMsg, cb);
     } catch (err) {
@@ -292,7 +293,10 @@ const useElioDao = () => {
       await submitTxn(
         setMetadataTxn,
         'Metadata set successfully',
-        'Set Metadata Transaction failed'
+        'Set Metadata Transaction failed',
+        () => {
+          updateIsTxnProcessing(false);
+        }
       );
     } catch (err) {
       handleErrors('set DAO Metadata failed', err);
@@ -353,6 +357,7 @@ const useElioDao = () => {
   };
 
   const setGovernanceConfig = async (config: GovConfigValues) => {
+    console.log('setGovernanceConfig called');
     updateIsTxnProcessing(true);
     if (!currentWalletAccount?.publicKey) {
       throw new Error('Wallet not connected');
@@ -365,7 +370,7 @@ const useElioDao = () => {
         'set_configuration',
         stringToScVal(config.daoId),
         numberToScVal(config.proposalDuration),
-        BigNumberToScVal(
+        bigNumberToScVal(
           config.proposalTokenDeposit.multipliedBy(new BigNumber(DAO_UNITS))
         ),
         stringToScVal(Voting.MAJORITY),
@@ -385,6 +390,7 @@ const useElioDao = () => {
     daoId: string,
     daoOwnerPublicKey: string
   ) => {
+    console.log('createTokenContract called');
     updateIsTxnProcessing(true);
     if (!currentWalletAccount?.publicKey) {
       throw new Error('Wallet not connected');
@@ -418,14 +424,15 @@ const useElioDao = () => {
     if (!currentWalletAccount?.publicKey) {
       throw new Error('Wallet not connected');
     }
-
+    console.log('mintToken called');
+    console.log('token address', tokenAddress);
     try {
       const txn = await makeContractTxn(
         currentWalletAccount.publicKey,
-        VOTES_CONTRACT_ADDRESS,
+        tokenAddress,
         'mint_token',
-        accountToScVal(tokenAddress),
-        BigNumberToScVal(supply.multipliedBy(new BigNumber(DAO_UNITS)))
+        accountToScVal(currentWalletAccount.publicKey),
+        bigNumberToScVal(supply.multipliedBy(new BigNumber(DAO_UNITS)))
       );
       await submitTxn(
         txn,
@@ -476,20 +483,21 @@ const useElioDao = () => {
     tokenSupply: BigNumber;
   }) => {
     try {
-      //  await createTokenContract(daoId, daoOwnerPublicKey)
-      const tokenContract = await getAssetId(daoId);
-      if (!tokenContract) {
+      await createTokenContract(daoId, daoOwnerPublicKey);
+      const tokenContractAddress = await getAssetId(daoId);
+      if (!tokenContractAddress) {
         handleErrors('Cannot find token contract address');
         return;
       }
-      await mintToken(tokenContract as string, tokenSupply);
-      await setGovernanceConfig({
-        daoId,
-        daoOwnerPublicKey,
-        proposalDuration,
-        proposalTokenDeposit,
-        voting,
-      });
+      console.log('Token Address', tokenContractAddress);
+      await mintToken(tokenContractAddress as string, tokenSupply);
+      // await setGovernanceConfig({
+      //   daoId,
+      //   daoOwnerPublicKey,
+      //   proposalDuration,
+      //   proposalTokenDeposit,
+      //   voting,
+      // });
     } catch (err) {
       handleErrors(err);
     }

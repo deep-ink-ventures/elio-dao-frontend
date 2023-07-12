@@ -14,7 +14,14 @@ import {
 } from '../config/index';
 
 export const errorCodeMessages: ErrorCodeMessages = {
-  1: 'DAO already exists',
+  1: 'DaoAlreadyExists',
+  2: 'DaoDoesNotExist',
+  3: 'VotesAlreadyInitiated',
+  4: 'NotDaoOwner',
+  5: 'AssetAlreadyIssued',
+  6: 'AssetNotIssued',
+  7: 'NoMetadata',
+  8: 'NoHookpoint',
 };
 
 export enum Voting {
