@@ -94,10 +94,10 @@ const useElioDao = () => {
       // eslint-disable-next-line no-else-return
     } else {
       // handle error here
-
-      throw new Error(
+      handleErrors(
         `Unabled to submit transaction, status: ${sendTxnResponse.status}`
       );
+      return null;
     }
   };
 
@@ -147,20 +147,16 @@ const useElioDao = () => {
     errorMsg: string,
     cb?: Function
   ) => {
-    if (!currentWalletAccount?.publicKey) {
-      throw new Error('Wallet not connected');
-    }
     updateIsTxnProcessing(true);
     try {
       const preparedTxn = await prepareTxn(unpreparedTxn, networkPassphrase);
-      console.log('prepared', prepareTxn);
       const signedTxn = await signTxn(
         preparedTxn,
         networkPassphrase,
         network,
-        currentWalletAccount.publicKey
+        currentWalletAccount!.publicKey
       );
-      console.log('signed', signedTxn);
+      console.log('signed XDR', signedTxn);
       const txResponse = await sendTxn(signedTxn, networkPassphrase);
       handleTxnResponse(txResponse, successMsg, errorMsg, cb);
     } catch (err) {
@@ -217,14 +213,11 @@ const useElioDao = () => {
 
   const createDao = async (createDaoData: CreateDaoData) => {
     updateIsTxnProcessing(true);
-    if (!currentWalletAccount?.publicKey) {
-      throw new Error('Wallet not connected');
-    }
 
     try {
       const txn = await makeCreateDaoTxn(
         createDaoData,
-        currentWalletAccount.publicKey
+        currentWalletAccount!.publicKey
       );
       await submitTxn(
         txn,
@@ -335,16 +328,14 @@ const useElioDao = () => {
 
   const destroyDao = async (daoId: string) => {
     updateIsTxnProcessing(true);
-    if (!currentWalletAccount?.publicKey) {
-      throw new Error('Wallet not connected');
-    }
+
     try {
       const txn = await makeContractTxn(
-        currentWalletAccount.publicKey,
+        currentWalletAccount!.publicKey,
         CORE_CONTRACT_ADDRESS,
         'destroy_dao',
         stringToScVal(daoId),
-        accountToScVal(currentWalletAccount.publicKey)
+        accountToScVal(currentWalletAccount!.publicKey)
       );
       await submitTxn(
         txn,
@@ -359,13 +350,10 @@ const useElioDao = () => {
   const setGovernanceConfig = async (config: GovConfigValues) => {
     console.log('setGovernanceConfig called');
     updateIsTxnProcessing(true);
-    if (!currentWalletAccount?.publicKey) {
-      throw new Error('Wallet not connected');
-    }
 
     try {
       const txn = await makeContractTxn(
-        currentWalletAccount.publicKey,
+        currentWalletAccount!.publicKey,
         VOTES_CONTRACT_ADDRESS,
         'set_configuration',
         stringToScVal(config.daoId),
@@ -392,13 +380,10 @@ const useElioDao = () => {
   ) => {
     console.log('createTokenContract called');
     updateIsTxnProcessing(true);
-    if (!currentWalletAccount?.publicKey) {
-      throw new Error('Wallet not connected');
-    }
 
     try {
       const txn = await makeContractTxn(
-        currentWalletAccount.publicKey,
+        currentWalletAccount!.publicKey,
         CORE_CONTRACT_ADDRESS,
         'issue_token',
         stringToScVal(daoId),
@@ -421,17 +406,14 @@ const useElioDao = () => {
 
   const mintToken = async (tokenAddress: string, supply: BigNumber) => {
     updateIsTxnProcessing(true);
-    if (!currentWalletAccount?.publicKey) {
-      throw new Error('Wallet not connected');
-    }
     console.log('mintToken called');
     console.log('token address', tokenAddress);
     try {
       const txn = await makeContractTxn(
-        currentWalletAccount.publicKey,
+        currentWalletAccount!.publicKey,
         tokenAddress,
         'mint_token',
-        accountToScVal(currentWalletAccount.publicKey),
+        accountToScVal(currentWalletAccount!.publicKey),
         bigNumberToScVal(supply.multipliedBy(new BigNumber(DAO_UNITS)))
       );
       await submitTxn(
@@ -445,24 +427,42 @@ const useElioDao = () => {
   };
 
   const getAssetId = async (daoId: string) => {
-    updateIsTxnProcessing(true);
-    if (!currentWalletAccount?.publicKey) {
-      throw new Error('Wallet not connected');
-    }
-
     try {
       const txn = await makeContractTxn(
-        currentWalletAccount.publicKey,
+        currentWalletAccount!.publicKey,
         CORE_CONTRACT_ADDRESS,
         'get_dao_asset_id',
         stringToScVal(daoId)
       );
       const res = await sorobanServer.simulateTransaction(txn);
-      const xdr = res.results[0]?.xdr;
+      const xdr = res?.results?.[0]?.xdr;
+      if (!xdr) {
+        return null;
+      }
       const val = decodeXdr(xdr as string);
       return val;
     } catch (err) {
       handleErrors('getAssetId failed', err);
+      return null;
+    }
+  };
+
+  const getDaoMetadata = async (daoId: string) => {
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount!.publicKey,
+        CORE_CONTRACT_ADDRESS,
+        'get_metadata',
+        stringToScVal(daoId)
+      );
+      const res = await sorobanServer.simulateTransaction(txn);
+      const xdr = res?.results?.[0]?.xdr;
+      console.log(xdr);
+      const val = decodeXdr(xdr as string);
+      console.log('val of metadata', val);
+      return val;
+    } catch (err) {
+      handleErrors('getDaoMetadata failed', err);
       return null;
     }
   };
@@ -482,30 +482,62 @@ const useElioDao = () => {
     voting: Voting;
     tokenSupply: BigNumber;
   }) => {
+    const tokenContractAddress = await getAssetId(daoId);
+    if (!tokenContractAddress) {
+      console.log('Creating token contract');
+      createTokenContract(daoId, daoOwnerPublicKey)
+        .then(() => {
+          setTimeout(async () => {
+            const tokenAddress = await getAssetId(daoId);
+            if (!tokenAddress) {
+              handleErrors('Cannot get token address');
+              return;
+            }
+            await mintToken(tokenAddress as string, tokenSupply);
+          }, 6000);
+        })
+        .catch((err) => {
+          handleErrors('issueTokenSetConfig failed', err);
+        });
+    } else {
+      console.log('Token Address exists. Minting tokens.');
+      await mintToken(tokenContractAddress as string, tokenSupply);
+    }
+    // await setGovernanceConfig({
+    //   daoId,
+    //   daoOwnerPublicKey,
+    //   proposalDuration,
+    //   proposalTokenDeposit,
+    //   voting,
+    // });
+  };
+
+  // eslint-disable-next-line
+  const getDao = async (daoId: string) => {
+    if (!currentWalletAccount?.publicKey) {
+      return;
+    }
     try {
-      const tokenContractAddress = await getAssetId(daoId);
-      if (!tokenContractAddress) {
-        console.log('Creating token contract');
-        await createTokenContract(daoId, daoOwnerPublicKey);
-        const tokenAddress = await getAssetId(daoId);
-        await mintToken(tokenAddress as string, tokenSupply);
-      } else {
-        console.log('Token Address exists. Minting tokens.');
-        await mintToken(tokenContractAddress as string, tokenSupply);
-      }
-      // await setGovernanceConfig({
-      //   daoId,
-      //   daoOwnerPublicKey,
-      //   proposalDuration,
-      //   proposalTokenDeposit,
-      //   voting,
-      // });
+      const txn = await makeContractTxn(
+        currentWalletAccount?.publicKey,
+        CORE_CONTRACT_ADDRESS,
+        'get_dao',
+        stringToScVal(daoId)
+      );
+      const res = await sorobanServer.simulateTransaction(txn);
+      const xdr = res?.results?.[0]?.xdr;
+
+      const val = decodeXdr(xdr as string);
+      console.log('val of metadata', val);
+      // return val;
     } catch (err) {
-      handleErrors(err);
+      handleErrors('getDaoMetadata failed', err);
+      // return null;
     }
   };
 
   return {
+    makeContractTxn,
     makeCreateDaoTxn,
     createDao,
     doChallenge,
@@ -516,6 +548,8 @@ const useElioDao = () => {
     mintToken,
     getAssetId,
     issueTokenSetConfig,
+    getDaoMetadata,
+    getDao,
   };
 };
 
