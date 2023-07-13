@@ -23,11 +23,13 @@ const CreateDaoModal = () => {
     isTxnProcessing,
     currentWalletAccount,
     updateIsStartModalOpen,
+    handleErrors,
   ] = useElioStore((s) => [
     s.isStartModalOpen,
     s.isTxnProcessing,
     s.currentWalletAccount,
     s.updateIsStartModalOpen,
+    s.handleErrors,
   ]);
 
   const { createDao } = useElioDao();
@@ -38,15 +40,14 @@ const CreateDaoModal = () => {
   const onSubmit: SubmitHandler<CreateDaoData> = async (
     data: CreateDaoData
   ) => {
-    console.log(data);
-    if (!currentWalletAccount) {
+    if (!currentWalletAccount?.publicKey) {
       return;
     }
 
     try {
       await createDao(data);
     } catch (err) {
-      console.log('create dao', err);
+      handleErrors('Create DAO Transaction failed', err);
     }
   };
 

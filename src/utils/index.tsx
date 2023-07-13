@@ -238,20 +238,35 @@ export const bigNumberToScVal = (
   );
 };
 
-export const decodeu32 = (xdr: string) => {
-  const val = SorobanClient.xdr.ScVal.fromXDR(xdr, 'base64');
-  return val.u32();
-};
-
-// fixme add more val types
+// fixme add more val type decoders
 export const decodeXdr = (xdr: string) => {
   const scVal = SorobanClient.xdr.ScVal.fromXDR(xdr as string, 'base64');
+  console.log(scVal.switch().name);
   switch (scVal.switch().name) {
     case 'scvAddress':
-      return scVal.address().contractId().toString('hex');
+      return SorobanClient.Address.fromScAddress(scVal.address()).toString();
     case 'scvBytes':
       return scVal.bytes().toString();
+    case 'scvMap':
+      return scVal.map()?.map((item) => {
+        if (item.val().switch().name === 'scvBytes') {
+          return item.val().bytes().toString();
+        }
+        if (item.val().switch().name === 'scvAddress') {
+          SorobanClient.Address.fromScAddress(item.val().address());
+          return SorobanClient.Address.fromScAddress(
+            item.val().address()
+          ).toString();
+        }
+        return item;
+      });
+    case 'scvU32':
+      return scVal.u32();
     default:
+      console.log(
+        'No decoder for this type detected. Type: ',
+        scVal.switch().name
+      );
       return null;
   }
 };

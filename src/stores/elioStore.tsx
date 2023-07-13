@@ -22,6 +22,23 @@ export const errorCodeMessages: ErrorCodeMessages = {
   6: 'AssetNotIssued',
   7: 'NoMetadata',
   8: 'NoHookpoint',
+  1000: 'CoreAlreadyInitialized',
+  1001: 'NotDaoOwner',
+  1002: 'MaxProposalsReached',
+  1003: 'ProposalNotFound',
+  1004: 'ProposalStillActive',
+  1005: 'ProposalNotRunning',
+  1006: 'UnacceptedProposal',
+  1007: 'NotProposalOwner',
+  1008: 'MetadataNotFound',
+  1009: 'ConfigurationNotFound',
+  2000: 'NegativeAmount',
+  2001: 'CheckpointIndexError',
+  2002: 'InsufficientAllowance',
+  2003: 'DaoAlreadyIssuedToken',
+  2004: 'NotTokenOwner',
+  2005: 'CanOnlyBeMintedOnce',
+  2006: 'InsufficientBalance',
 };
 
 export enum Voting {
@@ -184,6 +201,7 @@ export interface WalletAccount {
 
 export interface ElioState {
   currentDao: DaoDetail | null;
+  currentDaoFromChain: DaoDetail | null;
   daos: DaoDetail[] | null;
   currentWalletAccount: WalletAccount | null;
   currentProposalFaultyReports: FaultyReport[] | null;
@@ -230,12 +248,14 @@ export interface ElioActions {
   fetchDaosDB: () => void;
   fetchDaoDB: (daoId: string) => void;
   updateShowCongrats: (showCongrats: boolean) => void;
+  updateDaoFromChain: (dao: DaoDetail) => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
 
 const useElioStore = create<ElioStore>()((set, get) => ({
   currentDao: null,
+  currentDaoFromChain: null,
   currentWalletAccount: null,
   isConnectModalOpen: false,
   isTxnProcessing: false,
@@ -274,12 +294,21 @@ const useElioStore = create<ElioStore>()((set, get) => ({
       message = errMsg;
     }
 
+    const getErrorCode = (str: string | undefined) => {
+      if (typeof str === 'undefined') {
+        return null;
+      }
+      const match = str.match(/\((\d+)\)/);
+      if (!match?.[1]) {
+        return null;
+      }
+      // eslint-disable-next-line
+      return match ? parseInt(match[1]) : null;
+    };
+
     if (typeof err === 'string' && err.includes('ContractError(')) {
-      const i = err.indexOf('ContractError(');
-      const indexOfErrorCode = i + 14;
-      // fixme when we have double digits error codes
-      const errorCode = err.substring(indexOfErrorCode, indexOfErrorCode + 1);
-      if (errorCodeMessages[errorCode]) {
+      const errorCode = getErrorCode(err);
+      if (errorCode && errorCodeMessages[errorCode]) {
         if (typeof err === 'object') {
           message = errorCodeMessages[errorCode] as string;
         } else {
@@ -295,7 +324,6 @@ const useElioStore = create<ElioStore>()((set, get) => ({
       timestamp: Date.now(),
     };
 
-    // eslint-disable-next-line
     get().addTxnNotification(newNoti);
   },
   handleTxnSuccessNotification(txnResponse, successMsg) {
@@ -406,7 +434,7 @@ const useElioStore = create<ElioStore>()((set, get) => ({
         `${SERVICE_URL}/daos/${encodeURIComponent(daoId as string)}/`
       );
       if (response.status === 404) {
-        throw new Error('Fetching failed. Status 404.');
+        return;
       }
       const d = await response.json();
       daoDetail.daoId = d.id;
@@ -437,6 +465,8 @@ const useElioStore = create<ElioStore>()((set, get) => ({
     }
   },
   updateShowCongrats: (showCongrats) => set({ showCongrats }),
+  updateDaoFromChain: (currentDaoFromChain: DaoDetail) =>
+    set({ currentDaoFromChain }),
 }));
 
 export default useElioStore;

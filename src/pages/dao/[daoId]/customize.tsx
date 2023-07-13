@@ -79,14 +79,14 @@ const Customize = () => {
       return <LogoForm daoId={daoId as string} />;
     }
 
-    if (currentDao && currentDao.metadataHash && !currentDao.daoAssetId) {
+    if (currentDao && currentDao.metadataHash && !currentDao.proposalDuration) {
       return <GovernanceForm daoId={daoId as string} />;
     }
 
     if (
       currentDao &&
       currentDao.metadataHash &&
-      currentDao.daoAssetId &&
+      currentDao.proposalDuration &&
       !currentDao.setupComplete &&
       !showCongrats
     ) {

@@ -18,9 +18,12 @@ const Index = () => {
     s.updateIsStartModalOpen,
   ]);
 
-  const { getAssetId } = useElioDao();
-  const handleTest = () => {
-    getAssetId('ABC');
+  const { getDao } = useElioDao();
+  const handleTest = async () => {
+    if (!currentWalletAccount?.publicKey) {
+      return;
+    }
+    await getDao('ABC');
   };
 
   const handleStartModal = () => {
