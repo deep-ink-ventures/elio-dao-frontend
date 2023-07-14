@@ -224,14 +224,15 @@ export const bigNumberToScVal = (
     padded[0] |= 0x80;
   }
 
-  const hi = new SorobanClient.xdr.Int64(
+  // fixme?
+  const hi = new SorobanClient.xdr.Int64([
     bigNumberFromBytes(false, ...padded.subarray(4, 8)).toNumber(),
-    bigNumberFromBytes(false, ...padded.subarray(0, 4)).toNumber()
-  );
-  const lo = new SorobanClient.xdr.Uint64(
+    bigNumberFromBytes(false, ...padded.subarray(0, 4)).toNumber(),
+  ]);
+  const lo = new SorobanClient.xdr.Uint64([
     bigNumberFromBytes(false, ...padded.subarray(12, 16)).toNumber(),
-    bigNumberFromBytes(false, ...padded.subarray(8, 12)).toNumber()
-  );
+    bigNumberFromBytes(false, ...padded.subarray(8, 12)).toNumber(),
+  ]);
 
   return SorobanClient.xdr.ScVal.scvI128(
     new SorobanClient.xdr.Int128Parts({ lo, hi })

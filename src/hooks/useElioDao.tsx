@@ -111,7 +111,7 @@ const useElioDao = () => {
       unpreparedTxn,
       networkPassphraseStr
     );
-
+    console.log('prepared txn', preparedTxn.toXDR());
     return preparedTxn.toXDR();
   };
 
@@ -150,6 +150,7 @@ const useElioDao = () => {
     updateIsTxnProcessing(true);
     try {
       const preparedTxn = await prepareTxn(unpreparedTxn, networkPassphrase);
+      console.log('prepared', preparedTxn);
       const signedTxn = await signTxn(
         preparedTxn,
         networkPassphrase,
@@ -201,13 +202,14 @@ const useElioDao = () => {
       .addOperation(
         contract.call(
           'create_dao',
-          stringToScVal(createDaoData.daoId),
-          stringToScVal(createDaoData.daoName),
+          SorobanClient.nativeToScVal(Buffer.from(createDaoData.daoId)),
+          SorobanClient.nativeToScVal(Buffer.from(createDaoData.daoId)),
           accountToScVal(owner)
         )
       )
       .setTimeout(0)
       .build();
+    console.log('unprepared txn', txn.toXDR());
     return txn;
   };
 
@@ -378,9 +380,7 @@ const useElioDao = () => {
     daoId: string,
     daoOwnerPublicKey: string
   ) => {
-    console.log('createTokenContract called');
     updateIsTxnProcessing(true);
-
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
@@ -528,11 +528,99 @@ const useElioDao = () => {
       const xdr = res?.results?.[0]?.xdr;
 
       const val = decodeXdr(xdr as string);
-      console.log('val of metadata', val);
+      console.log('val of dao', val);
       // return val;
     } catch (err) {
-      handleErrors('getDaoMetadata failed', err);
+      handleErrors('getDao failed', err);
       // return null;
+    }
+  };
+
+  const changeOwner = async (daoId: string, newOwnerAddress: string) => {
+    updateIsTxnProcessing(true);
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount!.publicKey,
+        CORE_CONTRACT_ADDRESS,
+        'change_owner',
+        stringToScVal(daoId),
+        accountToScVal(newOwnerAddress),
+        accountToScVal(currentWalletAccount!.publicKey)
+      );
+      await submitTxn(
+        txn,
+        'DAO owner changed successfully',
+        'DAO owner change failed'
+      );
+    } catch (err) {
+      handleErrors('changeOwner failed', err);
+    }
+  };
+
+  const CreateProposal = async (daoId: string) => {
+    updateIsTxnProcessing(true);
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount!.publicKey,
+        VOTES_CONTRACT_ADDRESS,
+        'create_proposal',
+        stringToScVal(daoId),
+        accountToScVal(currentWalletAccount!.publicKey)
+      );
+      await submitTxn(
+        txn,
+        'Proposal created successfully',
+        'Proposal creation failed'
+      );
+    } catch (err) {
+      handleErrors('CreateProposal failed', err);
+    }
+  };
+
+  const setProposalMetadata = async (
+    daoId: string,
+    proposalId: number,
+    meta: string,
+    hash: string
+  ) => {
+    updateIsTxnProcessing(true);
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount!.publicKey,
+        VOTES_CONTRACT_ADDRESS,
+        'set_metadata',
+        stringToScVal(daoId),
+        SorobanClient.nativeToScVal(proposalId),
+        stringToScVal(meta),
+        stringToScVal(hash),
+        accountToScVal(currentWalletAccount!.publicKey)
+      );
+      await submitTxn(
+        txn,
+        'Proposal created successfully',
+        'Proposal creation failed'
+      );
+    } catch (err) {
+      handleErrors('setProposalMetadata failed', err);
+    }
+  };
+  // fn vote(env: Env, dao_id: Bytes, proposal_id: u32, in_favor: bool, voter: Address)
+
+  const vote = async (daoId: string, proposalId: number, inFavor: boolean) => {
+    updateIsTxnProcessing(true);
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount!.publicKey,
+        VOTES_CONTRACT_ADDRESS,
+        'set_metadata',
+        stringToScVal(daoId),
+        SorobanClient.nativeToScVal(proposalId),
+        SorobanClient.nativeToScVal(inFavor),
+        accountToScVal(currentWalletAccount!.publicKey)
+      );
+      await submitTxn(txn, 'Voted successfully', 'Voting failed');
+    } catch (err) {
+      handleErrors('vote failed', err);
     }
   };
 
@@ -550,6 +638,10 @@ const useElioDao = () => {
     issueTokenSetConfig,
     getDaoMetadata,
     getDao,
+    changeOwner,
+    CreateProposal,
+    setProposalMetadata,
+    vote,
   };
 };
 
