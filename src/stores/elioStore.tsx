@@ -212,6 +212,7 @@ export interface ElioState {
   isStartModalOpen: boolean;
   createDaoSteps: number;
   txnNotifications: TxnNotification[];
+  currentProposal: ProposalDetail | null;
   currentProposals: ProposalDetail[] | null;
   proposalCreationValues: ProposalCreationValues | null;
   isFaultyModalOpen: boolean;
@@ -220,6 +221,7 @@ export interface ElioState {
   networkPassphrase: string;
   network: string;
   showCongrats: boolean;
+  currentBlockNumber: number | null;
 }
 
 export interface ElioActions {
@@ -249,6 +251,8 @@ export interface ElioActions {
   fetchDaoDB: (daoId: string) => void;
   updateShowCongrats: (showCongrats: boolean) => void;
   updateDaoFromChain: (dao: DaoDetail) => void;
+  updateCurrentBlockNumber: (currentBlockNumber: number | null) => void;
+  fetchProposalFaultyReports: (proposalId: string) => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -274,6 +278,8 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   networkPassphrase: NETWORK_PASSPHRASE,
   network: NETWORK,
   showCongrats: false,
+  currentProposal: null,
+  currentBlockNumber: null,
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
   updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
@@ -467,6 +473,33 @@ const useElioStore = create<ElioStore>()((set, get) => ({
   updateShowCongrats: (showCongrats) => set({ showCongrats }),
   updateDaoFromChain: (currentDaoFromChain: DaoDetail) =>
     set({ currentDaoFromChain }),
+  updateCurrentBlockNumber: (currentBlockNumber) => set({ currentBlockNumber }),
+  fetchProposalFaultyReports: async (proposalId: string) => {
+    try {
+      const response = await fetch(
+        `${SERVICE_URL}/proposals/${proposalId}/reports/`
+      );
+
+      const reportsRes = await response.json();
+
+      if (!reportsRes || reportsRes.length < 1) {
+        return;
+      }
+
+      const reports = reportsRes?.map(
+        (item: { proposal_id: string; reason: string }) => {
+          return {
+            proposalId: item.proposal_id,
+            reason: item.reason,
+          };
+        }
+      );
+
+      set({ currentProposalFaultyReports: reports });
+    } catch (err) {
+      get().handleErrors(err);
+    }
+  },
 }));
 
 export default useElioStore;
