@@ -20,7 +20,7 @@ import MainLayout from '@/templates/MainLayout';
 import { getProposalEndTime, uiTokens } from '@/utils';
 
 import alert from '@/svg/alert.svg';
-import arrowLeft from '@/svg/arrow-left.svg';
+import arrowLeft from '@/svg/arrowLeft.svg';
 
 const Proposal = () => {
   const router = useRouter();
