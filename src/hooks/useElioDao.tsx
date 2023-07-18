@@ -532,7 +532,6 @@ const useElioDao = () => {
       // return val;
     } catch (err) {
       handleErrors('getDao failed', err);
-      // return null;
     }
   };
 

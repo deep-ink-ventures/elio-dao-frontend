@@ -73,6 +73,20 @@ h4 {
   backdrop-filter: blur(5px);
   @apply text-white
 }
+.btn-vote {
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation: button-pop var(--animation-btn, 0.25s) ease-out;
+  height: 3rem/* 48px */;
+  padding-left: 1rem/* 16px */;
+  padding-right: 1rem/* 16px */;
+  font-size: 0.875rem/* 14px */;
+  line-height: 1.25rem/* 20px */;
+  line-height: 1em;
+  min-height: 3rem/* 48px */;
+  text-align: center;
+
+}
 .btn-primary {
   @apply text-primary-content font-medium;
 }

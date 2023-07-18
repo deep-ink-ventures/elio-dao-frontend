@@ -271,3 +271,6 @@ export const decodeXdr = (xdr: string) => {
       return null;
   }
 };
+
+export const camelToSnakeCase = (str: string) =>
+  str.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
