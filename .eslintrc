@@ -57,7 +57,8 @@
           "warn",
           { "argsIgnorePattern": "^_" }
         ],
-        "no-bitwise": "off"
+        "no-bitwise": "off",
+        "consistent-return": "off"
       }
     },
     // Configuration for testing

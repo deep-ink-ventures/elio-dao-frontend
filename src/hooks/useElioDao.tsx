@@ -16,14 +16,7 @@ import { signTransaction } from '@stellar/freighter-api';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import * as SorobanClient from 'soroban-client';
-import {
-  ASSETS_WASM_HASH,
-  BASE_FEE,
-  CORE_CONTRACT_ADDRESS,
-  DAO_UNITS,
-  SERVICE_URL,
-  VOTES_CONTRACT_ADDRESS,
-} from '../config/index';
+import { BASE_FEE, DAO_UNITS, SERVICE_URL } from '../config/index';
 
 export enum TxnStatus {
   PENDING = 'pending',
@@ -44,6 +37,7 @@ const useElioDao = () => {
     handleTxnSuccessNotification,
     networkPassphrase,
     network,
+    elioConfig,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.sorobanServer,
@@ -55,6 +49,7 @@ const useElioDao = () => {
     s.handleTxnSuccessNotification,
     s.networkPassphrase,
     s.network,
+    s.elioConfig,
   ]);
 
   const handleTxnResponse = async (
@@ -147,6 +142,10 @@ const useElioDao = () => {
     errorMsg: string,
     cb?: Function
   ) => {
+    if (!elioConfig) {
+      handleErrors('Cannot fetch contract addresses');
+      return;
+    }
     updateIsTxnProcessing(true);
     try {
       const preparedTxn = await prepareTxn(unpreparedTxn, networkPassphrase);
@@ -196,14 +195,19 @@ const useElioDao = () => {
     createDaoData: CreateDaoData,
     owner: string
   ) => {
+    if (!elioConfig) {
+      return;
+    }
     const txnBuilder = await getTxnBuilder(owner);
-    const contract = await new SorobanClient.Contract(CORE_CONTRACT_ADDRESS);
+    const contract = await new SorobanClient.Contract(
+      elioConfig.coreContractAddress
+    );
     const txn = txnBuilder
       .addOperation(
         contract.call(
           'create_dao',
-          SorobanClient.nativeToScVal(Buffer.from(createDaoData.daoId)),
-          SorobanClient.nativeToScVal(Buffer.from(createDaoData.daoId)),
+          stringToScVal(createDaoData.daoId),
+          stringToScVal(createDaoData.daoId),
           accountToScVal(owner)
         )
       )
@@ -221,6 +225,9 @@ const useElioDao = () => {
         createDaoData,
         currentWalletAccount!.publicKey
       );
+      if (!txn) {
+        return;
+      }
       await submitTxn(
         txn,
         'Created DAO successfully',
@@ -273,12 +280,14 @@ const useElioDao = () => {
     daoId: string,
     data: DaoMetadataValues
   ) => {
-    const metadata = await postDaoMetadata(daoId, data);
-
+    if (!elioConfig) {
+      return;
+    }
     try {
+      const metadata = await postDaoMetadata(daoId, data);
       const setMetadataTxn = await makeContractTxn(
         publicKey,
-        CORE_CONTRACT_ADDRESS,
+        elioConfig.coreContractAddress,
         'set_metadata',
         stringToScVal(daoId),
         stringToScVal(metadata.metadata_url),
@@ -329,12 +338,15 @@ const useElioDao = () => {
   };
 
   const destroyDao = async (daoId: string) => {
+    if (!elioConfig) {
+      return;
+    }
     updateIsTxnProcessing(true);
 
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        CORE_CONTRACT_ADDRESS,
+        elioConfig.coreContractAddress,
         'destroy_dao',
         stringToScVal(daoId),
         accountToScVal(currentWalletAccount!.publicKey)
@@ -350,13 +362,14 @@ const useElioDao = () => {
   };
 
   const setGovernanceConfig = async (config: GovConfigValues) => {
-    console.log('setGovernanceConfig called');
+    if (!elioConfig) {
+      return;
+    }
     updateIsTxnProcessing(true);
-
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        VOTES_CONTRACT_ADDRESS,
+        elioConfig.votesContractAddress,
         'set_configuration',
         stringToScVal(config.daoId),
         numberToScVal(config.proposalDuration),
@@ -380,15 +393,18 @@ const useElioDao = () => {
     daoId: string,
     daoOwnerPublicKey: string
   ) => {
+    if (!elioConfig) {
+      return;
+    }
     updateIsTxnProcessing(true);
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        CORE_CONTRACT_ADDRESS,
+        elioConfig.coreContractAddress,
         'issue_token',
         stringToScVal(daoId),
         accountToScVal(daoOwnerPublicKey),
-        hexToScVal(ASSETS_WASM_HASH),
+        hexToScVal(elioConfig.assetsWasmHash),
         // random 32 bytes for salt
         SorobanClient.xdr.ScVal.scvBytes(
           SorobanClient.Keypair.random().rawSecretKey()
@@ -427,10 +443,13 @@ const useElioDao = () => {
   };
 
   const getAssetId = async (daoId: string) => {
+    if (!elioConfig) {
+      return;
+    }
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        CORE_CONTRACT_ADDRESS,
+        elioConfig.coreContractAddress,
         'get_dao_asset_id',
         stringToScVal(daoId)
       );
@@ -448,10 +467,13 @@ const useElioDao = () => {
   };
 
   const getDaoMetadata = async (daoId: string) => {
+    if (!elioConfig) {
+      return;
+    }
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        CORE_CONTRACT_ADDRESS,
+        elioConfig.coreContractAddress,
         'get_metadata',
         stringToScVal(daoId)
       );
@@ -514,13 +536,13 @@ const useElioDao = () => {
 
   // eslint-disable-next-line
   const getDao = async (daoId: string) => {
-    if (!currentWalletAccount?.publicKey) {
+    if (!currentWalletAccount?.publicKey || !elioConfig) {
       return;
     }
     try {
       const txn = await makeContractTxn(
         currentWalletAccount?.publicKey,
-        CORE_CONTRACT_ADDRESS,
+        elioConfig.coreContractAddress,
         'get_dao',
         stringToScVal(daoId)
       );
@@ -536,11 +558,14 @@ const useElioDao = () => {
   };
 
   const changeOwner = async (daoId: string, newOwnerAddress: string) => {
+    if (!elioConfig) {
+      return;
+    }
     updateIsTxnProcessing(true);
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        CORE_CONTRACT_ADDRESS,
+        elioConfig.coreContractAddress,
         'change_owner',
         stringToScVal(daoId),
         accountToScVal(newOwnerAddress),
@@ -557,11 +582,14 @@ const useElioDao = () => {
   };
 
   const CreateProposal = async (daoId: string) => {
+    if (!elioConfig) {
+      return;
+    }
     updateIsTxnProcessing(true);
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        VOTES_CONTRACT_ADDRESS,
+        elioConfig.votesContractAddress,
         'create_proposal',
         stringToScVal(daoId),
         accountToScVal(currentWalletAccount!.publicKey)
@@ -582,11 +610,14 @@ const useElioDao = () => {
     meta: string,
     hash: string
   ) => {
+    if (!elioConfig) {
+      return;
+    }
     updateIsTxnProcessing(true);
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        VOTES_CONTRACT_ADDRESS,
+        elioConfig.votesContractAddress,
         'set_metadata',
         stringToScVal(daoId),
         SorobanClient.nativeToScVal(proposalId),
@@ -606,11 +637,14 @@ const useElioDao = () => {
   // fn vote(env: Env, dao_id: Bytes, proposal_id: u32, in_favor: bool, voter: Address)
 
   const vote = async (daoId: string, proposalId: number, inFavor: boolean) => {
+    if (!elioConfig) {
+      return;
+    }
     updateIsTxnProcessing(true);
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
-        VOTES_CONTRACT_ADDRESS,
+        elioConfig.votesContractAddress,
         'set_metadata',
         stringToScVal(daoId),
         SorobanClient.nativeToScVal(proposalId),
