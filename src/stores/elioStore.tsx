@@ -1,3 +1,4 @@
+import { daoArray } from '@/stores/fakeData';
 import {
   getNetworkDetails,
   getPublicKey,
@@ -289,7 +290,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   daoPage: 'dashboard',
   isStartModalOpen: false,
   createDaoSteps: 1,
-  daos: null,
+  daos: daoArray,
   txnNotifications: [],
   currentProposals: null,
   proposalCreationValues: null,
@@ -434,6 +435,9 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
           },
         };
       });
+      if (newDaos.length < 1) {
+        return;
+      }
       set({ daos: newDaos });
     } catch (err) {
       get().handleErrors(err);
@@ -467,6 +471,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         `${SERVICE_URL}/daos/${encodeURIComponent(daoId as string)}/`
       );
       if (response.status === 404) {
+        get().handleErrors('Cannot find this DAO');
         return;
       }
       const d = await response.json();
