@@ -281,7 +281,8 @@ export interface ElioActions {
 export interface ElioStore extends ElioState, ElioActions {}
 
 const useElioStore = create<ElioStore>()((set, get, store) => ({
-  currentDao: null,
+  currentDao: daoArray[0]!,
+  daos: daoArray,
   currentDaoFromChain: null,
   currentWalletAccount: null,
   isConnectModalOpen: false,
@@ -289,7 +290,6 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   daoPage: 'dashboard',
   isStartModalOpen: false,
   createDaoSteps: 1,
-  daos: daoArray,
   txnNotifications: [],
   currentProposals: null,
   proposalCreationValues: null,

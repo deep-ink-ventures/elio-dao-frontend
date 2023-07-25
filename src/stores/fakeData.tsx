@@ -4,7 +4,7 @@ export const daoArray: DaoDetail[] = [
   {
     daoId: '1',
     daoName: 'Example DAO 1',
-    daoOwnerAddress: 'GCDTNDOCT2CWJVHGOKADQ7IEUPHQTPCHPDYKITMUGZAMAOBQ36VPO22V',
+    daoOwnerAddress: 'GCXF4SUJ22GHJ5S7JU5PDPXCVXRERNG7PUFFAWSWDJIQYIH73TSBA2OX',
     daoCreatorAddress:
       'GCDTNDOCT2CWJVHGOKADQ7IEUPHQTPCHPDYKITMUGZAMAOBQ36VPO22V',
     setupComplete: true,

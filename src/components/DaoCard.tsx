@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import useElioStore from '@/stores/elioStore';
 import mountain from '@/svg/mountain.svg';
 import placeholderImage from '@/svg/placeholderImage.svg';
 
@@ -14,6 +15,12 @@ interface DaoCardProps {
 }
 
 const DaoCard = (props: DaoCardProps) => {
+  const [currentWalletAccount] = useElioStore((s) => [s.currentWalletAccount]);
+  console.log(
+    props.daoOwnerAddress === currentWalletAccount?.publicKey,
+    props.daoOwnerAddress,
+    currentWalletAccount?.publicKey
+  );
   const displayImage = () => {
     if (!props.imageUrl) {
       return (
@@ -47,6 +54,11 @@ const DaoCard = (props: DaoCardProps) => {
     <div
       className={`card z-0 m-1 h-40 w-36 break-words text-center shadow-xl hover:cursor-pointer md:h-60 md:w-56`}>
       <Link href={`/dao/${encodeURIComponent(props.daoId)}`}>
+        {currentWalletAccount?.publicKey === props.daoOwnerAddress ? (
+          <div className='absolute left-40 top-3 rounded-[15px] bg-primary px-2 py-1 text-xs'>
+            admin
+          </div>
+        ) : null}
         <div className='card-body text-center'>
           <div className='mb-2 items-center justify-center md:flex'>
             {displayImage()}
