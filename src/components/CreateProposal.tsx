@@ -206,7 +206,7 @@ const CreateProposal = (props: {
     <div className='flex flex-col items-center gap-y-6 px-12 py-4'>
       <div>
         <progress
-          className='progress progress-primary h-[10px] w-[400px]'
+          className='progress progress-success h-[10px] w-[400px]'
           value='40'
           max='100'
         />

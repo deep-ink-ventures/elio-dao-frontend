@@ -269,7 +269,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     <div className='flex flex-col items-center gap-y-5'>
       <div>
         <progress
-          className='progress progress-primary h-[10px] w-[400px]'
+          className='progress progress-success h-[10px] w-[400px]'
           value='75'
           max='100'
         />

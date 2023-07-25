@@ -99,7 +99,6 @@ export interface DaoMetadataValues {
   email: string;
   shortOverview: string;
   longDescription: string;
-  logoImage: FileList;
   imageString: string;
 }
 

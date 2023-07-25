@@ -102,12 +102,17 @@ const useElioDao = () => {
     >,
     networkPassphraseStr: string
   ) => {
-    const preparedTxn = await sorobanServer.prepareTransaction(
-      unpreparedTxn,
-      networkPassphraseStr
-    );
-    console.log('prepared txn', preparedTxn.toXDR());
-    return preparedTxn.toXDR();
+    try {
+      const preparedTxn = await sorobanServer.prepareTransaction(
+        unpreparedTxn,
+        networkPassphraseStr
+      );
+      console.log('prepared txn', preparedTxn.toXDR());
+      return preparedTxn.toXDR();
+    } catch (err) {
+      handleErrors('cannot prepare transaction', err);
+      return null;
+    }
   };
 
   const signTxn = async (
@@ -147,9 +152,14 @@ const useElioDao = () => {
       return;
     }
     updateIsTxnProcessing(true);
+    console.log('submitting transaction...');
     try {
+      console.log('unprepared txn', unpreparedTxn.toXDR());
       const preparedTxn = await prepareTxn(unpreparedTxn, networkPassphrase);
-      console.log('prepared', preparedTxn);
+      if (!preparedTxn) {
+        handleErrors('Transaction preparation failed');
+        return;
+      }
       const signedTxn = await signTxn(
         preparedTxn,
         networkPassphrase,
@@ -164,6 +174,22 @@ const useElioDao = () => {
     }
   };
 
+  const submitReadTxn = async (
+    txn: SorobanClient.Transaction<SorobanClient.Memo<SorobanClient.MemoType>>
+  ) => {
+    try {
+      const res = await sorobanServer.simulateTransaction(txn);
+      const xdr = res?.results?.[0]?.xdr;
+      if (!xdr) {
+        return;
+      }
+      return decodeXdr(xdr as string);
+    } catch (err) {
+      handleErrors('Cannot submit read transaction', err);
+      return null;
+    }
+  };
+
   const makeContractTxn = async (
     sourcePublicKey: string,
     contractAddress: string,
@@ -171,7 +197,7 @@ const useElioDao = () => {
     ...params: SorobanClient.xdr.ScVal[]
   ): Promise<SorobanClient.Transaction> => {
     const contract = new SorobanClient.Contract(contractAddress);
-    return new SorobanClient.TransactionBuilder(
+    const txn = new SorobanClient.TransactionBuilder(
       await sorobanServer.getAccount(sourcePublicKey),
       {
         fee: BASE_FEE,
@@ -181,49 +207,24 @@ const useElioDao = () => {
       .addOperation(contract.call(method, ...params))
       .setTimeout(0)
       .build();
-  };
 
-  const getTxnBuilder = async (publicKey: string) => {
-    const sourceAccount = await sorobanServer.getAccount(publicKey);
-    return new SorobanClient.TransactionBuilder(sourceAccount, {
-      fee: BASE_FEE,
-      networkPassphrase,
-    });
-  };
-
-  const makeCreateDaoTxn = async (
-    createDaoData: CreateDaoData,
-    owner: string
-  ) => {
-    if (!elioConfig) {
-      return;
-    }
-    const txnBuilder = await getTxnBuilder(owner);
-    const contract = await new SorobanClient.Contract(
-      elioConfig.coreContractAddress
-    );
-    const txn = txnBuilder
-      .addOperation(
-        contract.call(
-          'create_dao',
-          stringToScVal(createDaoData.daoId),
-          stringToScVal(createDaoData.daoId),
-          accountToScVal(owner)
-        )
-      )
-      .setTimeout(0)
-      .build();
-    console.log('unprepared txn', txn.toXDR());
     return txn;
   };
 
   const createDao = async (createDaoData: CreateDaoData) => {
+    if (!elioConfig) {
+      return;
+    }
     updateIsTxnProcessing(true);
 
     try {
-      const txn = await makeCreateDaoTxn(
-        createDaoData,
-        currentWalletAccount!.publicKey
+      const txn = await makeContractTxn(
+        currentWalletAccount!.publicKey,
+        elioConfig.coreContractAddress,
+        'create_dao',
+        stringToScVal(createDaoData.daoId),
+        stringToScVal(createDaoData.daoName),
+        accountToScVal(currentWalletAccount!.publicKey)
       );
       if (!txn) {
         return;
@@ -453,12 +454,8 @@ const useElioDao = () => {
         'get_dao_asset_id',
         stringToScVal(daoId)
       );
-      const res = await sorobanServer.simulateTransaction(txn);
-      const xdr = res?.results?.[0]?.xdr;
-      if (!xdr) {
-        return null;
-      }
-      const val = decodeXdr(xdr as string);
+      const val = await submitReadTxn(txn);
+      console.log(val);
       return val;
     } catch (err) {
       handleErrors('getAssetId failed', err);
@@ -477,11 +474,8 @@ const useElioDao = () => {
         'get_metadata',
         stringToScVal(daoId)
       );
-      const res = await sorobanServer.simulateTransaction(txn);
-      const xdr = res?.results?.[0]?.xdr;
-      console.log(xdr);
-      const val = decodeXdr(xdr as string);
-      console.log('val of metadata', val);
+      const val = await submitReadTxn(txn);
+      console.log(val);
       return val;
     } catch (err) {
       handleErrors('getDaoMetadata failed', err);
@@ -525,6 +519,8 @@ const useElioDao = () => {
       console.log('Token Address exists. Minting tokens.');
       await mintToken(tokenContractAddress as string, tokenSupply);
     }
+
+    // fixme
     // await setGovernanceConfig({
     //   daoId,
     //   daoOwnerPublicKey,
@@ -534,7 +530,6 @@ const useElioDao = () => {
     // });
   };
 
-  // eslint-disable-next-line
   const getDao = async (daoId: string) => {
     if (!currentWalletAccount?.publicKey || !elioConfig) {
       return;
@@ -546,14 +541,12 @@ const useElioDao = () => {
         'get_dao',
         stringToScVal(daoId)
       );
-      const res = await sorobanServer.simulateTransaction(txn);
-      const xdr = res?.results?.[0]?.xdr;
-
-      const val = decodeXdr(xdr as string);
+      const val = await submitReadTxn(txn);
       console.log('val of dao', val);
-      // return val;
+      return val;
     } catch (err) {
       handleErrors('getDao failed', err);
+      return null;
     }
   };
 
@@ -581,7 +574,7 @@ const useElioDao = () => {
     }
   };
 
-  const CreateProposal = async (daoId: string) => {
+  const createProposal = async (daoId: string) => {
     if (!elioConfig) {
       return;
     }
@@ -634,7 +627,6 @@ const useElioDao = () => {
       handleErrors('setProposalMetadata failed', err);
     }
   };
-  // fn vote(env: Env, dao_id: Bytes, proposal_id: u32, in_favor: bool, voter: Address)
 
   const vote = async (daoId: string, proposalId: number, inFavor: boolean) => {
     if (!elioConfig) {
@@ -658,8 +650,8 @@ const useElioDao = () => {
   };
 
   return {
+    submitReadTxn,
     makeContractTxn,
-    makeCreateDaoTxn,
     createDao,
     doChallenge,
     setDaoMetadata,
@@ -672,7 +664,7 @@ const useElioDao = () => {
     getDaoMetadata,
     getDao,
     changeOwner,
-    CreateProposal,
+    createProposal,
     setProposalMetadata,
     vote,
   };

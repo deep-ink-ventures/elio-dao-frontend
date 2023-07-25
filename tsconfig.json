@@ -15,7 +15,7 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
-    "allowUnreachableCode": false,
+    "allowUnreachableCode": true,
     "noFallthroughCasesInSwitch": true,
 
     "target": "esnext",

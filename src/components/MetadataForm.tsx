@@ -17,7 +17,7 @@ const MetadataForm = (props: { daoId: string | null }) => {
     watch,
     setValue,
     formState: { errors },
-  } = useForm<DaoMetadataValues>({
+  } = useForm<DaoMetadataValues & { logoImage: FileList }>({
     defaultValues: {
       email: '',
       shortOverview: '',
@@ -72,7 +72,7 @@ const MetadataForm = (props: { daoId: string | null }) => {
     <div className='flex flex-col items-center gap-y-6 px-12'>
       <div>
         <progress
-          className='progress progress-primary h-[10px] w-[400px]'
+          className='progress progress-success h-[10px] w-[400px]'
           value='25'
           max='100'></progress>
       </div>
