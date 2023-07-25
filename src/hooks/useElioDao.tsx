@@ -423,8 +423,6 @@ const useElioDao = () => {
 
   const mintToken = async (tokenAddress: string, supply: BigNumber) => {
     updateIsTxnProcessing(true);
-    console.log('mintToken called');
-    console.log('token address', tokenAddress);
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
@@ -455,7 +453,6 @@ const useElioDao = () => {
         stringToScVal(daoId)
       );
       const val = await submitReadTxn(txn);
-      console.log(val);
       return val;
     } catch (err) {
       handleErrors('getAssetId failed', err);
@@ -475,7 +472,6 @@ const useElioDao = () => {
         stringToScVal(daoId)
       );
       const val = await submitReadTxn(txn);
-      console.log(val);
       return val;
     } catch (err) {
       handleErrors('getDaoMetadata failed', err);
@@ -542,7 +538,6 @@ const useElioDao = () => {
         stringToScVal(daoId)
       );
       const val = await submitReadTxn(txn);
-      console.log('val of dao', val);
       return val;
     } catch (err) {
       handleErrors('getDao failed', err);
