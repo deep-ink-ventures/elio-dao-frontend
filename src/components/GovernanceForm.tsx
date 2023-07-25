@@ -24,7 +24,7 @@ const GovernanceForm = (props: { daoId: string | null }) => {
     <div className='flex flex-col items-center gap-y-6 '>
       <div>
         <progress
-          className='progress progress-primary h-[10px] w-[400px]'
+          className='progress progress-success h-[10px] w-[400px]'
           value='50'
           max='100'></progress>
       </div>

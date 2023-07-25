@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 import CreateDaoModal from '@/components/CreateDaoModal';
 import ExploreDaos from '@/components/ExploreDaos';
 import WalletConnect from '@/components/WalletConnect';
@@ -9,22 +7,13 @@ import justice from '@/svg/justice.svg';
 import scale from '@/svg/scale.svg';
 import sticker from '@/svg/sticker.svg';
 import MainLayout from '@/templates/MainLayout';
-
-import useElioDao from '@/hooks/useElioDao';
+import Image from 'next/image';
 
 const Index = () => {
   const [currentWalletAccount, updateIsStartModalOpen] = useElioStore((s) => [
     s.currentWalletAccount,
     s.updateIsStartModalOpen,
   ]);
-
-  const { getDao } = useElioDao();
-  const handleTest = async () => {
-    if (!currentWalletAccount?.publicKey) {
-      return;
-    }
-    await getDao('ABC');
-  };
 
   const handleStartModal = () => {
     if (currentWalletAccount?.publicKey) {
@@ -139,9 +128,6 @@ const Index = () => {
           </div>
         </div>
         <ExploreDaos />
-        <button className='btn' onClick={handleTest}>
-          test
-        </button>
       </div>
     </MainLayout>
   );

@@ -132,14 +132,11 @@ h4 {
 }
 
 .blur0 {
-  
 position: absolute;
 width: 641.2px;
 height: 469.59px;
 left: 302px;
 top: -83.1px;
-
-  
 background: radial-gradient(57.83% 75.75% at 70.11% 109.82%, rgba(216, 43, 43, 0.6) 0%, rgba(216, 43, 43, 0.084) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */;
   filter: blur(100px);
   transform: rotate(-30.44deg);
@@ -148,7 +145,7 @@ background: radial-gradient(57.83% 75.75% at 70.11% 109.82%, rgba(216, 43, 43, 0
 }
 
 .blur1 {
-  position: absolute;
+position: absolute;
 width: 739px;
 height: 676px;
 left: 354px;

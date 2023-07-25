@@ -24,7 +24,7 @@ const ReviewProposal = (props: {
     <div className='flex flex-col gap-y-6 px-6'>
       <div className='flex justify-center'>
         <progress
-          className='progress progress-primary h-[10px] w-[400px]'
+          className='progress progress-success h-[10px] w-[400px]'
           value='80'
           max='100'
         />
