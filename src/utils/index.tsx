@@ -242,7 +242,6 @@ export const bigNumberToScVal = (
 // fixme add more val type decoders
 export const decodeXdr = (xdr: string) => {
   const scVal = SorobanClient.xdr.ScVal.fromXDR(xdr as string, 'base64');
-  console.log(scVal.switch().name);
   switch (scVal.switch().name) {
     case 'scvAddress':
       return SorobanClient.Address.fromScAddress(scVal.address()).toString();

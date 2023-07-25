@@ -16,11 +16,6 @@ interface DaoCardProps {
 
 const DaoCard = (props: DaoCardProps) => {
   const [currentWalletAccount] = useElioStore((s) => [s.currentWalletAccount]);
-  console.log(
-    props.daoOwnerAddress === currentWalletAccount?.publicKey,
-    props.daoOwnerAddress,
-    currentWalletAccount?.publicKey
-  );
   const displayImage = () => {
     if (!props.imageUrl) {
       return (
