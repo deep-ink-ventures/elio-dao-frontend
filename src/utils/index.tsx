@@ -273,3 +273,9 @@ export const decodeXdr = (xdr: string) => {
 
 export const camelToSnakeCase = (str: string) =>
   str.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
+
+export const bigNumberToi128ScVal = (number: BigNumber) => {
+  const bigInt = BigInt(number.toFixed(0));
+  const scInt = new SorobanClient.ScInt(bigInt);
+  return scInt.toI128();
+};

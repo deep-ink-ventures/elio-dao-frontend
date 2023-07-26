@@ -5,8 +5,8 @@ import type {
 } from '@/stores/elioStore';
 import useElioStore, { Voting } from '@/stores/elioStore';
 import {
+  bigNumberToi128ScVal,
   accountToScVal,
-  bigNumberToScVal,
   decodeXdr,
   hexToScVal,
   numberToScVal,
@@ -113,6 +113,16 @@ const useElioDao = () => {
       handleErrors('cannot prepare transaction', err);
       return null;
     }
+  };
+
+  const getTxnBuilder = async (
+    publicKey: string
+  ): Promise<SorobanClient.TransactionBuilder> => {
+    const sourceAccount = await sorobanServer.getAccount(publicKey);
+    return new SorobanClient.TransactionBuilder(sourceAccount, {
+      fee: BASE_FEE,
+      networkPassphrase,
+    });
   };
 
   const signTxn = async (
@@ -374,7 +384,7 @@ const useElioDao = () => {
         'set_configuration',
         stringToScVal(config.daoId),
         numberToScVal(config.proposalDuration),
-        bigNumberToScVal(
+        bigNumberToi128ScVal(
           config.proposalTokenDeposit.multipliedBy(new BigNumber(DAO_UNITS))
         ),
         stringToScVal(Voting.MAJORITY),
@@ -429,7 +439,7 @@ const useElioDao = () => {
         tokenAddress,
         'mint_token',
         accountToScVal(currentWalletAccount!.publicKey),
-        bigNumberToScVal(supply.multipliedBy(new BigNumber(DAO_UNITS)))
+        bigNumberToi128ScVal(supply.multipliedBy(new BigNumber(DAO_UNITS)))
       );
       await submitTxn(
         txn,
@@ -452,8 +462,8 @@ const useElioDao = () => {
         'get_dao_asset_id',
         stringToScVal(daoId)
       );
-      const val = await submitReadTxn(txn);
-      return val;
+      const tokenAddress = (await submitReadTxn(txn)) as string;
+      return tokenAddress;
     } catch (err) {
       handleErrors('getAssetId failed', err);
       return null;
@@ -644,7 +654,38 @@ const useElioDao = () => {
     }
   };
 
+  // can use this to transfer token to an individual account too
+  const transferDaoTokens = async (
+    daoId: string,
+    toPublicKeys: string[],
+    amount: BigNumber[]
+  ) => {
+    if (!currentWalletAccount) {
+      return;
+    }
+    const tokenContractAddress = await getAssetId(daoId);
+    if (!tokenContractAddress) {
+      handleErrors('Cannot get token contract address');
+      return;
+    }
+    const contract = new SorobanClient.Contract(tokenContractAddress);
+    const txnBuilder = await getTxnBuilder(currentWalletAccount.publicKey);
+    toPublicKeys.forEach((p, i) => {
+      txnBuilder.addOperation(
+        contract.call(
+          'xfer',
+          accountToScVal(currentWalletAccount.publicKey),
+          accountToScVal(p),
+          bigNumberToi128ScVal(amount[i]!)
+        )
+      );
+    });
+    const txn = txnBuilder.build();
+    await submitTxn(txn, 'Transferred successfully', 'Transfer failed');
+  };
+
   return {
+    getTxnBuilder,
     submitReadTxn,
     makeContractTxn,
     createDao,
@@ -662,6 +703,7 @@ const useElioDao = () => {
     createProposal,
     setProposalMetadata,
     vote,
+    transferDaoTokens,
   };
 };
 

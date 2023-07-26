@@ -4,9 +4,9 @@ export const daoArray: DaoDetail[] = [
   {
     daoId: '1',
     daoName: 'Example DAO 1',
-    daoOwnerAddress: 'GCXF4SUJ22GHJ5S7JU5PDPXCVXRERNG7PUFFAWSWDJIQYIH73TSBA2OX',
+    daoOwnerAddress: 'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
     daoCreatorAddress:
-      'GCDTNDOCT2CWJVHGOKADQ7IEUPHQTPCHPDYKITMUGZAMAOBQ36VPO22V',
+      'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
     setupComplete: true,
     daoAssetId: 1,
     metadataUrl: null,
@@ -27,9 +27,9 @@ export const daoArray: DaoDetail[] = [
   {
     daoId: '2',
     daoName: 'Example DAO 2',
-    daoOwnerAddress: 'GCDTNDOCT2CWJVHGOKADQ7IEUPHQTPCHPDYKITMUGZAMAOBQ36VPO22V',
+    daoOwnerAddress: 'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
     daoCreatorAddress:
-      'GCDTNDOCT2CWJVHGOKADQ7IEUPHQTPCHPDYKITMUGZAMAOBQ36VPO22V',
+      'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
     setupComplete: true,
     daoAssetId: 2,
     metadataUrl: 'https://example.com/metadata',

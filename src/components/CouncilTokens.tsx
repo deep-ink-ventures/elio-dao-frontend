@@ -1,23 +1,29 @@
 import { ErrorMessage } from '@hookform/error-message';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
 import { DAO_UNITS } from '@/config';
-import type { CouncilTokensValues } from '@/stores/elioStore';
+import useElioDao from '@/hooks/useElioDao';
+import type {
+  CouncilTokensValues,
+  IssueTokensValues,
+} from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import d from '@/svg/delete.svg';
 import plus from '@/svg/plus.svg';
-import { truncateMiddle, uiTokens } from '@/utils';
+import { uiTokens } from '@/utils';
 import BigNumber from 'bignumber.js';
 
 const CouncilTokens = (props: { daoId: string | null }) => {
-  const [isTxnProcessing, currentDao, currentWalletAccount] = useElioStore(
-    (s) => [s.isTxnProcessing, s.currentDao, s.currentWalletAccount]
-  );
-  const daoTokenBalance = new BigNumber(100);
-  const [membersCount, setMembersCount] = useState(2);
+  const [isTxnProcessing, currentDao] = useElioStore((s) => [
+    s.isTxnProcessing,
+    s.currentDao,
+  ]);
+  const { transferDaoTokens } = useElioDao();
 
+  const daoTokenBalance = new BigNumber(100);
+  // const [membersCount, setMembersCount] = useState(2);
   const {
     register,
     handleSubmit,
@@ -25,17 +31,8 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     setValue,
     control,
     formState: { errors },
-  } = useForm<CouncilTokensValues>({
+  } = useForm<IssueTokensValues>({
     defaultValues: {
-      creatorName: '',
-      creatorWallet: currentWalletAccount?.publicKey,
-      councilMembers: [
-        {
-          name: '',
-          walletAddress: '',
-        },
-      ],
-      councilThreshold: 1,
       tokenRecipients: [
         {
           walletAddress: '',
@@ -70,14 +67,14 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     ? daoTokenBalance.dividedBy(getTotalRecipientsTokens(tokensValues))
     : new BigNumber(0);
 
-  const {
-    fields: councilMembersFields,
-    append: councilMembersAppend,
-    remove: councilMembersRemove,
-  } = useFieldArray({
-    control,
-    name: 'councilMembers',
-  });
+  // const {
+  //   fields: councilMembersFields,
+  //   append: councilMembersAppend,
+  //   remove: councilMembersRemove,
+  // } = useFieldArray({
+  //   control,
+  //   name: 'councilMembers',
+  // });
 
   const {
     fields: tokenRecipientsFields,
@@ -88,22 +85,32 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     name: 'tokenRecipients',
   });
 
-  const onSubmit = async (data: CouncilTokensValues) => {
+  const onSubmit = async (data: IssueTokensValues) => {
     console.log(data, props);
+    if (!props.daoId) {
+      return;
+    }
+    const toPublicKeys = data.tokenRecipients.map((item) => {
+      return item.walletAddress;
+    });
+    const amounts = data.tokenRecipients.map((item) => {
+      return item.tokens.multipliedBy(DAO_UNITS);
+    });
+    await transferDaoTokens(props.daoId, toPublicKeys, amounts);
   };
 
   useEffect(() => {
     setValue('treasuryTokens', remain);
   });
 
-  const handleAddMember = () => {
-    const newCount = membersCount + 1;
-    setMembersCount(newCount);
-    councilMembersAppend({
-      name: '',
-      walletAddress: '',
-    });
-  };
+  // const handleAddMember = () => {
+  //   const newCount = membersCount + 1;
+  //   setMembersCount(newCount);
+  //   councilMembersAppend({
+  //     name: '',
+  //     walletAddress: '',
+  //   });
+  // };
 
   const handleAddRecipient = () => {
     tokenRecipientsAppend({
@@ -196,74 +203,74 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     });
   };
 
-  const membersFields = () => {
-    return councilMembersFields.map((item, index) => {
-      return (
-        <div className='flex px-4' key={item.id} data-k={item.id}>
-          <div className='flex'>
-            <div className='mr-3 flex flex-col'>
-              <p className='pl-8'>Name</p>
-              <div className='flex '>
-                <div className='mr-4 flex flex-col justify-center'>
-                  {index + 2}
-                </div>
-                <input
-                  type='text'
-                  placeholder='Name'
-                  className='input-primary input '
-                  {...register(`councilMembers.${index}.name`, {
-                    required: 'Required',
-                    minLength: { value: 1, message: 'Minimum is 1' },
-                    maxLength: { value: 30, message: 'Maximum is 30' },
-                  })}
-                />
-              </div>
-              <ErrorMessage
-                errors={errors}
-                name={`councilMembers.${index}.name`}
-                render={({ message }) => (
-                  <p className='mt-1 pl-8 text-error'>{message}</p>
-                )}
-              />
-            </div>
-            <div className='w-[370px] flex-col'>
-              <p className='ml-1'>Wallet Address</p>
-              <input
-                type='text'
-                placeholder='Wallet Address'
-                className='input-primary input text-xs'
-                {...register(`councilMembers.${index}.walletAddress`, {
-                  required: 'Required',
-                  // fixme add validation
-                })}
-              />
-              <ErrorMessage
-                errors={errors}
-                name={`councilMembers.${index}.walletAddress`}
-                render={({ message }) => (
-                  <p className='ml-2 mt-1 text-error'>{message}</p>
-                )}
-              />
-            </div>
-            <div className='ml-3 flex items-center pt-5'>
-              <Image
-                className='duration-150 hover:cursor-pointer hover:brightness-125 active:brightness-90'
-                src={d}
-                width={18}
-                height={18}
-                alt='delete button'
-                onClick={() => {
-                  const newCount = membersCount - 1;
-                  setMembersCount(newCount);
-                  councilMembersRemove(index);
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    });
-  };
+  // const membersFields = () => {
+  //   return councilMembersFields.map((item, index) => {
+  //     return (
+  //       <div className='flex px-4' key={item.id} data-k={item.id}>
+  //         <div className='flex'>
+  //           <div className='mr-3 flex flex-col'>
+  //             <p className='pl-8'>Name</p>
+  //             <div className='flex '>
+  //               <div className='mr-4 flex flex-col justify-center'>
+  //                 {index + 2}
+  //               </div>
+  //               <input
+  //                 type='text'
+  //                 placeholder='Name'
+  //                 className='input-primary input '
+  //                 {...register(`councilMembers.${index}.name`, {
+  //                   required: 'Required',
+  //                   minLength: { value: 1, message: 'Minimum is 1' },
+  //                   maxLength: { value: 30, message: 'Maximum is 30' },
+  //                 })}
+  //               />
+  //             </div>
+  //             <ErrorMessage
+  //               errors={errors}
+  //               name={`councilMembers.${index}.name`}
+  //               render={({ message }) => (
+  //                 <p className='mt-1 pl-8 text-error'>{message}</p>
+  //               )}
+  //             />
+  //           </div>
+  //           <div className='w-[370px] flex-col'>
+  //             <p className='ml-1'>Wallet Address</p>
+  //             <input
+  //               type='text'
+  //               placeholder='Wallet Address'
+  //               className='input-primary input text-xs'
+  //               {...register(`councilMembers.${index}.walletAddress`, {
+  //                 required: 'Required',
+  //                 // fixme add validation
+  //               })}
+  //             />
+  //             <ErrorMessage
+  //               errors={errors}
+  //               name={`councilMembers.${index}.walletAddress`}
+  //               render={({ message }) => (
+  //                 <p className='ml-2 mt-1 text-error'>{message}</p>
+  //               )}
+  //             />
+  //           </div>
+  //           <div className='ml-3 flex items-center pt-5'>
+  //             <Image
+  //               className='duration-150 hover:cursor-pointer hover:brightness-125 active:brightness-90'
+  //               src={d}
+  //               width={18}
+  //               height={18}
+  //               alt='delete button'
+  //               onClick={() => {
+  //                 const newCount = membersCount - 1;
+  //                 setMembersCount(newCount);
+  //                 councilMembersRemove(index);
+  //               }}
+  //             />
+  //           </div>
+  //         </div>
+  //       </div>
+  //     );
+  //   });
+  // };
 
   return (
     <div className='flex flex-col items-center gap-y-5'>
@@ -276,21 +283,16 @@ const CouncilTokens = (props: { daoId: string | null }) => {
       </div>
       <div>
         <h3 className='text-center text-primary'>{currentDao?.daoName}</h3>
-        <h2 className='text-center text-primary'>
-          Create a Council & Distribute DAO Tokens
-        </h2>
+        <h2 className='text-center text-primary'>Distribute DAO Tokens</h2>
       </div>
       <div className='px-24'>
         <p className='text-center'>
-          Having a council at a DAO is necessary to ensure proper management and
-          oversight of the organization, and to provide a system of checks and
-          balances to prevent any individual from having too much power or
-          influence. DAOs issue tokens to incentivize community participation
-          and provide a means of decentralized governance and decision-making.
+          DAOs issue tokens to incentivize community participation and provide a
+          means of decentralized governance and decision-making.
         </p>
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className='w-full'>
-        <div className='card mb-6 flex w-full flex-col items-center gap-y-5 border-none py-5 hover:brightness-100'>
+        {/* <div className='card mb-6 flex w-full flex-col items-center gap-y-5 border-none py-5 hover:brightness-100'>
           <div>
             <h4 className='text-center'>Add Council Members</h4>
             <p className='px-24 text-sm'>
@@ -379,7 +381,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
             Out of <span className='text-primary'>{membersCount}</span> Council
             Member(s)
           </p>
-        </div>
+        </div> */}
         <div className='card mb-5 flex w-full items-center justify-center gap-y-6 border-none py-5 hover:brightness-100'>
           <div className='flex flex-col gap-y-4'>
             <div className='w-full text-center'>
