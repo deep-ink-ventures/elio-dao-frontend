@@ -12,7 +12,7 @@ import type {
 import useElioStore from '@/stores/elioStore';
 import d from '@/svg/delete.svg';
 import plus from '@/svg/plus.svg';
-import { uiTokens } from '@/utils';
+import { isStellarPublicKey, uiTokens } from '@/utils';
 import BigNumber from 'bignumber.js';
 
 const CouncilTokens = (props: { daoId: string | null }) => {
@@ -139,7 +139,14 @@ const CouncilTokens = (props: { daoId: string | null }) => {
                   className='input-primary input text-xs'
                   {...register(`tokenRecipients.${index}.walletAddress`, {
                     required: 'Required',
-                    // fixme add validation
+                    validate: {
+                      isValidAddress: (v) => {
+                        if (isStellarPublicKey(v)) {
+                          return true;
+                        }
+                        return 'Not a valid address';
+                      },
+                    },
                   })}
                 />
               </div>

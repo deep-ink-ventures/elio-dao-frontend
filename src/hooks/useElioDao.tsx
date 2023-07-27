@@ -1,12 +1,13 @@
 import type {
+  ContractName,
   CreateDaoData,
   DaoMetadataValues,
   GovConfigValues,
 } from '@/stores/elioStore';
 import useElioStore, { Voting } from '@/stores/elioStore';
 import {
-  bigNumberToi128ScVal,
   accountToScVal,
+  bigNumberToi128ScVal,
   decodeXdr,
   hexToScVal,
   numberToScVal,
@@ -100,7 +101,8 @@ const useElioDao = () => {
     unpreparedTxn: SorobanClient.Transaction<
       SorobanClient.Memo<SorobanClient.MemoType>
     >,
-    networkPassphraseStr: string
+    networkPassphraseStr: string,
+    contractName: ContractName | 'none'
   ) => {
     try {
       const preparedTxn = await sorobanServer.prepareTransaction(
@@ -110,7 +112,11 @@ const useElioDao = () => {
       console.log('prepared txn', preparedTxn.toXDR());
       return preparedTxn.toXDR();
     } catch (err) {
-      handleErrors('cannot prepare transaction', err);
+      handleErrors(
+        'cannot prepare transaction',
+        err,
+        contractName === 'none' ? undefined : contractName
+      );
       return null;
     }
   };
@@ -155,6 +161,7 @@ const useElioDao = () => {
     >,
     successMsg: string,
     errorMsg: string,
+    contractName: ContractName, // add contract name for handle error code
     cb?: Function
   ) => {
     if (!elioConfig) {
@@ -165,9 +172,12 @@ const useElioDao = () => {
     console.log('submitting transaction...');
     try {
       console.log('unprepared txn', unpreparedTxn.toXDR());
-      const preparedTxn = await prepareTxn(unpreparedTxn, networkPassphrase);
+      const preparedTxn = await prepareTxn(
+        unpreparedTxn,
+        networkPassphrase,
+        contractName
+      );
       if (!preparedTxn) {
-        handleErrors('Transaction preparation failed');
         return;
       }
       const signedTxn = await signTxn(
@@ -243,6 +253,7 @@ const useElioDao = () => {
         txn,
         'Created DAO successfully',
         'DAO Creation failed',
+        'core',
         () => {
           setTimeout(() => {
             fetchDaoDB(createDaoData.daoId);
@@ -254,7 +265,7 @@ const useElioDao = () => {
         }
       );
     } catch (err) {
-      handleErrors('Create Dao failed', err);
+      handleErrors('Create Dao failed', err, 'core');
     }
   };
 
@@ -309,6 +320,7 @@ const useElioDao = () => {
         setMetadataTxn,
         'Metadata set successfully',
         'Set Metadata Transaction failed',
+        'core',
         () => {
           updateIsTxnProcessing(false);
         }
@@ -365,7 +377,8 @@ const useElioDao = () => {
       await submitTxn(
         txn,
         `${daoId} has been destroyed`,
-        'Destroy DAO Transaction Failed'
+        'Destroy DAO Transaction Failed',
+        'core'
       );
     } catch (err) {
       handleErrors('Destroy DAO Transaction Failed', err);
@@ -393,7 +406,8 @@ const useElioDao = () => {
       await submitTxn(
         txn,
         'Governance has been set up successfully',
-        'Governance setup failed'
+        'Governance setup failed',
+        'votes'
       );
     } catch (err) {
       handleErrors('Setting governance configurations failed', err);
@@ -424,7 +438,8 @@ const useElioDao = () => {
       await submitTxn(
         txn,
         'Created token contract successfully',
-        'Token contract creation failed'
+        'Token contract creation failed',
+        'core'
       );
     } catch (err) {
       handleErrors('Token contract creation failed', err);
@@ -444,7 +459,8 @@ const useElioDao = () => {
       await submitTxn(
         txn,
         'Tokens minted successfully',
-        'Token minting failed'
+        'Token minting failed',
+        'assets'
       );
     } catch (err) {
       handleErrors('Token minting failed', err);
@@ -527,13 +543,13 @@ const useElioDao = () => {
     }
 
     // fixme
-    // await setGovernanceConfig({
-    //   daoId,
-    //   daoOwnerPublicKey,
-    //   proposalDuration,
-    //   proposalTokenDeposit,
-    //   voting,
-    // });
+    await setGovernanceConfig({
+      daoId,
+      daoOwnerPublicKey,
+      proposalDuration,
+      proposalTokenDeposit,
+      voting,
+    });
   };
 
   const getDao = async (daoId: string) => {
@@ -572,7 +588,8 @@ const useElioDao = () => {
       await submitTxn(
         txn,
         'DAO owner changed successfully',
-        'DAO owner change failed'
+        'DAO owner change failed',
+        'core'
       );
     } catch (err) {
       handleErrors('changeOwner failed', err);
@@ -595,7 +612,8 @@ const useElioDao = () => {
       await submitTxn(
         txn,
         'Proposal created successfully',
-        'Proposal creation failed'
+        'Proposal creation failed',
+        'votes'
       );
     } catch (err) {
       handleErrors('CreateProposal failed', err);
@@ -626,7 +644,8 @@ const useElioDao = () => {
       await submitTxn(
         txn,
         'Proposal created successfully',
-        'Proposal creation failed'
+        'Proposal creation failed',
+        'votes'
       );
     } catch (err) {
       handleErrors('setProposalMetadata failed', err);
@@ -648,7 +667,7 @@ const useElioDao = () => {
         SorobanClient.nativeToScVal(inFavor),
         accountToScVal(currentWalletAccount!.publicKey)
       );
-      await submitTxn(txn, 'Voted successfully', 'Voting failed');
+      await submitTxn(txn, 'Voted successfully', 'Voting failed', 'votes');
     } catch (err) {
       handleErrors('vote failed', err);
     }
@@ -681,24 +700,26 @@ const useElioDao = () => {
       );
     });
     const txn = txnBuilder.build();
-    await submitTxn(txn, 'Transferred successfully', 'Transfer failed');
+    await submitTxn(
+      txn,
+      'Transferred successfully',
+      'Transfer failed',
+      'assets'
+    );
   };
 
   return {
     getTxnBuilder,
-    submitReadTxn,
+    getDaoMetadata,
+    getDao,
+    getAssetId,
+    createTokenContract,
     makeContractTxn,
     createDao,
     doChallenge,
     setDaoMetadata,
     destroyDao,
-    setGovernanceConfig,
-    createTokenContract,
-    mintToken,
-    getAssetId,
     issueTokenSetConfig,
-    getDaoMetadata,
-    getDao,
     changeOwner,
     createProposal,
     setProposalMetadata,

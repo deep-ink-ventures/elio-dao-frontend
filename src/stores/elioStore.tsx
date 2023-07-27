@@ -8,6 +8,7 @@ import type BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
 import { create } from 'zustand';
 
+import { splitCamelCase } from '@/utils';
 import {
   NETWORK,
   NETWORK_PASSPHRASE,
@@ -33,44 +34,58 @@ interface PageSlices {
   dao: DaoSlice;
   account: AccountSlice;
 }
+export type ContractName = 'core' | 'votes' | 'assets';
 
-export const errorCodeMessages: ErrorCodeMessages = {
-  1: 'DaoAlreadyExists',
-  2: 'DaoDoesNotExist',
-  3: 'VotesAlreadyInitiated',
-  4: 'NotDaoOwner',
-  5: 'AssetAlreadyIssued',
-  6: 'AssetNotIssued',
-  7: 'NoMetadata',
-  8: 'NoHookpoint',
-  1000: 'CoreAlreadyInitialized',
-  1001: 'NotDaoOwner',
-  1002: 'MaxProposalsReached',
-  1003: 'ProposalNotFound',
-  1004: 'ProposalStillActive',
-  1005: 'ProposalNotRunning',
-  1006: 'UnacceptedProposal',
-  1007: 'NotProposalOwner',
-  1008: 'MetadataNotFound',
-  1009: 'ConfigurationNotFound',
-  2000: 'NegativeAmount',
-  2001: 'CheckpointIndexError',
-  2002: 'InsufficientAllowance',
-  2003: 'DaoAlreadyIssuedToken',
-  2004: 'NotTokenOwner',
-  2005: 'CanOnlyBeMintedOnce',
-  2006: 'InsufficientBalance',
+export interface ContractErrorCodes {
+  core: {
+    [key: string]: string;
+  };
+  votes: {
+    [key: string]: string;
+  };
+  assets: {
+    [key: string]: string;
+  };
+}
+export const contractErrorCodes: ContractErrorCodes = {
+  core: {
+    0: 'DaoAlreadyExists',
+    1: 'DaoDoesNotExist',
+    2: 'VotesAlreadyInitiated',
+    3: 'NotDaoOwner',
+    4: 'AssetAlreadyIssued',
+    5: 'AssetNotIssued',
+    6: 'NoMetadata',
+    7: 'NoHookpoint',
+    8: 'MustRemoveConfigFirst',
+  },
+  votes: {
+    0: 'CoreAlreadyInitialized',
+    1: 'NotDaoOwner',
+    2: 'MaxProposalsReached',
+    3: 'ProposalNotFound',
+    4: 'ProposalStillActive',
+    5: 'ProposalNotRunning',
+    6: 'UnacceptedProposal',
+    7: 'NotProposalOwner',
+    8: 'MetadataNotFound',
+    9: 'ConfigurationNotFound',
+  },
+  assets: {
+    0: 'NegativeAmount',
+    1: 'CheckpointIndexError',
+    2: 'InsufficientAllowance',
+    3: 'DaoAlreadyIssuedToken',
+    4: 'NotTokenOwner',
+    5: 'CanOnlyBeMintedOnce',
+    6: 'InsufficientBalance',
+    7: 'NoCheckpoint',
+  },
 };
 
 export enum Voting {
   MAJORITY = 'MAJORITY',
   CUSTOM = 'CUSTOM',
-}
-
-export interface ContractAddresses {
-  core: string;
-  assets: string;
-  votes: string;
 }
 
 export interface GovConfigValues {
@@ -79,9 +94,6 @@ export interface GovConfigValues {
   proposalTokenDeposit: BigNumber;
   voting: Voting;
   daoOwnerPublicKey: string;
-}
-export interface ErrorCodeMessages {
-  [key: string]: string;
 }
 
 export interface FaultyReport {
@@ -141,7 +153,7 @@ export interface TransferFormValues {
 
 export interface TokenRecipient {
   walletAddress: string;
-  tokens: BigNumber; // this is before adding DAO units
+  tokens: BigNumber; // this is before multiplying by DAO units
 }
 
 export interface CouncilMember {
@@ -156,7 +168,7 @@ export interface CouncilTokensValues
 }
 
 export interface MajorityModelValues {
-  tokensToIssue: BigNumber; // fixme BN
+  tokensToIssue: BigNumber; 
   proposalTokensCost: number;
   minimumMajority: number; // percentage or decimals
   votingDays: number; // in days
@@ -264,7 +276,11 @@ export interface ElioActions {
   updateCurrentWalletAccount: (
     currentWalletAccount: WalletAccount | null
   ) => void;
-  handleErrors: (errMsg: string, err?: Error) => void;
+  handleErrors: (
+    errMsg: string,
+    err?: Error,
+    contractName?: ContractName
+  ) => void;
   handleTxnSuccessNotification: (
     response: SorobanClient.SorobanRpc.GetTransactionResponse,
     successMsg: string
@@ -312,7 +328,12 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   updateDaoPage: (daoPage) => set(() => ({ daoPage })),
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
-  handleErrors: (errMsg: string, err?: Error | string) => {
+  handleErrors: (
+    errMsg: string,
+    err?: Error | string,
+    contractName?: ContractName
+  ) => {
+    console.log('contract name', contractName);
     set({ isTxnProcessing: false });
     // eslint-disable-next-line
     console.log(errMsg, err);
@@ -325,25 +346,50 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     }
 
     const getErrorCode = (str: string | undefined) => {
-      if (typeof str === 'undefined') {
+      if (!str) {
         return null;
       }
-      const match = str.match(/\((\d+)\)/);
-      if (!match?.[1]) {
-        return null;
-      }
-      // eslint-disable-next-line
-      return match ? parseInt(match[1]) : null;
+      const startMarker = '#';
+      const errorLines = str.split('\n');
+
+      
+      let errorCode: string | null = null;
+
+      errorLines.some((line) => {
+        const sanitizedLine = line.replace(/[()]/g, '');
+        const start = sanitizedLine.indexOf(startMarker);
+
+        if (start !== -1) {
+          const end = sanitizedLine.indexOf(' ', start);
+          errorCode =
+            end === -1
+              ? sanitizedLine.slice(start + 1) 
+              : sanitizedLine.slice(start + 1, end); 
+          return true; 
+        }
+
+        return false; 
+      });
+
+      return errorCode; 
     };
 
-    if (typeof err === 'string' && err.includes('ContractError(')) {
+    const addErrorMsg = (errorCode: string, contract: ContractName) => {
+      if (errorCode && contractErrorCodes[contract][errorCode]) {
+        message = `${splitCamelCase(
+          contractErrorCodes[contract][errorCode]!
+        )} - ${message}`;
+      }
+    };
+
+    if (
+      contractName &&
+      typeof err === 'string' &&
+      err.includes('Error(Contract')
+    ) {
       const errorCode = getErrorCode(err);
-      if (errorCode && errorCodeMessages[errorCode]) {
-        if (typeof err === 'object') {
-          message = errorCodeMessages[errorCode] as string;
-        } else {
-          message = `${errorCodeMessages[errorCode] as string} - ${message}`;
-        }
+      if (errorCode) {
+        addErrorMsg(errorCode, contractName);
       }
     }
 
