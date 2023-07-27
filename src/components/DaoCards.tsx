@@ -6,7 +6,7 @@ import type { DaoDetail } from '../stores/elioStore';
 const DaoCards = ({ daos }: { daos: DaoDetail[] | null }) => {
   return daos && daos?.length > 0 ? (
     <>
-      <div className='mx-auto flex flex-wrap justify-center px-2 '>
+      <div className='mx-auto flex flex-wrap justify-center md:px-2'>
         {daos.map((dao) => {
           return (
             <DaoCard

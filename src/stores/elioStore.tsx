@@ -168,7 +168,7 @@ export interface CouncilTokensValues
 }
 
 export interface MajorityModelValues {
-  tokensToIssue: BigNumber; 
+  tokensToIssue: BigNumber;
   proposalTokensCost: number;
   minimumMajority: number; // percentage or decimals
   votingDays: number; // in days
@@ -352,7 +352,6 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       const startMarker = '#';
       const errorLines = str.split('\n');
 
-      
       let errorCode: string | null = null;
 
       errorLines.some((line) => {
@@ -363,15 +362,15 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
           const end = sanitizedLine.indexOf(' ', start);
           errorCode =
             end === -1
-              ? sanitizedLine.slice(start + 1) 
-              : sanitizedLine.slice(start + 1, end); 
-          return true; 
+              ? sanitizedLine.slice(start + 1)
+              : sanitizedLine.slice(start + 1, end);
+          return true;
         }
 
-        return false; 
+        return false;
       });
 
-      return errorCode; 
+      return errorCode;
     };
 
     const addErrorMsg = (errorCode: string, contract: ContractName) => {
