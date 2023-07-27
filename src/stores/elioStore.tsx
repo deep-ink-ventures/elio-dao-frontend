@@ -153,7 +153,7 @@ export interface TransferFormValues {
 
 export interface TokenRecipient {
   walletAddress: string;
-  tokens: BigNumber; // this is before adding DAO units
+  tokens: BigNumber; // this is before multiplying by DAO units
 }
 
 export interface CouncilMember {
@@ -168,7 +168,7 @@ export interface CouncilTokensValues
 }
 
 export interface MajorityModelValues {
-  tokensToIssue: BigNumber; // fixme BN
+  tokensToIssue: BigNumber; 
   proposalTokensCost: number;
   minimumMajority: number; // percentage or decimals
   votingDays: number; // in days
@@ -352,7 +352,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       const startMarker = '#';
       const errorLines = str.split('\n');
 
-      // Check each line for the error code
+      
       let errorCode: string | null = null;
 
       errorLines.some((line) => {
@@ -363,15 +363,15 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
           const end = sanitizedLine.indexOf(' ', start);
           errorCode =
             end === -1
-              ? sanitizedLine.slice(start + 1) // if no space found after marker, slice till end
-              : sanitizedLine.slice(start + 1, end); // else slice till space
-          return true; // stop iteration
+              ? sanitizedLine.slice(start + 1) 
+              : sanitizedLine.slice(start + 1, end); 
+          return true; 
         }
 
-        return false; // continue iteration
+        return false; 
       });
 
-      return errorCode; // return null if no error code was found
+      return errorCode; 
     };
 
     const addErrorMsg = (errorCode: string, contract: ContractName) => {
