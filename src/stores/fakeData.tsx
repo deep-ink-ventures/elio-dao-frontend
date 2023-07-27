@@ -2,8 +2,8 @@ import type { DaoDetail } from './elioStore';
 
 export const daoArray: DaoDetail[] = [
   {
-    daoId: '1',
-    daoName: 'Example DAO 1',
+    daoId: '12345678',
+    daoName: 'Example DAO 1 test test',
     daoOwnerAddress: 'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
     daoCreatorAddress:
       'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
@@ -26,7 +26,7 @@ export const daoArray: DaoDetail[] = [
   },
   {
     daoId: '2',
-    daoName: 'Example DAO 2',
+    daoName: 'GreenEnergyInitiative2023',
     daoOwnerAddress: 'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
     daoCreatorAddress:
       'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
@@ -49,7 +49,7 @@ export const daoArray: DaoDetail[] = [
   },
   {
     daoId: '3',
-    daoName: 'Example DAO 3',
+    daoName: 'DEEPINK VENTURES',
     daoOwnerAddress: 'GCDTNDOCT2CWJVHGOKADQ7IEUPHQTPCHPDYKITMUGZAMAOBQ36VPO22V',
     daoCreatorAddress:
       'GCDTNDOCT2CWJVHGOKADQ7IEUPHQTPCHPDYKITMUGZAMAOBQ36VPO22V',
