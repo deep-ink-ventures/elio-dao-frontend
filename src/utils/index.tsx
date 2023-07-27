@@ -279,3 +279,15 @@ export const bigNumberToi128ScVal = (number: BigNumber) => {
   const scInt = new SorobanClient.ScInt(bigInt);
   return scInt.toI128();
 };
+
+export const splitCamelCase = (str: string): string => {
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+    const currentChar = str[i];
+    if (currentChar === currentChar?.toUpperCase()) {
+      result += ' ';
+    }
+    result += currentChar;
+  }
+  return result.trim();
+};
