@@ -55,7 +55,7 @@ yarn dev
 
 3. Now you can open http://localhost:3000 on your browser to see the application.
 
-If you need to change the node endpoint, you can go to the [config](./src/config) folder
+We obtain contract addresses and some config values from our service at ```https://service.elio-dao.org/config/``` If you need to change the node endpoint, you can go to the [config](./src/config) folder
 
 ## Usage
 
