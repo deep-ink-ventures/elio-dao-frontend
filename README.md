@@ -59,7 +59,7 @@ We obtain contract addresses and some config values from our service at ```https
 
 ## Usage
 
-- Please have one these wallet extensions installed on your browser: [Freighter](https://www.freighter.app/ "Freighter") 
+- Please have one these wallet extensions installed on your browser: [Freighter](https://www.freighter.app/ "Freighter") only for now
 
 - You will need some Stellar XLM tokens to do transactions. For now, you can use the friendbot on Freighter wallet to fund your account. As of now, you will need 1000 XLM tokens to create a DAO. 
 
