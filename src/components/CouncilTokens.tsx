@@ -64,7 +64,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   };
 
   const remain = daoTokenBalance
-    ? daoTokenBalance.dividedBy(getTotalRecipientsTokens(tokensValues))
+    ? daoTokenBalance.minus(getTotalRecipientsTokens(tokensValues))
     : new BigNumber(0);
 
   // const {

@@ -1,6 +1,6 @@
 import useElioDao from '@/hooks/useElioDao';
 import type { MajorityModelValues } from '@/stores/elioStore';
-import useElioStore, { Voting } from '@/stores/elioStore';
+import useElioStore from '@/stores/elioStore';
 import { ErrorMessage } from '@hookform/error-message';
 import BigNumber from 'bignumber.js';
 import type { SubmitHandler } from 'react-hook-form';
@@ -20,13 +20,13 @@ const MajorityModel = (props: { daoId: string | null }) => {
   } = useForm<MajorityModelValues>({
     defaultValues: {
       tokensToIssue: new BigNumber(0),
-      proposalTokensCost: 0,
-      minimumMajority: 10,
-      votingDays: 1,
+      // proposalTokensCost: 0,
+      minimumThresholdPercentage: 10,
+      proposalDurationInDays: 1,
     },
   });
 
-  const watchMinimumMajority = watch('minimumMajority');
+  const watchMinimumThresholdPercentage = watch('minimumThresholdPercentage');
 
   const onSubmit: SubmitHandler<MajorityModelValues> = async (
     data: MajorityModelValues
@@ -37,9 +37,11 @@ const MajorityModel = (props: { daoId: string | null }) => {
     await issueTokenSetConfig({
       daoId: currentDao.daoId,
       daoOwnerPublicKey: currentWalletAccount.publicKey,
-      proposalDuration: data.votingDays,
-      proposalTokenDeposit: new BigNumber(data.proposalTokensCost),
-      voting: Voting.MAJORITY,
+      proposalDuration: data.proposalDurationInDays * 17280, // fixme units
+      // proposalTokenDeposit: new BigNumber(data.proposalTokensCost),
+      minimumThreshold: new BigNumber(
+        data.minimumThresholdPercentage / 100
+      ).multipliedBy(data.tokensToIssue),
       tokenSupply: data.tokensToIssue,
     });
   };
@@ -93,7 +95,7 @@ const MajorityModel = (props: { daoId: string | null }) => {
               </div>
             </div>
           </div>
-          <div className='min-w-full'>
+          {/* <div className='min-w-full'>
             <h4 className='ml-1'>
               Proposal Token Cost{' '}
               <span className='text-lg font-medium text-red-600'>*</span>
@@ -125,26 +127,28 @@ const MajorityModel = (props: { daoId: string | null }) => {
                 Tokens
               </div>
             </div>
-          </div>
+          </div> */}
           <div className='min-w-full'>
             <h4 className='ml-1'>
               Minimum Majority Threshold{' '}
               <span className='text-lg font-medium text-red-600'>*</span>
             </h4>
             <p className='mb-2 ml-1 text-sm'>
-              {`DAO proposals will pass only if (votes in favor - votes against) >= (minimum majority threshold * total token supply)`}
+              {`DAO proposals will pass only if (votes in favor + votes against) >= (minimum majority threshold * total token supply)`}
             </p>
             <div className='flex justify-between'>
               <div className='w-[78%]'>
                 <div className='flex h-12 items-center justify-evenly rounded-[10px] border-[0.3px] border-neutral-focus bg-base-50'>
-                  <p className='opacity-80'>{watchMinimumMajority}%</p>
+                  <p className='opacity-80'>
+                    {watchMinimumThresholdPercentage}%
+                  </p>
                   <input
                     type='range'
                     className='range range-primary h-3 w-[75%]'
                     min={0}
                     max={25}
-                    value={watchMinimumMajority}
-                    {...register('minimumMajority')}
+                    value={watchMinimumThresholdPercentage}
+                    {...register('minimumThresholdPercentage')}
                   />
                 </div>
               </div>
@@ -163,14 +167,14 @@ const MajorityModel = (props: { daoId: string | null }) => {
                 className='input-primary input pr-16'
                 type='number'
                 placeholder='0'
-                {...register('votingDays', {
+                {...register('proposalDurationInDays', {
                   required: 'Required',
                   min: { value: 1, message: 'Minimum is 1' },
                 })}
               />
               <ErrorMessage
                 errors={errors}
-                name='votingDays'
+                name='proposalDurationInDays'
                 render={({ message }) => (
                   <p className='ml-2 mt-1 text-error'>{message}</p>
                 )}
