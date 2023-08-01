@@ -9,12 +9,7 @@ import * as SorobanClient from 'soroban-client';
 import { create } from 'zustand';
 
 import { splitCamelCase } from '@/utils';
-import {
-  NETWORK,
-  NETWORK_PASSPHRASE,
-  SERVICE_URL,
-  SOROBAN_RPC_ENDPOINT,
-} from '../config/index';
+import { NETWORK, SERVICE_URL, SOROBAN_RPC_ENDPOINT } from '../config/index';
 
 import type { AccountSlice } from './account';
 import { createAccountSlice } from './account';
@@ -24,10 +19,13 @@ import { createDaoSlice } from './dao';
 interface ElioConfig {
   depositToCreateDao: number;
   depositToCreateProposal: number;
+  /** Block time in seconds */
   blockCreationInterval: number;
   coreContractAddress: string;
   votesContractAddress: string;
   assetsWasmHash: string;
+  networkPassphrase: string;
+  rpcEndpoint: string;
 }
 
 interface PageSlices {
@@ -90,9 +88,11 @@ export enum Voting {
 
 export interface GovConfigValues {
   daoId: string;
+  /** Number of blocks */
   proposalDuration: number;
-  proposalTokenDeposit: BigNumber;
-  voting: Voting;
+  // proposalTokenDeposit: BigNumber;
+  /** In tokens. Must be in_favour + against E.g. if there is 1,000,000 tokens minted and the threshold is 10% you need to set it to 100,000  */
+  minimumThreshold: BigNumber;
   daoOwnerPublicKey: string;
 }
 
@@ -153,7 +153,8 @@ export interface TransferFormValues {
 
 export interface TokenRecipient {
   walletAddress: string;
-  tokens: BigNumber; // this is before multiplying by DAO units
+  /** This is before multiplying by DAO units */
+  tokens: BigNumber;
 }
 
 export interface CouncilMember {
@@ -169,16 +170,19 @@ export interface CouncilTokensValues
 
 export interface MajorityModelValues {
   tokensToIssue: BigNumber;
-  proposalTokensCost: number;
-  minimumMajority: number; // percentage or decimals
-  votingDays: number; // in days
+  // proposalTokensCost: number;
+  /** In percentage if it's 10 then it means 10% */
+  minimumThresholdPercentage: number;
+  /** In days */
+  proposalDurationInDays: number;
 }
 
 export interface CouncilFormValues {
   creatorName: string;
   creatorWallet: string;
   councilMembers: CouncilMember[];
-  councilThreshold: number; // number of councils needed to approve
+  //* *  number of councils needed to approve */
+  councilThreshold: number;
 }
 
 export interface IssueTokensValues {
@@ -251,8 +255,6 @@ export interface ElioState {
   isFaultyModalOpen: boolean;
   isFaultyReportsOpen: boolean;
   sorobanServer: SorobanClient.Server;
-  networkPassphrase: string;
-  network: string;
   showCongrats: boolean;
   currentBlockNumber: number | null;
   elioConfig: ElioConfig | null;
@@ -313,9 +315,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   isFaultyModalOpen: false,
   isFaultyReportsOpen: false,
   currentProposalFaultyReports: null,
-  sorobanServer: new SorobanClient.Server(SOROBAN_RPC_ENDPOINT),
-  networkPassphrase: NETWORK_PASSPHRASE,
-  network: NETWORK,
+  sorobanServer: new SorobanClient.Server(SOROBAN_RPC_ENDPOINT[NETWORK]),
   showCongrats: false,
   currentProposal: null,
   currentBlockNumber: null,
@@ -333,7 +333,6 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     err?: Error | string,
     contractName?: ContractName
   ) => {
-    console.log('contract name', contractName);
     set({ isTxnProcessing: false });
     // eslint-disable-next-line
     console.log(errMsg, err);
@@ -587,8 +586,11 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         coreContractAddress: config.core_contract_address,
         votesContractAddress: config.votes_contract_address,
         assetsWasmHash: config.assets_wasm_hash,
+        networkPassphrase: config.network_passphrase,
+        rpcEndpoint: config.blockchain_url,
       };
       set({ elioConfig });
+      set({ sorobanServer: new SorobanClient.Server(elioConfig.rpcEndpoint) });
     } catch (err) {
       get().handleErrors('Cannot fetch contract addresses', err);
     }

@@ -274,10 +274,13 @@ export const decodeXdr = (xdr: string) => {
 export const camelToSnakeCase = (str: string) =>
   str.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
 
-export const bigNumberToi128ScVal = (number: BigNumber) => {
-  const bigInt = BigInt(number.toFixed(0));
-  const scInt = new SorobanClient.ScInt(bigInt);
+export const bigNumberToI128ScVal = (number: BigNumber) => {
+  const scInt = new SorobanClient.ScInt(number.toFixed(0));
   return scInt.toI128();
+};
+
+export const numberToU32ScVal = (number: number) => {
+  return SorobanClient.xdr.ScVal.scvU32(number);
 };
 
 export const splitCamelCase = (str: string): string => {

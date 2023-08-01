@@ -1,3 +1,4 @@
+import useElioDao from '@/hooks/useElioDao';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -11,18 +12,25 @@ import useElioStore from '@/stores/elioStore';
 import MainLayout from '@/templates/MainLayout';
 
 const Customize = () => {
-  const [currentWalletAccount, currentDao, fetchDaoDB, showCongrats] =
-    useElioStore((s) => [
-      s.currentWalletAccount,
-      s.currentDao,
-      s.fetchDaoDB,
-      s.showCongrats,
-    ]);
+  const [
+    currentWalletAccount,
+    currentDao,
+    fetchDaoDB,
+    showCongrats,
+    isTxnProcessing,
+  ] = useElioStore((s) => [
+    s.currentWalletAccount,
+    s.currentDao,
+    s.fetchDaoDB,
+    s.showCongrats,
+    s.isTxnProcessing,
+  ]);
 
   const router = useRouter();
   const { daoId } = router.query;
   const [showPage, setShowPage] = useState(false);
-
+  const [hasMetadata, setHasMetadata] = useState(false);
+  const { getDaoMetadata } = useElioDao();
   const handleReturnToDashboard = () => {
     router.push(`/dao/${encodeURIComponent(daoId as string)}`);
   };
@@ -31,12 +39,17 @@ const Customize = () => {
     if (!daoId) {
       return;
     }
-    const TO = setTimeout(() => {
+    const TO = setTimeout(async () => {
       fetchDaoDB(daoId as string);
+      getDaoMetadata(daoId as string).then((data) => {
+        if (Array.isArray(data) && typeof data[0] === 'string') {
+          setHasMetadata(true);
+        }
+      });
     }, 700);
     // eslint-disable-next-line
     return () => clearTimeout(TO);
-  }, [daoId, fetchDaoDB]);
+  }, [daoId, isTxnProcessing]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -75,11 +88,16 @@ const Customize = () => {
       );
     }
 
-    if (!currentDao?.metadataHash) {
+    if (!currentDao?.metadataHash || !hasMetadata) {
       return <MetadataForm daoId={daoId as string} />;
     }
 
-    if (currentDao && currentDao.metadataHash && !currentDao.proposalDuration) {
+    if (
+      currentDao &&
+      currentDao.metadataHash &&
+      hasMetadata &&
+      !currentDao.proposalDuration
+    ) {
       return <GovernanceForm daoId={daoId as string} />;
     }
 
