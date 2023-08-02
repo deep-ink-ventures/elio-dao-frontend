@@ -428,7 +428,7 @@ const useElioDao = () => {
         stringToScVal(config.daoId),
         numberToU32ScVal(config.proposalDuration),
         bigNumberToI128ScVal(
-          config.minimumThreshold.multipliedBy(new BigNumber(DAO_UNITS))
+          config.minimumThreshold.multipliedBy(BigNumber(DAO_UNITS))
         ),
         accountToScVal(config.daoOwnerPublicKey)
       );
@@ -483,7 +483,7 @@ const useElioDao = () => {
         tokenAddress,
         'mint',
         accountToScVal(currentWalletAccount!.publicKey),
-        bigNumberToI128ScVal(supply.multipliedBy(new BigNumber(DAO_UNITS)))
+        bigNumberToI128ScVal(supply.multipliedBy(BigNumber(DAO_UNITS)))
       );
       await submitTxn(
         txn,

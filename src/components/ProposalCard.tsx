@@ -33,22 +33,22 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
   }, [props.p, currentBlockNumber, currentDao?.proposalDuration]);
 
   const inFavorPercentageMemo = useMemo(() => {
-    const inFavorVotes = props.p?.inFavor || new BigNumber(0);
-    const againstVotes = props.p?.against || new BigNumber(0);
+    const inFavorVotes = props.p?.inFavor || BigNumber(0);
+    const againstVotes = props.p?.against || BigNumber(0);
     const totalVotes = inFavorVotes.plus(againstVotes);
     const inFavorPercentage = inFavorVotes.isZero()
-      ? new BigNumber(0)
-      : inFavorVotes.multipliedBy(new BigNumber(100)).dividedBy(totalVotes);
+      ? BigNumber(0)
+      : inFavorVotes.multipliedBy(BigNumber(100)).dividedBy(totalVotes);
     return inFavorPercentage.toString();
   }, [props.p]);
 
   const againstPercentageMemo = useMemo(() => {
-    const inFavorVotes = props.p?.inFavor || new BigNumber(0);
-    const againstVotes = props.p?.against || new BigNumber(0);
+    const inFavorVotes = props.p?.inFavor || BigNumber(0);
+    const againstVotes = props.p?.against || BigNumber(0);
     const totalVotes = inFavorVotes.plus(againstVotes);
     const againstPercentage = againstVotes.isZero()
-      ? new BigNumber(0)
-      : againstVotes.multipliedBy(new BigNumber(100)).dividedBy(totalVotes);
+      ? BigNumber(0)
+      : againstVotes.multipliedBy(BigNumber(100)).dividedBy(totalVotes);
     return againstPercentage.toString();
   }, [props.p]);
 
@@ -103,8 +103,8 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
                 <div className='absolute p-1 text-sm'>
                   In Favor ({' '}
                   {props.p?.inFavor
-                    ? props.p.inFavor.div(new BigNumber(DAO_UNITS)).toString()
-                    : new BigNumber(0).toString()}
+                    ? props.p.inFavor.div(BigNumber(DAO_UNITS)).toString()
+                    : BigNumber(0).toString()}
                   )
                 </div>
               </div>
@@ -118,8 +118,8 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
                   <p className=''>
                     Against (
                     {props.p?.against
-                      ? props.p.against.div(new BigNumber(DAO_UNITS)).toString()
-                      : new BigNumber(0).toString()}
+                      ? props.p.against.div(BigNumber(DAO_UNITS)).toString()
+                      : BigNumber(0).toString()}
                     )
                   </p>
                 </div>

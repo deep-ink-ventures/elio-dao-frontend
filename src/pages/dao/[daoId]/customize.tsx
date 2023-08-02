@@ -1,6 +1,6 @@
 import useElioDao from '@/hooks/useElioDao';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import Congratulations from '@/components/Congratulations';
 import CouncilTokens from '@/components/CouncilTokens';
@@ -35,22 +35,29 @@ const Customize = () => {
     router.push(`/dao/${encodeURIComponent(daoId as string)}`);
   };
 
+  const fetchDaoAndMetadata = useCallback(async () => {
+    if (!daoId) {
+      return;
+    }
+    fetchDaoDB(daoId as string);
+    // fixme don't fetch metadata if we're already past the metadata stage
+    await getDaoMetadata(daoId as string).then((data) => {
+      if (Array.isArray(data) && typeof data[0] === 'string') {
+        setHasMetadata(true);
+      }
+    });
+  }, [daoId, currentWalletAccount, isTxnProcessing]);
+
   useEffect(() => {
-    if (!daoId || !currentWalletAccount?.publicKey) {
+    if (!daoId) {
       return;
     }
     const TO = setTimeout(async () => {
-      fetchDaoDB(daoId as string);
-      // fixme dont fetch metadata if we're already past the metadata stage
-      await getDaoMetadata(daoId as string).then((data) => {
-        if (Array.isArray(data) && typeof data[0] === 'string') {
-          setHasMetadata(true);
-        }
-      });
+      fetchDaoAndMetadata();
     }, 700);
     // eslint-disable-next-line
     return () => clearTimeout(TO);
-  }, [daoId, isTxnProcessing, currentWalletAccount]);
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
