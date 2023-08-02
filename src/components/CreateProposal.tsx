@@ -82,8 +82,8 @@ const CreateProposal = (props: {
       return false;
     }
     return daoTokenBalance?.gte(
-      new BigNumber(currentDao?.proposalTokenDeposit).multipliedBy(
-        new BigNumber(DAO_UNITS)
+      BigNumber(currentDao?.proposalTokenDeposit).multipliedBy(
+        BigNumber(DAO_UNITS)
       )
     );
   }, [currentDao, daoTokenBalance]);

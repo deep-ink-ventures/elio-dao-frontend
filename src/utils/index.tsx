@@ -1,3 +1,4 @@
+import { DAO_UNITS, XLM_UNITS } from '@/config';
 import BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
 import { scValToNative } from 'soroban-client';
@@ -68,17 +69,26 @@ export const getProposalEndTime = (
 };
 
 // eslint-disable-next-line
-export const uiTokens = (rawAmount: BigNumber | null, tokenType?: 'native' | 'dao', unitName?: string) => {
+export const uiTokens = (rawAmount: BigNumber | null, tokenType?: 'xlm' | 'dao', unitName?: string) => {
 
-  // const units = tokenType === 'native' ? NATIVE_UNITS : DAO_UNITS
+  const units = tokenType === 'xlm' ? XLM_UNITS : DAO_UNITS;
+  const fmt = {
+    prefix: '',
+    decimalSeparator: '.',
+    groupSeparator: ',',
+    groupSize: 3,
+    secondaryGroupSize: 0,
+    fractionGroupSeparator: ' ',
+    fractionGroupSize: 0,
+    suffix: '',
+  };
 
-  // formatBalance.setDefaults({ decimals: 0, unit: unitName || 'UNITS'});
+  BigNumber.config({ FORMAT: fmt });
+  const formatted = rawAmount
+    ? rawAmount.dividedBy(units).toFormat(0)
+    : new BigNumber(0)?.toFormat(0);
 
-  // return formatBalance(rawAmount?.div(new BN(units) || new BN(0)).toString(),{
-  //   forceUnit: unitName,
-  //   withZero: false,
-  // } )
-  return `${rawAmount?.toString()} Units`;
+  return `${formatted} ${unitName}`;
 };
 
 export const formatTokenAmount = (amount: BigNumber, decimals: number) => {

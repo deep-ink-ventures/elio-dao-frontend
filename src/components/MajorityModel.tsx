@@ -19,7 +19,7 @@ const MajorityModel = () => {
     formState: { errors },
   } = useForm<MajorityModelValues>({
     defaultValues: {
-      tokensToIssue: new BigNumber(0),
+      tokensToIssue: BigNumber(0),
       // proposalTokensCost: 0,
       minimumThresholdPercentage: 10,
       proposalDurationInDays: 1,
@@ -38,8 +38,8 @@ const MajorityModel = () => {
       daoId: currentDao.daoId,
       daoOwnerPublicKey: currentWalletAccount.publicKey,
       proposalDuration: data.proposalDurationInDays * 17280,
-      // proposalTokenDeposit: new BigNumber(data.proposalTokensCost),
-      minimumThreshold: new BigNumber(
+      // proposalTokenDeposit: BigNumber(data.proposalTokensCost),
+      minimumThreshold: BigNumber(
         data.minimumThresholdPercentage / 100
       ).multipliedBy(data.tokensToIssue),
       tokenSupply: data.tokensToIssue,
@@ -77,7 +77,7 @@ const MajorityModel = () => {
                     min: { value: 1, message: 'Minimum is 1' },
                     max: { value: 900000000, message: 'Max is 900,000,000' },
                     setValueAs: (tokens) => {
-                      const bnTokens = new BigNumber(tokens);
+                      const bnTokens = BigNumber(tokens);
                       return bnTokens;
                     },
                   })}

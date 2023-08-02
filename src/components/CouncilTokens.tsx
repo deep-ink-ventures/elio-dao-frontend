@@ -22,7 +22,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   ]);
   const { transferDaoTokens } = useElioDao();
 
-  const daoTokenBalance = new BigNumber(100);
+  const daoTokenBalance = BigNumber(1000000).multipliedBy(DAO_UNITS);
   // const [membersCount, setMembersCount] = useState(2);
   const {
     register,
@@ -36,10 +36,10 @@ const CouncilTokens = (props: { daoId: string | null }) => {
       tokenRecipients: [
         {
           walletAddress: '',
-          tokens: new BigNumber(0),
+          tokens: BigNumber(0),
         },
       ],
-      treasuryTokens: new BigNumber(0),
+      treasuryTokens: BigNumber(0),
     },
   });
 
@@ -51,9 +51,9 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   const getTotalRecipientsTokens = (
     recipients: CouncilTokensValues['tokenRecipients']
   ) => {
-    let total = new BigNumber(0);
+    let total = BigNumber(0);
     if (!recipients) {
-      return new BigNumber(0);
+      return BigNumber(0);
     }
     // eslint-disable-next-line
     for (const item of recipients) {
@@ -65,7 +65,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
 
   const remain = daoTokenBalance
     ? daoTokenBalance.minus(getTotalRecipientsTokens(tokensValues))
-    : new BigNumber(0);
+    : BigNumber(0);
 
   // const {
   //   fields: councilMembersFields,
@@ -93,7 +93,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
       return item.walletAddress;
     });
     const amounts = data.tokenRecipients.map((item) => {
-      return item.tokens.multipliedBy(DAO_UNITS);
+      return item.tokens;
     });
     await transferDaoTokens(props.daoId, toPublicKeys, amounts);
   };
@@ -114,7 +114,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   const handleAddRecipient = () => {
     tokenRecipientsAppend({
       walletAddress: '',
-      tokens: new BigNumber(0),
+      tokens: BigNumber(0),
     });
   };
 
@@ -166,8 +166,8 @@ const CouncilTokens = (props: { daoId: string | null }) => {
                   required: 'Required',
                   min: { value: 1, message: 'Minimum is 1' },
                   setValueAs: (tokens) => {
-                    const bnTokens = new BigNumber(tokens);
-                    return bnTokens.multipliedBy(new BigNumber(DAO_UNITS));
+                    const bnTokens = BigNumber(tokens);
+                    return bnTokens.multipliedBy(BigNumber(DAO_UNITS));
                   },
                 })}
               />

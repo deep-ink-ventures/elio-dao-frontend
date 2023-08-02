@@ -6,6 +6,7 @@ import DaoDashboard from '@/components/DaoDashboard';
 import Proposals from '@/components/Proposals';
 import Spinner from '@/components/Spinner';
 import WalletConnect from '@/components/WalletConnect';
+import { DAO_UNITS } from '@/config';
 import type { DaoPage } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import arrowLeft from '@/svg/arrowLeft.svg';
@@ -31,7 +32,7 @@ const MainDaoPage = () => {
       s.fetchDaoDB,
     ]);
 
-  const daoTokenBalance = new BigNumber(250000000000000);
+  const daoTokenBalance = BigNumber(1000000).multipliedBy(DAO_UNITS);
 
   const handleChangePage = (pageParam: DaoPage) => {
     updateDaoPage(pageParam);

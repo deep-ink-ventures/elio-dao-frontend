@@ -14,7 +14,7 @@ const TransferForm = (props: { assetId: number; daoId: string }) => {
     s.isTxnProcessing,
     s.currentWalletAccount,
   ]);
-  const daoTokenBalance = new BigNumber(100);
+  const daoTokenBalance = BigNumber(1000000).multipliedBy(DAO_UNITS);
   const {
     register,
     handleSubmit,
@@ -46,7 +46,7 @@ const TransferForm = (props: { assetId: number; daoId: string }) => {
         {
           assetId: props.assetId,
           toAddress: '',
-          amount: new BigNumber(0),
+          amount: BigNumber(0),
         },
         { keepErrors: true }
       );
@@ -96,7 +96,7 @@ const TransferForm = (props: { assetId: number; daoId: string }) => {
                 message: 'The Amount is zero or too small',
               },
               setValueAs: (tokens) => {
-                return new BigNumber(tokens * DAO_UNITS);
+                return BigNumber(tokens).multipliedBy(DAO_UNITS);
               },
             })}
           />

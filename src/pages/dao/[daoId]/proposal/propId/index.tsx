@@ -76,22 +76,22 @@ const Proposal = () => {
   }, [p, currentBlockNumber, currentDao?.proposalDuration]);
 
   const inFavorPercentageMemo = useMemo(() => {
-    const inFavorVotes = p?.inFavor || new BigNumber(0);
-    const againstVotes = p?.against || new BigNumber(0);
+    const inFavorVotes = p?.inFavor || BigNumber(0);
+    const againstVotes = p?.against || BigNumber(0);
     const totalVotes = inFavorVotes.plus(againstVotes);
     const inFavorPercentage = inFavorVotes.isZero()
-      ? new BigNumber(0)
-      : inFavorVotes.multipliedBy(new BigNumber(100)).dividedBy(totalVotes);
+      ? BigNumber(0)
+      : inFavorVotes.multipliedBy(BigNumber(100)).dividedBy(totalVotes);
     return inFavorPercentage.toString();
   }, [p]);
 
   const againstPercentageMemo = useMemo(() => {
-    const inFavorVotes = p?.inFavor || new BigNumber(0);
-    const againstVotes = p?.against || new BigNumber(0);
+    const inFavorVotes = p?.inFavor || BigNumber(0);
+    const againstVotes = p?.against || BigNumber(0);
     const totalVotes = inFavorVotes.plus(againstVotes);
     const againstPercentage = againstVotes.isZero()
-      ? new BigNumber(0)
-      : againstVotes.multipliedBy(new BigNumber(100)).dividedBy(totalVotes);
+      ? BigNumber(0)
+      : againstVotes.multipliedBy(BigNumber(100)).dividedBy(totalVotes);
     return againstPercentage.toString();
   }, [p]);
 
@@ -221,7 +221,7 @@ const Proposal = () => {
       );
     }
 
-    if (!daoTokenBalance || !daoTokenBalance.gt(new BigNumber(0))) {
+    if (!daoTokenBalance || !daoTokenBalance.gt(BigNumber(0))) {
       return (
         <button className='btn' disabled>
           {`You Can't Vote. No Tokens`}
@@ -449,10 +449,8 @@ const Proposal = () => {
                     <div className='absolute p-1 text-sm'>
                       In Favor (
                       {p?.inFavor
-                        ? p.inFavor
-                            .dividedBy(new BigNumber(DAO_UNITS))
-                            .toString()
-                        : new BigNumber(0).toString()}
+                        ? p.inFavor.dividedBy(BigNumber(DAO_UNITS)).toString()
+                        : BigNumber(0).toString()}
                       )
                     </div>
                   </div>
@@ -466,10 +464,8 @@ const Proposal = () => {
                       <p className=''>
                         Against (
                         {p?.against
-                          ? p.against
-                              .dividedBy(new BigNumber(DAO_UNITS))
-                              .toString()
-                          : new BigNumber(0).toString()}
+                          ? p.against.dividedBy(BigNumber(DAO_UNITS)).toString()
+                          : BigNumber(0).toString()}
                         )
                       </p>
                     </div>

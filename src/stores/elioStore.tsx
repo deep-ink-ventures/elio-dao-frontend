@@ -4,12 +4,23 @@ import {
   getPublicKey,
   isConnected,
 } from '@stellar/freighter-api';
-import type BigNumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
 import { create } from 'zustand';
 
+import {
+  ASSETS_WASM_HASH,
+  BLOCK_TIME,
+  CORE_CONTRACT_ADDRESS,
+  DAO_CREATION_DEPOSIT_XLM,
+  NETWORK,
+  NETWORK_PASSPHRASE,
+  PROPOSAL_CREATION_DEPOSIT_XLM,
+  SERVICE_URL,
+  SOROBAN_RPC_ENDPOINT,
+  VOTES_CONTRACT_ADDRESS,
+} from '@/config';
 import { splitCamelCase } from '@/utils';
-import { NETWORK, SERVICE_URL, SOROBAN_RPC_ENDPOINT } from '../config/index';
 
 import type { AccountSlice } from './account';
 import { createAccountSlice } from './account';
@@ -17,8 +28,8 @@ import type { DaoSlice } from './dao';
 import { createDaoSlice } from './dao';
 
 interface ElioConfig {
-  depositToCreateDao: number;
-  depositToCreateProposal: number;
+  depositToCreateDao: BigNumber;
+  depositToCreateProposal: BigNumber;
   /** Block time in seconds */
   blockCreationInterval: number;
   coreContractAddress: string;
@@ -26,6 +37,7 @@ interface ElioConfig {
   assetsWasmHash: string;
   networkPassphrase: string;
   rpcEndpoint: string;
+  currentBlockNumber?: number;
 }
 
 interface PageSlices {
@@ -242,7 +254,9 @@ export interface ElioState {
   daos: DaoDetail[] | null;
   currentWalletAccount: WalletAccount | null;
   currentProposalFaultyReports: FaultyReport[] | null;
+  /** Raw token balance */
   daoTokenBalance: BigNumber | null;
+  xlmTokenBalance: BigNumber | null;
   isConnectModalOpen: boolean;
   isTxnProcessing: boolean;
   daoPage: DaoPage;
@@ -257,7 +271,7 @@ export interface ElioState {
   sorobanServer: SorobanClient.Server;
   showCongrats: boolean;
   currentBlockNumber: number | null;
-  elioConfig: ElioConfig | null;
+  elioConfig: ElioConfig;
 }
 
 export interface ElioActions {
@@ -313,6 +327,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   currentProposals: null,
   proposalCreationValues: null,
   daoTokenBalance: null,
+  xlmTokenBalance: null,
   isFaultyModalOpen: false,
   isFaultyReportsOpen: false,
   currentProposalFaultyReports: null,
@@ -320,7 +335,16 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   showCongrats: false,
   currentProposal: null,
   currentBlockNumber: null,
-  elioConfig: null,
+  elioConfig: {
+    depositToCreateDao: BigNumber(DAO_CREATION_DEPOSIT_XLM),
+    depositToCreateProposal: BigNumber(PROPOSAL_CREATION_DEPOSIT_XLM),
+    blockCreationInterval: BLOCK_TIME,
+    coreContractAddress: CORE_CONTRACT_ADDRESS,
+    votesContractAddress: VOTES_CONTRACT_ADDRESS,
+    assetsWasmHash: ASSETS_WASM_HASH,
+    networkPassphrase: NETWORK_PASSPHRASE.FUTURENET,
+    rpcEndpoint: SOROBAN_RPC_ENDPOINT.FUTURENET,
+  },
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
   updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
@@ -580,6 +604,9 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   fetchElioConfig: async () => {
     try {
       const response = await fetch(`${SERVICE_URL}/config/`);
+      if (response.status >= 400 || !response.ok) {
+        return;
+      }
       const config = await response.json();
       const elioConfig: ElioConfig = {
         depositToCreateDao: config.deposit_to_create_dao,
@@ -590,6 +617,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         assetsWasmHash: config.assets_wasm_hash,
         networkPassphrase: config.network_passphrase,
         rpcEndpoint: config.blockchain_url,
+        currentBlockNumber: config.current_block_number,
       };
       set({ elioConfig });
       set({ sorobanServer: new SorobanClient.Server(elioConfig.rpcEndpoint) });
@@ -602,8 +630,12 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     ...createAccountSlice(set, get, store),
   },
   fetchBlockNumber: async () => {
+    console.log('fetch block number');
     try {
-      const response = await fetch('https://horizon-futurenet.stellar.org');
+      const response = await fetch('https://horizon-futurenet.stellar.org/');
+      if (response.status >= 400 || !response.ok) {
+        return;
+      }
       const horizonData = await response.json();
       set({ currentBlockNumber: Number(horizonData.history_latest_ledger) });
     } catch (err) {

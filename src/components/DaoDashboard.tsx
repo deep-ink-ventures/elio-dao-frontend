@@ -2,6 +2,7 @@ import useElioDao from '@/hooks/useElioDao';
 import Link from 'next/link';
 
 // import DestroyDao from '@/components/DestroyDao';
+import { DAO_UNITS } from '@/config';
 import useElioStore from '@/stores/elioStore';
 import BigNumber from 'bignumber.js';
 
@@ -14,7 +15,7 @@ const DaoDashboard = (props: { daoId: string }) => {
       s.handleErrors,
     ]);
   const { destroyDao } = useElioDao();
-  const daoTokenBalance = new BigNumber(25000);
+  const daoTokenBalance = BigNumber(25000).multipliedBy(DAO_UNITS);
 
   const handleDestroyDao = async () => {
     try {
@@ -86,7 +87,7 @@ const DaoDashboard = (props: { daoId: string }) => {
             disabled={
               !currentWalletAccount ||
               daoTokenBalance?.isZero() ||
-              !daoTokenBalance?.gt(new BigNumber(0))
+              !daoTokenBalance?.gt(BigNumber(0))
             }>
             Send Tokens
           </button>
