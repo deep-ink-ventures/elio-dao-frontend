@@ -5,7 +5,9 @@ import WalletConnectModal from '@/components/WalletConnectModal';
 import useElioStore from '@/stores/elioStore';
 import avatar from '@/svg/avatar.svg';
 import wallet from '@/svg/wallet.svg';
+import cn from 'classnames';
 
+import Logout from '@/svg/components/logout';
 import { truncateMiddle } from '../utils/index';
 
 interface WalletConnectProps {
@@ -97,11 +99,22 @@ const WalletConnect = (props: WalletConnectProps) => {
         ) : null}
       </button>
       <div
-        className={`${
-          !dropdownOpen ? 'hidden' : ''
-        } btn-secondary btn absolute left-[12px] top-[50px] m-2 w-[160px] text-center`}
-        onClick={handleDisconnect}>
-        Disconnect
+        className={cn(
+          'shadow-[0_0_4px_0_rgba(255, 255, 255, 0.20)] absolute right-0 top-[65px] w-full space-y-2 rounded-2xl bg-secondary-content py-1 shadow-sm',
+          {
+            hidden: !dropdownOpen,
+          }
+        )}>
+        <div
+          className={`group flex cursor-pointer items-center gap-2 px-4 py-2 text-error hover:text-primary`}
+          onClick={handleDisconnect}>
+          <Logout
+            width={20}
+            height={20}
+            className='[&_path]:group-hover:stroke-primary'
+          />{' '}
+          Disconnect
+        </div>
       </div>
       <WalletConnectModal />
     </div>
