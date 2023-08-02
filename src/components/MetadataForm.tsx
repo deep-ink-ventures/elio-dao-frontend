@@ -63,7 +63,7 @@ const MetadataForm = (props: { daoId: string | null }) => {
           setValue('imageString', data as string);
         })
         .catch((error) => {
-          console.log(error);
+          handleErrors(error);
         });
     }
   });

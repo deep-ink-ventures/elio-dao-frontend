@@ -1,17 +1,28 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // import useGenesisStore from '@/stores/genesisStore';
 import Spinner from '@/components/Spinner';
 import useElioStore from '@/stores/elioStore';
 import plusBlack from '@/svg/plus-black.svg';
 
+import { BLOCK_TIME } from '@/config';
 import ProposalCard from './ProposalCard';
 
 const Proposals = (props: { daoId: string }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentProposals] = useElioStore((s) => [s.currentProposals]);
+  const [
+    currentProposals,
+    currentBlockNumber,
+    fetchBlockNumber,
+    updateCurrentBlockNumber,
+  ] = useElioStore((s) => [
+    s.currentProposals,
+    s.currentBlockNumber,
+    s.fetchBlockNumber,
+    s.updateCurrentBlockNumber,
+  ]);
   const filteredProposals = currentProposals?.filter((prop) => {
     return (
       prop.proposalId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,32 +55,34 @@ const Proposals = (props: { daoId: string }) => {
     );
   };
 
-  // useEffect(() => {
-  //   if (!props.daoId) {
-  //     return;
-  //   }
+  useEffect(() => {
+    if (!props.daoId) {
+      return;
+    }
 
-  //   const timer = setTimeout(() => {
-  //     fetchProposalsFromDB(props.daoId);
-  //   }, 500);
-  //   // eslint-disable-next-line
-  //   return () => clearTimeout(timer);
-  // }, [props.daoId, fetchProposalsFromDB]);
+    const timer = setTimeout(() => {
+      // fetchProposalsFromDB(props.daoId);
+      fetchBlockNumber();
+    }, 500);
+    // eslint-disable-next-line
+    return () => clearTimeout(timer);
+  }, [props.daoId]);
 
   const handleSearch = (e: any) => {
     setSearchTerm(e.target.value);
   };
 
-  // useEffect(() => {
-  //   if (!currentBlockNumber) {
-  //     return;
-  //   }
-  //   const timeout = setTimeout(() => {
-  //     updateBlockNumber(currentBlockNumber + 1);
-  //   }, 6000);
-  //   // eslint-disable-next-line
-  //   return () => clearTimeout(timeout);
-  // }, [currentBlockNumber, updateBlockNumber]);
+  useEffect(() => {
+    if (!currentBlockNumber) {
+      return;
+    }
+    const timeout = setTimeout(() => {
+      // fixme there's about 10s delay here
+      updateCurrentBlockNumber(currentBlockNumber + 1);
+    }, BLOCK_TIME * 1000);
+    // eslint-disable-next-line
+    return () => clearTimeout(timeout);
+  }, [currentBlockNumber]);
 
   return (
     <div className='flex flex-col gap-y-4'>

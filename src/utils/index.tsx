@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
+import { scValToNative } from 'soroban-client';
 
 // @ts-ignore
 export const truncateMiddle = (str?, start = 4, end = 4) => {
@@ -262,12 +263,10 @@ export const decodeXdr = (xdr: string) => {
       });
     case 'scvU32':
       return scVal.u32();
-    default:
-      console.log(
-        'No decoder for this type detected. Type: ',
-        scVal.switch().name
-      );
-      return null;
+    default: {
+      const val = scValToNative(scVal);
+      return val;
+    }
   }
 };
 

@@ -294,6 +294,7 @@ export interface ElioActions {
   updateCurrentBlockNumber: (currentBlockNumber: number | null) => void;
   fetchProposalFaultyReports: (proposalId: string) => void;
   fetchElioConfig: () => void;
+  fetchBlockNumber: () => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -413,6 +414,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       timestamp: Date.now(),
       // txnHash?: string;
     };
+    get().updateIsTxnProcessing(false);
     get().addTxnNotification(noti);
   },
   addTxnNotification: (newNotification) => {
@@ -598,6 +600,15 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   pages: {
     ...createDaoSlice(set, get, store),
     ...createAccountSlice(set, get, store),
+  },
+  fetchBlockNumber: async () => {
+    try {
+      const response = await fetch('https://horizon-futurenet.stellar.org');
+      const horizonData = await response.json();
+      set({ currentBlockNumber: Number(horizonData.history_latest_ledger) });
+    } catch (err) {
+      get().handleErrors('Cannot get block number', err);
+    }
   },
 }));
 

@@ -17,7 +17,7 @@ const CreateDaoModal = () => {
     watch,
     formState: { errors, isSubmitSuccessful },
   } = useForm<CreateDaoData>();
-  const [hasEnoughTokens, _setHasEnoughTokens] = useState(true);
+  const [hasEnoughTokens] = useState(true);
   const [
     isStartModalOpen,
     isTxnProcessing,

@@ -74,11 +74,7 @@ const GovernanceForm = (props: { daoId: string | null }) => {
           Customized
         </div>
       </div>
-      {model === 'majority' ? (
-        <MajorityModel daoId={props.daoId} />
-      ) : (
-        <CustomizedModel />
-      )}
+      {model === 'majority' ? <MajorityModel /> : <CustomizedModel />}
     </div>
   );
 };

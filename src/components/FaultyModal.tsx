@@ -29,7 +29,7 @@ const FaultyModal = (props: { propId: string; daoId: string }) => {
   });
 
   const onSubmit = async (data: FaultyDescription) => {
-    console.log(data);
+    // console.log(data);
   };
 
   const handleSelect = (e: any) => {
@@ -37,7 +37,7 @@ const FaultyModal = (props: { propId: string; daoId: string }) => {
   };
 
   const handleSubmitReason = () => {
-    console.log('submit reasons');
+    // console.log('submit reasons');
   };
 
   return (
