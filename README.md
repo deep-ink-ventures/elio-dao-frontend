@@ -24,13 +24,7 @@ Most of the transaction actions are in the [`useElioDao`](./src/hooks/useElioDao
 
 ## Getting Started
 
-Adjust the environment variables to your need or go with the defaults:
-
-```shell
-cp .env.example .env
-```
-
-> The frontend defaults to the service and node of the Elio DAO test environment.
+> The frontend defaults to the service of the Elio DAO test environment.
 
 ### Docker setup
 
