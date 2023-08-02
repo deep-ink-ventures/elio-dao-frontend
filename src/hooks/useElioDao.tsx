@@ -206,7 +206,8 @@ const useElioDao = () => {
     try {
       const res = await sorobanServer.simulateTransaction(txn);
       if (res.error) {
-        throw new Error(res.error as unknown as string);
+        // eslint-disable-next-line
+        console.log('Cannot stimulate transaction', res.error)
       }
       const xdr = res?.results?.[0]?.xdr;
       if (!xdr) {
@@ -519,6 +520,7 @@ const useElioDao = () => {
       return;
     }
     const tokenContractAddress = await getAssetId(daoId);
+    console.log('token address from getDaoTokenBalance', tokenContractAddress);
     if (!tokenContractAddress) {
       handleErrors('Cannot get token contract address');
       return;
