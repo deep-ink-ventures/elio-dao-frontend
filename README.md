@@ -25,7 +25,7 @@ Most of the transaction actions are in the [`useElioDao`](./src/hooks/useElioDao
 ## Getting Started
 
 - Please have one of these wallet extensions installed on your browser: [Freighter](https://www.freighter.app/ "Freighter") only for now
-- Please turn on experimental mode on and change the network to FUTURENET on Freighter 
+- Please turn ON experimental mode and change the network to FUTURENET on Freighter 
 - You will need some Stellar XLM tokens to do transactions. For now, you can use the friendbot on Freighter wallet to fund your account. As of now, you will need 1000 XLM tokens to create a DAO.
 
 > The frontend defaults to the service of the Elio DAO test environment.
