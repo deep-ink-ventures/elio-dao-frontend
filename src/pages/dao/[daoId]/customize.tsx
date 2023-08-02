@@ -41,7 +41,18 @@ const Customize = () => {
     }
     const TO = setTimeout(async () => {
       fetchDaoDB(daoId as string);
-      await getDaoTokenBalance(daoId as string, currentWalletAccount.publicKey);
+
+      if (
+        currentDao &&
+        currentDao.metadataHash &&
+        hasMetadata &&
+        !currentDao.proposalDuration
+      ) {
+        await getDaoTokenBalance(
+          daoId as string,
+          currentWalletAccount.publicKey
+        );
+      }
       // fixme dont fetch metadata if we're already past the metadata stage
       await getDaoMetadata(daoId as string).then((data) => {
         if (Array.isArray(data) && typeof data[0] === 'string') {
