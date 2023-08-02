@@ -30,7 +30,7 @@ const Customize = () => {
   const { daoId } = router.query;
   const [showPage, setShowPage] = useState(false);
   const [hasMetadata, setHasMetadata] = useState(false);
-  const { getDaoMetadata, getDaoTokenBalance } = useElioDao();
+  const { getDaoMetadata } = useElioDao();
   const handleReturnToDashboard = () => {
     router.push(`/dao/${encodeURIComponent(daoId as string)}`);
   };
@@ -41,18 +41,6 @@ const Customize = () => {
     }
     const TO = setTimeout(async () => {
       fetchDaoDB(daoId as string);
-
-      if (
-        currentDao &&
-        currentDao.metadataHash &&
-        hasMetadata &&
-        !currentDao.proposalDuration
-      ) {
-        await getDaoTokenBalance(
-          daoId as string,
-          currentWalletAccount.publicKey
-        );
-      }
       // fixme dont fetch metadata if we're already past the metadata stage
       await getDaoMetadata(daoId as string).then((data) => {
         if (Array.isArray(data) && typeof data[0] === 'string') {
