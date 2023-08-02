@@ -7,9 +7,9 @@ import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { DAO_UNITS } from '@/config';
+import useElioDao from '@/hooks/useElioDao';
 import type { DaoDetail } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
-
 import BigNumber from 'bignumber.js';
 import Spinner from './Spinner';
 
@@ -72,6 +72,7 @@ const CreateProposal = (props: {
     s.currentDao,
     s.daoTokenBalance,
   ]);
+  const { getDaoTokenBalance } = useElioDao();
 
   const hasProposalDeposit = useMemo(() => {
     if (
@@ -96,22 +97,11 @@ const CreateProposal = (props: {
     props.handleChangePage('review');
   };
 
-  // useEffect(() => {
-  //   if (props.dao?.daoAssetId && currentWalletAccount?.address) {
-  //     fetchDaoTokenBalanceFromDB(
-  //       props?.dao?.daoAssetId,
-  //       currentWalletAccount?.address
-  //     );
-  //   }
-  // }, [
-  //   props?.dao?.daoAssetId,
-  //   currentWalletAccount?.address,
-  //   fetchDaoTokenBalanceFromDB,
-  // ]);
-
   useEffect(() => {
-    console.log(currentWalletAccount);
-  });
+    if (currentDao?.daoId && currentWalletAccount?.publicKey) {
+      getDaoTokenBalance(currentDao?.daoId, currentWalletAccount?.publicKey);
+    }
+  }, [currentDao?.daoId, currentWalletAccount?.publicKey]);
 
   useEffect(() => {
     if (proposalCreationValues) {

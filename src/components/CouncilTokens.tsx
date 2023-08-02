@@ -86,7 +86,6 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   });
 
   const onSubmit = async (data: IssueTokensValues) => {
-    console.log(data, props);
     if (!props.daoId) {
       return;
     }

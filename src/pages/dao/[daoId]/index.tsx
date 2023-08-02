@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 import DaoDashboard from '@/components/DaoDashboard';
-// import Proposals from '@/components/Proposals';
+import Proposals from '@/components/Proposals';
 import Spinner from '@/components/Spinner';
 import WalletConnect from '@/components/WalletConnect';
 import type { DaoPage } from '@/stores/elioStore';
@@ -75,9 +75,9 @@ const MainDaoPage = () => {
   };
 
   const displayPage = () => {
-    // if (daoPage === 'proposals') {
-    //   return <Proposals daoId={daoId as string} />;
-    // }
+    if (daoPage === 'proposals') {
+      return <Proposals daoId={daoId as string} />;
+    }
     return <DaoDashboard daoId={daoId as string} />;
   };
 

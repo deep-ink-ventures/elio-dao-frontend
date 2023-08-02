@@ -30,18 +30,20 @@ const Customize = () => {
   const { daoId } = router.query;
   const [showPage, setShowPage] = useState(false);
   const [hasMetadata, setHasMetadata] = useState(false);
-  const { getDaoMetadata } = useElioDao();
+  const { getDaoMetadata, getDaoTokenBalance } = useElioDao();
   const handleReturnToDashboard = () => {
     router.push(`/dao/${encodeURIComponent(daoId as string)}`);
   };
 
   useEffect(() => {
-    if (!daoId) {
+    if (!daoId || !currentWalletAccount?.publicKey) {
       return;
     }
     const TO = setTimeout(async () => {
       fetchDaoDB(daoId as string);
-      getDaoMetadata(daoId as string).then((data) => {
+      await getDaoTokenBalance(daoId as string, currentWalletAccount.publicKey);
+      // fixme dont fetch metadata if we're already past the metadata stage
+      await getDaoMetadata(daoId as string).then((data) => {
         if (Array.isArray(data) && typeof data[0] === 'string') {
           setHasMetadata(true);
         }
@@ -49,7 +51,7 @@ const Customize = () => {
     }, 700);
     // eslint-disable-next-line
     return () => clearTimeout(TO);
-  }, [daoId, isTxnProcessing]);
+  }, [daoId, isTxnProcessing, currentWalletAccount]);
 
   useEffect(() => {
     setTimeout(() => {

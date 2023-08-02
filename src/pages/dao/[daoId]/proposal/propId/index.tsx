@@ -44,6 +44,7 @@ const Proposal = () => {
     fetchProposalFaultyReports,
     updateIsFaultyReportsOpen,
     updateCurrentBlockNumber,
+    fetchBlockNumber,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.daoTokenBalance,
@@ -58,6 +59,7 @@ const Proposal = () => {
     s.fetchProposalFaultyReports,
     s.updateIsFaultyReportsOpen,
     s.updateCurrentBlockNumber,
+    s.fetchBlockNumber,
   ]);
   // const updateCurrentProposal = useGenesisStore((s) => s.updateCurrentProposal);
   // const { makeVoteTxn, sendBatchTxns, makeFinalizeProposalTxn } =
@@ -178,6 +180,7 @@ const Proposal = () => {
         // fetchOneProposalDB(daoId as string, propId as string);
         // fetchDaoFromDB(daoId as string);
         fetchProposalFaultyReports(propId as string);
+        fetchBlockNumber();
         // eslint-disable-next-line
         return () => clearTimeout(timer);
       }, 200);

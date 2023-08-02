@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
-const MajorityModel = (props: { daoId: string | null }) => {
+const MajorityModel = () => {
   const [currentDao, isTxnProcessing, currentWalletAccount] = useElioStore(
     (s) => [s.currentDao, s.isTxnProcessing, s.currentWalletAccount]
   );
@@ -37,7 +37,7 @@ const MajorityModel = (props: { daoId: string | null }) => {
     await issueTokenSetConfig({
       daoId: currentDao.daoId,
       daoOwnerPublicKey: currentWalletAccount.publicKey,
-      proposalDuration: data.proposalDurationInDays * 17280, // fixme units
+      proposalDuration: data.proposalDurationInDays * 17280,
       // proposalTokenDeposit: new BigNumber(data.proposalTokensCost),
       minimumThreshold: new BigNumber(
         data.minimumThresholdPercentage / 100
