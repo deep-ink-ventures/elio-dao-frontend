@@ -7,7 +7,7 @@ This is the frontend UI for Elio DAO. Users can use this interface to create DAO
 
 ## Status
 
-:hammer_and_wrench: This repo is still in the early development stage and please use it at your own risk. 
+:hammer_and_wrench: This repo is still in the early development stage and please use it at your own risk. Currently, contracts are only available on Stellar's Futurenet. 
 
 Our design guide and mockups are [here](./design/)
 
