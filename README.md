@@ -24,6 +24,10 @@ Most of the transaction actions are in the [`useElioDao`](./src/hooks/useElioDao
 
 ## Getting Started
 
+- Please have one of these wallet extensions installed on your browser: [Freighter](https://www.freighter.app/ "Freighter") only for now
+- Please turn on experimental mode on Freighter 
+- You will need some Stellar XLM tokens to do transactions. For now, you can use the friendbot on Freighter wallet to fund your account. As of now, you will need 1000 XLM tokens to create a DAO.
+
 > The frontend defaults to the service of the Elio DAO test environment.
 
 ### Docker setup
@@ -50,12 +54,6 @@ yarn dev
 3. Now you can open http://localhost:3000 on your browser to see the application.
 
 We obtain contract addresses and some config values from our service at ```https://service.elio-dao.org/config/``` If you need to change the node endpoint, you can go to the [config](./src/config) folder
-
-## Usage
-
-- Please have one these wallet extensions installed on your browser: [Freighter](https://www.freighter.app/ "Freighter") only for now
-
-- You will need some Stellar XLM tokens to do transactions. For now, you can use the friendbot on Freighter wallet to fund your account. As of now, you will need 1000 XLM tokens to create a DAO. 
 
 
 ## Before commit
