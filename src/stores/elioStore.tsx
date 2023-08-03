@@ -1,15 +1,3 @@
-import * as StellarSdk from 'stellar-sdk'
-import { daoArray } from '@/stores/fakeData';
-import {
-  getNetworkDetails,
-  getPublicKey,
-  isConnected,
-} from '@stellar/freighter-api';
-import BigNumber from 'bignumber.js';
-import * as SorobanClient from 'soroban-client';
-import { create } from 'zustand';
-import type { DaoSlice } from './dao';
-import { createDaoSlice } from './dao';
 import {
   ASSETS_WASM_HASH,
   BLOCK_TIME,
@@ -23,7 +11,17 @@ import {
   VOTES_CONTRACT_ADDRESS,
   XLM_UNITS,
 } from '@/config';
+import { daoArray } from '@/stores/fakeData';
 import { splitCamelCase } from '@/utils';
+import {
+  getNetworkDetails,
+  getPublicKey,
+  isConnected,
+} from '@stellar/freighter-api';
+import BigNumber from 'bignumber.js';
+import * as SorobanClient from 'soroban-client';
+import * as StellarSdk from 'stellar-sdk';
+import { create } from 'zustand';
 
 import type {
   IncomingProposal,
@@ -32,7 +30,8 @@ import type {
 import { proposalStatusNames } from '@/services/proposals';
 import type { AccountSlice } from './account';
 import { createAccountSlice } from './account';
-
+import type { DaoSlice } from './dao';
+import { createDaoSlice } from './dao';
 
 interface ElioConfig {
   depositToCreateDao: BigNumber;

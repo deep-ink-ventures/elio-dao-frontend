@@ -75,20 +75,6 @@ const CreateProposal = (props: {
     PROPOSAL_CREATION_DEPOSIT_XLM
   );
 
-  // const hasProposalDeposit = useMemo(() => {
-  //   if (
-  //     !currentDao?.proposalTokenDeposit ||
-  //     currentDao?.proposalTokenDeposit === 0
-  //   ) {
-  //     return false;
-  //   }
-  //   return daoTokenBalance?.gte(
-  //     BigNumber(currentDao?.proposalTokenDeposit).multipliedBy(
-  //       BigNumber(DAO_UNITS)
-  //     )
-  //   );
-  // }, [currentDao, daoTokenBalance]);
-
   const onSubmit = (data: ProposalValues) => {
     updateProposalCreationValues({
       title: data.proposalName,
@@ -117,34 +103,6 @@ const CreateProposal = (props: {
   const watchLink = watch('discussionLink', '');
 
   const alert = () => {
-    // if (
-    //   !currentDao?.proposalTokenDeposit ||
-    //   currentDao.proposalTokenDeposit === 0
-    // ) {
-    //   return (
-    //     <div className='alert alert-error shadow-lg'>
-    //       <div>
-    //         <svg
-    //           xmlns='http://www.w3.org/2000/svg'
-    //           className='h-6 w-6 shrink-0 stroke-current'
-    //           fill='none'
-    //           viewBox='0 0 24 24'>
-    //           <path
-    //             strokeLinecap='round'
-    //             strokeLinejoin='round'
-    //             strokeWidth='2'
-    //             d='M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
-    //           />
-    //         </svg>
-    //         <p>
-    //           Token deposit requirement is not configured correctly. Please
-    //           contact the DAO owner.
-    //         </p>
-    //       </div>
-    //     </div>
-    //   );
-    // }
-
     if (hasEnoughTokens) {
       return (
         <div className='alert alert-info shadow-lg'>
@@ -312,7 +270,7 @@ const CreateProposal = (props: {
                   pattern: {
                     value:
                       // eslint-disable-next-line
-                      /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/,
+                      /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/,
                     message: `This does not look like a valid URL. Contact us if this is a mistake.`,
                   },
                 })}

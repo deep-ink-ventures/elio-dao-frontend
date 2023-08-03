@@ -211,3 +211,38 @@ input[type=number] {
 a {
   cursor:pointer;
 }
+
+.vote-up:hover {
+  stroke: #1E1B21 !important
+}
+
+.vote-down:hover {
+  stroke: #1E1B21 !important
+}
+
+.vote-up path {
+  stroke: #1E1B21 !important
+}
+
+.vote-up path {
+  stroke: #1E1B21 !important
+  
+}
+
+.quill {
+  @apply w-full h-80;
+}
+
+.ql-toolbar {
+  @apply bg-neutral border-[0.3px] border-neutral-focus rounded-t-lg;
+}
+
+.ql-container {
+  @apply bg-base-50 border-[0.3px] border-neutral-focus rounded-b-lg;
+}
+.ql-formats {
+  @apply bg-neutral;
+}
+.ql-editor {
+  @apply text-lg
+}

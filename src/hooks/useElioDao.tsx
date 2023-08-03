@@ -3,6 +3,7 @@ import type {
   CreateDaoData,
   DaoMetadataValues,
   GovConfigValues,
+  ProposalCreationValues,
 } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import {
@@ -668,22 +669,43 @@ const useElioDao = () => {
   const setProposalMetadata = async (
     daoId: string,
     proposalId: number,
-    meta: string,
-    hash: string
+
+    proposalValues: ProposalCreationValues
   ) => {
     if (!elioConfig) {
       return;
     }
     updateIsTxnProcessing(true);
     try {
+      const jsonData = JSON.stringify({
+        title: proposalValues?.title,
+        description: proposalValues?.description,
+        url: proposalValues?.url,
+      });
+
+      const metadataResponse = await fetch(
+        `${SERVICE_URL}/proposals/${proposalId}/metadata/`,
+        {
+          method: 'POST',
+          body: jsonData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const metadata = await metadataResponse.json();
+      if (!metadata?.metadata_url) {
+        handleErrors(`Not able to upload metadata Status:${metadata?.status}`);
+        return;
+      }
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
         elioConfig.votesContractAddress,
         'set_metadata',
         stringToScVal(daoId),
         SorobanClient.nativeToScVal(proposalId),
-        stringToScVal(meta),
-        stringToScVal(hash),
+        stringToScVal(metadata?.metadata_url),
+        stringToScVal(metadata?.metadata_hash),
         accountToScVal(currentWalletAccount!.publicKey)
       );
       await submitTxn(
