@@ -232,7 +232,7 @@ const Proposal = () => {
     return (
       <Tooltip
         placement='top'
-        content={`Please note, that creating a proposal requires a one-time deposit of ${currentDao?.proposalTokenDeposit} tokens`}>
+        content={`Please note, that creating a proposal requires a one-time deposit of 100 XLM`}>
         <button className='btn-primary btn min-w-[250px]' onClick={handleVote}>
           Vote
         </button>
