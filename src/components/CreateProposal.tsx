@@ -3,14 +3,13 @@ import 'react-quill/dist/quill.snow.css';
 import { ErrorMessage } from '@hookform/error-message';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { DAO_UNITS } from '@/config';
+import { PROPOSAL_CREATION_DEPOSIT_XLM } from '@/config';
 import useElioDao from '@/hooks/useElioDao';
 import type { DaoDetail } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
-import BigNumber from 'bignumber.js';
 import Spinner from './Spinner';
 
 const Quill = dynamic(
@@ -64,29 +63,31 @@ const CreateProposal = (props: {
     proposalCreationValues,
     updateProposalCreationValues,
     currentDao,
-    daoTokenBalance,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.proposalCreationValues,
     s.updateProposalCreationValues,
     s.currentDao,
-    s.daoTokenBalance,
   ]);
   const { getDaoTokenBalance } = useElioDao();
+  // todo make sure we fetch new token balance
+  const hasEnoughTokens = !!currentWalletAccount?.nativeTokenBalance.gt(
+    PROPOSAL_CREATION_DEPOSIT_XLM
+  );
 
-  const hasProposalDeposit = useMemo(() => {
-    if (
-      !currentDao?.proposalTokenDeposit ||
-      currentDao?.proposalTokenDeposit === 0
-    ) {
-      return false;
-    }
-    return daoTokenBalance?.gte(
-      BigNumber(currentDao?.proposalTokenDeposit).multipliedBy(
-        BigNumber(DAO_UNITS)
-      )
-    );
-  }, [currentDao, daoTokenBalance]);
+  // const hasProposalDeposit = useMemo(() => {
+  //   if (
+  //     !currentDao?.proposalTokenDeposit ||
+  //     currentDao?.proposalTokenDeposit === 0
+  //   ) {
+  //     return false;
+  //   }
+  //   return daoTokenBalance?.gte(
+  //     BigNumber(currentDao?.proposalTokenDeposit).multipliedBy(
+  //       BigNumber(DAO_UNITS)
+  //     )
+  //   );
+  // }, [currentDao, daoTokenBalance]);
 
   const onSubmit = (data: ProposalValues) => {
     updateProposalCreationValues({
@@ -116,34 +117,35 @@ const CreateProposal = (props: {
   const watchLink = watch('discussionLink', '');
 
   const alert = () => {
-    if (
-      !currentDao?.proposalTokenDeposit ||
-      currentDao.proposalTokenDeposit === 0
-    ) {
-      return (
-        <div className='alert alert-error shadow-lg'>
-          <div>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              className='h-6 w-6 shrink-0 stroke-current'
-              fill='none'
-              viewBox='0 0 24 24'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth='2'
-                d='M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
-              />
-            </svg>
-            <p>
-              Token deposit requirement is not configured correctly. Please
-              contact the DAO owner.
-            </p>
-          </div>
-        </div>
-      );
-    }
-    if (hasProposalDeposit) {
+    // if (
+    //   !currentDao?.proposalTokenDeposit ||
+    //   currentDao.proposalTokenDeposit === 0
+    // ) {
+    //   return (
+    //     <div className='alert alert-error shadow-lg'>
+    //       <div>
+    //         <svg
+    //           xmlns='http://www.w3.org/2000/svg'
+    //           className='h-6 w-6 shrink-0 stroke-current'
+    //           fill='none'
+    //           viewBox='0 0 24 24'>
+    //           <path
+    //             strokeLinecap='round'
+    //             strokeLinejoin='round'
+    //             strokeWidth='2'
+    //             d='M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
+    //           />
+    //         </svg>
+    //         <p>
+    //           Token deposit requirement is not configured correctly. Please
+    //           contact the DAO owner.
+    //         </p>
+    //       </div>
+    //     </div>
+    //   );
+    // }
+
+    if (hasEnoughTokens) {
       return (
         <div className='alert alert-info shadow-lg'>
           <div>
@@ -159,7 +161,7 @@ const CreateProposal = (props: {
                 d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'></path>
             </svg>
             <p>
-              <span className='font-bold'>{`${currentDao?.proposalTokenDeposit} DAO Tokens `}</span>
+              <span className='font-bold'>{`100 XLM`}</span>
               {`will be reserved upon creation of a proposal. The reserved tokens
               will be refunded when the proposal is finalized .`}
             </p>
@@ -184,8 +186,7 @@ const CreateProposal = (props: {
           </svg>
           <p>
             Sorry you need at least{' '}
-            <span className='font-bold'>{`${currentDao?.proposalTokenDeposit} DAO Tokens `}</span>{' '}
-            to create a Proposal
+            <span className='font-bold'>{`100 XLM`}</span> to create a Proposal
           </p>
         </div>
       </div>
@@ -210,7 +211,7 @@ const CreateProposal = (props: {
       {alert()}
       <div
         className={`flex w-full items-center ${
-          !hasProposalDeposit ? 'text-neutral/30' : null
+          !hasEnoughTokens ? 'text-neutral/30' : null
         }`}>
         <form onSubmit={handleSubmit(onSubmit)} className='min-w-full'>
           <div className='mb-8 flex flex-col items-center gap-y-8'>
@@ -230,7 +231,7 @@ const CreateProposal = (props: {
                   }`}
                   type='text'
                   placeholder={'e.g. Deploy Uniswap V3 on Avalanche'}
-                  disabled={!hasProposalDeposit}
+                  disabled={!hasEnoughTokens}
                   {...register('proposalName', {
                     required: 'Required',
                     maxLength: { value: 128, message: 'Max length is 128' },
@@ -257,7 +258,7 @@ const CreateProposal = (props: {
                 Proposal Description (2000 characters or less)
               </p>
               <div>
-                {!hasProposalDeposit ? (
+                {!hasEnoughTokens ? (
                   <input className='textarea h-48' disabled></input>
                 ) : (
                   <Controller
@@ -303,7 +304,7 @@ const CreateProposal = (props: {
                 }`}
                 type='text'
                 placeholder='https://'
-                disabled={!hasProposalDeposit}
+                disabled={!hasEnoughTokens}
                 {...register('discussionLink', {
                   required: 'Required',
                   maxLength: { value: 250, message: 'Max Length is 250' },
@@ -329,7 +330,7 @@ const CreateProposal = (props: {
             <button
               className={`btn-primary btn w-96`}
               type='submit'
-              disabled={!hasProposalDeposit}>
+              disabled={!hasEnoughTokens}>
               Submit
             </button>
           </div>

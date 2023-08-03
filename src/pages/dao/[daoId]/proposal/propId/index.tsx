@@ -177,7 +177,7 @@ const Proposal = () => {
   useEffect(() => {
     if (daoId && propId) {
       const timer = setTimeout(() => {
-        // fetchOneProposalDB(daoId as string, propId as string);
+        // fetchProposalDB(daoId as string, propId as string);
         // fetchDaoFromDB(daoId as string);
         fetchProposalFaultyReports(propId as string);
         fetchBlockNumber();

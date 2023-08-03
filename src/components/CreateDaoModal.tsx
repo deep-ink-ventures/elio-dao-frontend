@@ -1,9 +1,10 @@
+import { DAO_CREATION_DEPOSIT_XLM } from '@/config';
 import useElioDao from '@/hooks/useElioDao';
 import type { CreateDaoData } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import { ErrorMessage } from '@hookform/error-message';
 import Modal from 'antd/lib/modal';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
@@ -17,7 +18,6 @@ const CreateDaoModal = () => {
     watch,
     formState: { errors, isSubmitSuccessful },
   } = useForm<CreateDaoData>();
-  const [hasEnoughTokens] = useState(true);
   const [
     isStartModalOpen,
     isTxnProcessing,
@@ -31,8 +31,12 @@ const CreateDaoModal = () => {
     s.updateIsStartModalOpen,
     s.handleErrors,
   ]);
-
   const { createDao } = useElioDao();
+
+  // todo make sure we fetch new token balance
+  const hasEnoughTokens = !!currentWalletAccount?.nativeTokenBalance.gt(
+    DAO_CREATION_DEPOSIT_XLM
+  );
 
   const watchName = watch('daoName', '');
   const watchId = watch('daoId', '');
@@ -78,7 +82,7 @@ const CreateDaoModal = () => {
                 d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'></path>
             </svg>
             <p>
-              <span className='font-bold'>{`10 Tokens `}</span>will be reserved
+              <span className='font-bold'>{`1000 XLM `}</span>will be reserved
               upon creation of your DAO. The reserved tokens will be refunded
               when the DAO is destroyed.
             </p>

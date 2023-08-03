@@ -32,11 +32,11 @@ const CreateProposalPage = () => {
   //     return;
   //   }
   //   const TO = setTimeout(() => {
-  //     fetchDaoFromDB(daoId as string);
+  //     fetchDaoDB(daoId as string);
   //   }, 700);
   //   // eslint-disable-next-line
   //   return () => clearTimeout(TO);
-  // }, [daoId, fetchDaoFromDB]);
+  // }, [daoId, fetchDaoDB]);
 
   // useEffect(() => {
   //   if (!apiConnection) {

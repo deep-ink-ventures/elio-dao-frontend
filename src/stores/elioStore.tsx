@@ -1,3 +1,4 @@
+import * as StellarSdk from 'stellar-sdk'
 import { daoArray } from '@/stores/fakeData';
 import {
   getNetworkDetails,
@@ -7,7 +8,8 @@ import {
 import BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
 import { create } from 'zustand';
-
+import type { DaoSlice } from './dao';
+import { createDaoSlice } from './dao';
 import {
   ASSETS_WASM_HASH,
   BLOCK_TIME,
@@ -19,14 +21,18 @@ import {
   SERVICE_URL,
   SOROBAN_RPC_ENDPOINT,
   VOTES_CONTRACT_ADDRESS,
+  XLM_UNITS,
 } from '@/config';
 import { splitCamelCase } from '@/utils';
 
+import type {
+  IncomingProposal,
+  ProposalStatusNames,
+} from '@/services/proposals';
+import { proposalStatusNames } from '@/services/proposals';
 import type { AccountSlice } from './account';
 import { createAccountSlice } from './account';
-import type { DaoSlice } from './dao';
-import { createDaoSlice } from './dao';
-import { IncomingProposal, ProposalStatusNames, proposalStatusNames } from '@/services/proposals';
+
 
 interface ElioConfig {
   depositToCreateDao: BigNumber;
@@ -225,7 +231,7 @@ export interface DaoDetail {
   setupComplete: boolean;
   daoAssetId: number | null;
   proposalDuration: number | null;
-  proposalTokenDeposit: number | null;
+  // proposalTokenDeposit: number | null;
   minimumMajority: number | null;
   metadataUrl: string | null;
   metadataHash: string | null;
@@ -246,6 +252,7 @@ export interface WalletAccount {
   network: string;
   networkUrl: string;
   networkPassphrase: string;
+  nativeTokenBalance: BigNumber;
 }
 
 export interface ElioState {
@@ -312,6 +319,9 @@ export interface ElioActions {
   fetchBlockNumber: () => void;
   fetchProposalsDB: (daoId: string) => void;
   fetchProposalDB: (daoId: string, proposalId: string) => void;
+  fetchNativeTokenBalance: (
+    publickey: string
+  ) => Promise<string | null | undefined>;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -464,15 +474,20 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     set({ isFaultyReportsOpen }),
   getWallet: async () => {
     // wallet is automatically injected to the window we just need to get the values
+
     const connected = await isConnected();
     const networkDetails = await getNetworkDetails();
     const publicKey = await getPublicKey();
+    const nativeBalance = await get().fetchNativeTokenBalance(publicKey);
     const wallet: WalletAccount = {
       isConnected: connected,
       network: networkDetails.network,
       networkPassphrase: networkDetails.networkPassphrase,
       publicKey,
       networkUrl: networkDetails.networkUrl,
+      nativeTokenBalance: nativeBalance
+        ? BigNumber(nativeBalance).multipliedBy(XLM_UNITS)
+        : BigNumber(0),
     };
     set({ currentWalletAccount: wallet });
   },
@@ -524,7 +539,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         daoCreatorAddress: '{N/A}',
         setupComplete: false,
         proposalDuration: null,
-        proposalTokenDeposit: null,
+        // proposalTokenDeposit: null,
         minimumMajority: null,
         daoAssetId: null,
         metadataUrl: null,
@@ -553,7 +568,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       daoDetail.daoOwnerAddress = d.owner_id;
       daoDetail.daoCreatorAddress = d.creator_id;
       daoDetail.proposalDuration = d.proposal_duration;
-      daoDetail.proposalTokenDeposit = d.proposal_token_deposit;
+      // daoDetail.proposalTokenDeposit = d.proposal_token_deposit;
       daoDetail.minimumMajority = d.minimum_majority_per_1024;
       daoDetail.metadataUrl = d.metadata_url;
       daoDetail.metadataHash = d.metadata_hash;
@@ -639,6 +654,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         return;
       }
       const horizonData = await response.json();
+      console.log('block number', horizonData.history_latest_ledger);
       set({ currentBlockNumber: Number(horizonData.history_latest_ledger) });
     } catch (err) {
       get().handleErrors('Cannot get block number', err);
@@ -711,6 +727,25 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       set({ currentProposal: newProp });
     } catch (err) {
       get().handleErrors(err);
+    }
+  },
+  fetchNativeTokenBalance: async (publicKey: string) => {
+    try {
+      const server = new StellarSdk.Server(
+        'https://horizon-futurenet.stellar.org/'
+      );
+      const account = await server.loadAccount(publicKey);
+      if (!account.accountId()) {
+        get().handleErrors('We cannot find your account');
+        return;
+      }
+      const nativeBalance = account.balances.filter((balance) => {
+        return balance.asset_type === 'native';
+      })[0]?.balance;
+      return nativeBalance;
+    } catch (err) {
+      get().handleErrors(err);
+      return null;
     }
   },
 }));
