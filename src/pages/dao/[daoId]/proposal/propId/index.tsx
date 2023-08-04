@@ -177,7 +177,7 @@ const Proposal = () => {
   useEffect(() => {
     if (daoId && propId) {
       const timer = setTimeout(() => {
-        // fetchOneProposalDB(daoId as string, propId as string);
+        // fetchProposalDB(daoId as string, propId as string);
         // fetchDaoFromDB(daoId as string);
         fetchProposalFaultyReports(propId as string);
         fetchBlockNumber();
@@ -232,7 +232,7 @@ const Proposal = () => {
     return (
       <Tooltip
         placement='top'
-        content={`Please note, that creating a proposal requires a one-time deposit of ${currentDao?.proposalTokenDeposit} tokens`}>
+        content={`Please note, that creating a proposal requires a one-time deposit of 100 XLM`}>
         <button className='btn-primary btn min-w-[250px]' onClick={handleVote}>
           Vote
         </button>

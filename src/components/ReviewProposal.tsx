@@ -1,22 +1,26 @@
 import ReactHtmlParser from 'react-html-parser';
 
-import useGenesisStore from '@/stores/elioStore';
+import useElioDao from '@/hooks/useElioDao';
+import useElioStore from '@/stores/elioStore';
 
 const ReviewProposal = (props: {
   daoId: string;
   handleChangePage: Function;
 }) => {
   const [isTxnProcessing, updateIsTxnProcessing, proposalCreationValues] =
-    useGenesisStore((s) => [
+    useElioStore((s) => [
       s.isTxnProcessing,
       s.updateIsTxnProcessing,
       s.proposalCreationValues,
     ]);
+  const { createProposal, setProposalMetadata } = useElioDao();
 
   const submitProposal = async () => {
     updateIsTxnProcessing(true);
     if (proposalCreationValues) {
-      // create proposal
+      createProposal(props.daoId).then(() => {
+        setProposalMetadata(props.daoId, 5, proposalCreationValues);
+      });
     }
   };
 

@@ -1,13 +1,3 @@
-import { daoArray } from '@/stores/fakeData';
-import {
-  getNetworkDetails,
-  getPublicKey,
-  isConnected,
-} from '@stellar/freighter-api';
-import BigNumber from 'bignumber.js';
-import * as SorobanClient from 'soroban-client';
-import { create } from 'zustand';
-
 import {
   ASSETS_WASM_HASH,
   BLOCK_TIME,
@@ -19,9 +9,25 @@ import {
   SERVICE_URL,
   SOROBAN_RPC_ENDPOINT,
   VOTES_CONTRACT_ADDRESS,
+  XLM_UNITS,
 } from '@/config';
+import { daoArray } from '@/stores/fakeData';
 import { splitCamelCase } from '@/utils';
+import {
+  getNetworkDetails,
+  getPublicKey,
+  isConnected,
+} from '@stellar/freighter-api';
+import BigNumber from 'bignumber.js';
+import * as SorobanClient from 'soroban-client';
+import * as StellarSdk from 'stellar-sdk';
+import { create } from 'zustand';
 
+import type {
+  IncomingProposal,
+  ProposalStatusNames,
+} from '@/services/proposals';
+import { proposalStatusNames } from '@/services/proposals';
 import type { AccountSlice } from './account';
 import { createAccountSlice } from './account';
 import type { DaoSlice } from './dao';
@@ -224,7 +230,7 @@ export interface DaoDetail {
   setupComplete: boolean;
   daoAssetId: number | null;
   proposalDuration: number | null;
-  proposalTokenDeposit: number | null;
+  // proposalTokenDeposit: number | null;
   minimumMajority: number | null;
   metadataUrl: string | null;
   metadataHash: string | null;
@@ -245,6 +251,7 @@ export interface WalletAccount {
   network: string;
   networkUrl: string;
   networkPassphrase: string;
+  nativeTokenBalance: BigNumber;
 }
 
 export interface ElioState {
@@ -309,6 +316,11 @@ export interface ElioActions {
   fetchProposalFaultyReports: (proposalId: string) => void;
   fetchElioConfig: () => void;
   fetchBlockNumber: () => void;
+  fetchProposalsDB: (daoId: string) => void;
+  fetchProposalDB: (daoId: string, proposalId: string) => void;
+  fetchNativeTokenBalance: (
+    publickey: string
+  ) => Promise<string | null | undefined>;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -461,15 +473,20 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     set({ isFaultyReportsOpen }),
   getWallet: async () => {
     // wallet is automatically injected to the window we just need to get the values
+
     const connected = await isConnected();
     const networkDetails = await getNetworkDetails();
     const publicKey = await getPublicKey();
+    const nativeBalance = await get().fetchNativeTokenBalance(publicKey);
     const wallet: WalletAccount = {
       isConnected: connected,
       network: networkDetails.network,
       networkPassphrase: networkDetails.networkPassphrase,
       publicKey,
       networkUrl: networkDetails.networkUrl,
+      nativeTokenBalance: nativeBalance
+        ? BigNumber(nativeBalance).multipliedBy(XLM_UNITS)
+        : BigNumber(0),
     };
     set({ currentWalletAccount: wallet });
   },
@@ -521,7 +538,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         daoCreatorAddress: '{N/A}',
         setupComplete: false,
         proposalDuration: null,
-        proposalTokenDeposit: null,
+        // proposalTokenDeposit: null,
         minimumMajority: null,
         daoAssetId: null,
         metadataUrl: null,
@@ -550,7 +567,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       daoDetail.daoOwnerAddress = d.owner_id;
       daoDetail.daoCreatorAddress = d.creator_id;
       daoDetail.proposalDuration = d.proposal_duration;
-      daoDetail.proposalTokenDeposit = d.proposal_token_deposit;
+      // daoDetail.proposalTokenDeposit = d.proposal_token_deposit;
       daoDetail.minimumMajority = d.minimum_majority_per_1024;
       daoDetail.metadataUrl = d.metadata_url;
       daoDetail.metadataHash = d.metadata_hash;
@@ -630,16 +647,104 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     ...createAccountSlice(set, get, store),
   },
   fetchBlockNumber: async () => {
-    console.log('fetch block number');
     try {
       const response = await fetch('https://horizon-futurenet.stellar.org/');
       if (response.status >= 400 || !response.ok) {
         return;
       }
       const horizonData = await response.json();
+      console.log('block number', horizonData.history_latest_ledger);
       set({ currentBlockNumber: Number(horizonData.history_latest_ledger) });
     } catch (err) {
       get().handleErrors('Cannot get block number', err);
+    }
+  },
+  fetchProposalsDB: async (daoId) => {
+    try {
+      const response = await fetch(
+        `${SERVICE_URL}/proposals/?dao_id=${daoId}&limit=50`
+      );
+      const json = await response.json();
+      const newProposals = json.results
+        .filter((p: IncomingProposal) => {
+          // filter out proposals without offchain metadata
+          return !!p.metadata_url === true;
+        })
+        .map((p: IncomingProposal) => {
+          return {
+            proposalId: p.id,
+            daoId: p.dao_id,
+            creator: p.creator_id,
+            birthBlock: p.birth_block_number,
+            metadataUrl: p.metadata_url || null,
+            metadataHash: p.metadata_hash || null,
+            status: proposalStatusNames[p.status as keyof ProposalStatusNames],
+            inFavor: BigNumber(p.votes?.pro || 0),
+            against: BigNumber(p.votes?.contra || 0),
+            proposalName: p.metadata?.title || null,
+            description: p.metadata?.description || null,
+            link: p.metadata?.url || null,
+            setupComplete: p.setup_complete,
+          };
+        });
+      set({ currentProposals: newProposals });
+      set({
+        currentBlockNumber: Number(response.headers.get('block-number')),
+      });
+    } catch (err) {
+      get().handleErrors(err);
+    }
+  },
+  fetchProposalDB: async (daoId, proposalId) => {
+    try {
+      const response = await fetch(
+        `${SERVICE_URL}/proposals/?dao_id=${daoId}&id=${proposalId}`
+      );
+
+      const { results } = await response.json();
+      if (!results) {
+        return;
+      }
+      const p: IncomingProposal = results?.[0];
+      const newProp = {
+        proposalId: p.id,
+        daoId: p.dao_id,
+        creator: p.creator_id,
+        birthBlock: p.birth_block_number,
+        metadataUrl: p.metadata_url || null,
+        metadataHash: p.metadata_hash || null,
+        status:
+          proposalStatusNames[p.status as keyof ProposalStatusNames] || null,
+        inFavor: BigNumber(p.votes?.pro || 0),
+        against: BigNumber(p.votes?.contra || 0),
+        voterCount: BigNumber(p.votes?.total || 0),
+        proposalName: p.metadata?.title || null,
+        description: p.metadata?.description || null,
+        link: p.metadata?.url || null,
+        setupComplete: p.setup_complete,
+      };
+      set({ currentProposal: newProp });
+    } catch (err) {
+      get().handleErrors(err);
+    }
+  },
+  fetchNativeTokenBalance: async (publicKey: string) => {
+    try {
+      const server = new StellarSdk.Server(
+        'https://horizon-futurenet.stellar.org/'
+      );
+      const account = await server.loadAccount(publicKey);
+      if (!account.accountId()) {
+        get().handleErrors('We cannot find your account');
+        return;
+      }
+      const nativeBalance = account.balances.filter((balance) => {
+        return balance.asset_type === 'native';
+      })[0]?.balance;
+      return nativeBalance;
+    } catch (err) {
+      get().handleErrors(err);
+      return null;
     }
   },
 }));

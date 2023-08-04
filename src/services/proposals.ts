@@ -70,6 +70,7 @@ export interface IncomingProposal {
   metadata_url: null | string;
   metadata_hash: null | string;
   birth_block_number: number;
+  setup_complete: boolean;
 }
 
 export interface ListProposalsQueryParams {
