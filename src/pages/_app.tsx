@@ -28,7 +28,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     fetchElioConfigCallback();
   }, [fetchElioConfigCallback]);
   return (
-    <div>
+    <div className='relative overflow-x-hidden'>
       <TransactionNotification />
       <Component {...pageProps} />
     </div>
