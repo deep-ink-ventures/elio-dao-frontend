@@ -125,10 +125,10 @@ const CreateDaoModal = () => {
         footer={null}
         width={615}
         zIndex={99}>
-        <div className='flex flex-col items-center gap-y-6 px-16 pb-5'>
+        <div className='flex flex-col items-center gap-y-6 px-4 pb-5 md:px-16'>
           <div className='text-center'>
             <h2 className='text-primary'>{`Let's get started!`}</h2>
-            <p className='px-20'>
+            <p className='md:px-20'>
               {`Please choose DAO NAME and DAO ID wisely. They CANNOT be changed.`}
             </p>
           </div>
@@ -230,7 +230,7 @@ const CreateDaoModal = () => {
               </div>
               <div className='flex justify-center'>
                 <button
-                  className={`btn-primary btn w-96 ${
+                  className={`btn-primary btn w-full md:w-96 ${
                     isTxnProcessing ? 'loading' : null
                   }`}
                   type='submit'

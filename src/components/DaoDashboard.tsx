@@ -34,7 +34,7 @@ const DaoDashboard = (props: { daoId: string }) => {
         <p>{currentDao?.descriptionShort}</p>
       </div>
       <div>
-        <div className='flex flex-wrap gap-x-4'>
+        <div className='flex flex-wrap gap-4'>
           {currentDao?.setupComplete ||
           currentWalletAccount?.publicKey !==
             currentDao?.daoOwnerAddress ? null : (
@@ -109,7 +109,9 @@ const DaoDashboard = (props: { daoId: string }) => {
       <div className='flex flex-col justify-end border-t-2 border-dashed'>
         <div className='mt-3 flex flex-col '>
           <p className='text-neutral-focus'>{`Council's multisignature address:`}</p>
-          <p className='w-fit bg-[#403945]'>{currentDao?.daoOwnerAddress}</p>
+          <p className='w-full truncate bg-[#403945]'>
+            {currentDao?.daoOwnerAddress}
+          </p>
         </div>
       </div>
     </div>

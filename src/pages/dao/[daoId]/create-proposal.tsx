@@ -82,7 +82,7 @@ const CreateProposalPage = () => {
         <Image src={arrowLeft} width={13} height={7} alt='arrow-left' />
         <div>Back</div>
       </div>
-      <div className='container mx-auto mb-16 mt-5 min-h-[600px] min-w-[600px] max-w-[820px] px-12 py-5'>
+      <div className='container mx-auto mb-16 mt-5 min-h-[600px] max-w-[820px] px-4 py-5 md:min-w-[600px] md:px-12'>
         {display()}
       </div>
     </MainLayout>
