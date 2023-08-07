@@ -22,12 +22,13 @@ const WalletConnectModal = () => {
       open={isConnectModalOpen}
       confirmLoading={false}
       wrapClassName='a-modal-bg'
-      className='wallet-modal'
+      className='wallet-modal [&>div.ant-modal-content]:w-full'
       onCancel={() => {
         updateIsConnectModalOpen(false);
       }}
       footer={null}
       width={615}
+      centered
       zIndex={99}>
       <div className='flex flex-col items-center justify-center text-center'>
         <div>
