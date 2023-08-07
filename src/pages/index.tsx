@@ -33,7 +33,7 @@ const Index = () => {
               With a DAO
             </h1>
           </div>
-          <div className='my-4 flex flex-wrap items-center justify-center py-4 text-center md:justify-between md:px-10'>
+          <div className='my-4 flex flex-wrap items-center justify-center gap-4 py-4 text-center md:justify-between md:px-10'>
             <div className='container h-[156px] max-w-[180px] py-2 md:max-w-[272px]'>
               <h4 className='m-2'>NO-CODE DAO SETUP</h4>
               <h2 className='mb-2'>200</h2>
@@ -56,7 +56,7 @@ const Index = () => {
             </div>
           </div>
         </div>
-        <div className='container mb-8 flex min-h-[400px] flex-wrap justify-around md:flex-nowrap'>
+        <div className='container mb-8 flex min-h-[400px] flex-wrap justify-around py-4 md:flex-nowrap'>
           <div className='flex min-w-[50%] flex-auto flex-col items-center text-center'>
             <div className='mx-10 mb-5 px-14 md:px-28'>
               <h4 className='mt-6'>
@@ -101,7 +101,7 @@ const Index = () => {
               </ul>
             </div>
           </div>
-          <div className='my-10 flex min-w-[50%] flex-auto flex-col justify-between px-10 pb-20 text-center md:px-14 '>
+          <div className='flex min-w-[50%] flex-auto flex-col justify-between px-10 text-center md:my-10 md:px-14'>
             <div>
               <h3>{`Let's Begin`}</h3>
             </div>
