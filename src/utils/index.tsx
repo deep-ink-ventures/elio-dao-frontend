@@ -284,7 +284,7 @@ export const camelToSnakeCase = (str: string) =>
   str.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
 
 export const bigNumberToI128ScVal = (number: BigNumber) => {
-  const scInt = new SorobanClient.ScInt(number.toString());
+  const scInt = new SorobanClient.ScInt(BigInt(number.toString()));
   return scInt.toI128();
 };
 
