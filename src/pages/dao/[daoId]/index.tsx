@@ -104,7 +104,7 @@ const MainDaoPage = () => {
       {!currentDao || currentDao.daoId !== daoId ? (
         <Spinner />
       ) : (
-        <div className='mt-5 flex min-h-[500px] justify-between gap-x-4'>
+        <div className='mt-5 flex min-h-[500px] flex-col justify-between gap-x-4 sm:flex-row'>
           <div className='container flex h-[640px] basis-1/4 flex-col items-center justify-evenly gap-y-4 py-4'>
             <div className='flex flex-col items-center justify-center'>
               <div>{displayImage()}</div>

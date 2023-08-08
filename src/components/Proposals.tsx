@@ -86,12 +86,12 @@ const Proposals = (props: { daoId: string }) => {
 
   return (
     <div className='flex flex-col gap-y-4'>
-      <div className='flex justify-between'>
+      <div className='flex flex-col justify-between gap-4 sm:flex-row'>
         <div className='flex items-center'>
           <h1 className='text-2xl'>Proposals</h1>
         </div>
-        <div className='flex gap-x-4'>
-          <div>
+        <div className='flex flex-col gap-4 sm:flex-row'>
+          <div className='order-2 sm:order-1'>
             <input
               id='search-input'
               className='input-primary input w-72 text-sm'
@@ -111,7 +111,7 @@ const Proposals = (props: { daoId: string }) => {
               />
             </div>
           </div> */}
-          <div>
+          <div className='order-1 sm:order-2'>
             <Link
               href={`/dao/${encodeURIComponent(props.daoId)}/create-proposal`}>
               <button className='btn-primary btn flex items-center gap-x-1'>

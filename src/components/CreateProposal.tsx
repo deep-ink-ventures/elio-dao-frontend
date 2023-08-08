@@ -4,7 +4,7 @@ import { ErrorMessage } from '@hookform/error-message';
 
 import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller,useForm } from 'react-hook-form';
 
 import { PROPOSAL_CREATION_DEPOSIT_XLM } from '@/config';
 import useElioDao from '@/hooks/useElioDao';
@@ -153,16 +153,16 @@ const CreateProposal = (props: {
 
   return (
     <div className='flex flex-col items-center gap-y-6 px-12 py-4'>
-      <div>
+      <div className='w-full md:w-[unset]'>
         <progress
-          className='progress progress-success h-[10px] w-[400px]'
+          className='progress progress-success h-[10px] w-full md:w-[400px]'
           value='40'
           max='100'
         />
       </div>
       <div className='text-center'>
         <h2 className='text-primary'>New Proposal For {props.dao?.daoName}</h2>
-        <p className='px-16'>
+        <p className='px-4 md:px-16'>
           {` Creating a proposal is your chance to share your vision, ideas, and expertise. Whether it's a project proposal, a policy change, or a community initiative, your proposal can make a difference and help shape the future of the organization.`}
         </p>
       </div>
@@ -286,7 +286,7 @@ const CreateProposal = (props: {
           </div>
           <div className='flex justify-center'>
             <button
-              className={`btn-primary btn w-96`}
+              className={`btn-primary btn w-full md:w-96`}
               type='submit'
               disabled={!hasEnoughTokens}>
               Submit

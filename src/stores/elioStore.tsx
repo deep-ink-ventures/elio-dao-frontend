@@ -449,7 +449,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       timestamp: Date.now(),
       // txnHash?: string;
     };
-    get().updateIsTxnProcessing(false);
+    // get().updateIsTxnProcessing(false);
     get().addTxnNotification(noti);
   },
   addTxnNotification: (newNotification) => {
