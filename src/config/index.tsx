@@ -7,7 +7,7 @@ enum Network {
 }
 
 // do you want to get config from Elio service?
-export const isConfigFromService: boolean = false;
+export const isConfigFromService: boolean = true;
 
 /**
  * Use this to change network
