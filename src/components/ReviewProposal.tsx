@@ -13,14 +13,17 @@ const ReviewProposal = (props: {
       s.updateIsTxnProcessing,
       s.proposalCreationValues,
     ]);
-  const { createProposal, setProposalMetadata } = useElioDao();
+  const { setProposalMetadata } = useElioDao();
 
   const submitProposal = async () => {
     updateIsTxnProcessing(true);
+
     if (proposalCreationValues) {
-      createProposal(props.daoId).then(() => {
-        setProposalMetadata(props.daoId, 5, proposalCreationValues);
-      });
+      // WIP here
+      setProposalMetadata(props.daoId, 1, proposalCreationValues);
+      // createProposal(props.daoId).then((data) => {
+
+      // });
     }
   };
 

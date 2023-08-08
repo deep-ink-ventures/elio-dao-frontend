@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 
 import Congratulations from '@/components/Congratulations';
-import CouncilTokens from '@/components/CouncilTokens';
 import GovernanceForm from '@/components/GovernanceForm';
 import Loading from '@/components/Loading';
 import MetadataForm from '@/components/MetadataForm';
@@ -57,7 +56,7 @@ const Customize = () => {
     }, 700);
     // eslint-disable-next-line
     return () => clearTimeout(TO);
-  }, []);
+  }, [isTxnProcessing, currentDao]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -116,7 +115,8 @@ const Customize = () => {
       !currentDao.setupComplete &&
       !showCongrats
     ) {
-      return <CouncilTokens daoId={daoId as string} />;
+      return <Congratulations daoId={daoId as string} />;
+      // return <CouncilTokens daoId={daoId as string} />;
     }
 
     if ((currentDao && currentDao.setupComplete) || showCongrats) {

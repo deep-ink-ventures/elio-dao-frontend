@@ -11,7 +11,6 @@ import {
   VOTES_CONTRACT_ADDRESS,
   XLM_UNITS,
 } from '@/config';
-import { daoArray } from '@/stores/fakeData';
 import { splitCamelCase } from '@/utils';
 import {
   getNetworkDetails,
@@ -326,8 +325,8 @@ export interface ElioActions {
 export interface ElioStore extends ElioState, ElioActions {}
 
 const useElioStore = create<ElioStore>()((set, get, store) => ({
-  currentDao: daoArray[0]!,
-  daos: daoArray,
+  currentDao: null,
+  daos: null,
   currentDaoFromChain: null,
   currentWalletAccount: null,
   isConnectModalOpen: false,

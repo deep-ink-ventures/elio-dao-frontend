@@ -106,7 +106,7 @@ const CreateDaoModal = () => {
             />
           </svg>
           <p>
-            Sorry you need at least <span className='font-bold'>10 tokens</span>{' '}
+            Sorry you need at least <span className='font-bold'>1000 XLM</span>{' '}
             to create a DAO. You will get them back if you destroy the DAO.
           </p>
         </div>

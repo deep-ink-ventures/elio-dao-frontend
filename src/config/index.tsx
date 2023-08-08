@@ -6,8 +6,10 @@ enum Network {
   Pubnet = 'PUBNET',
 }
 
-// do you want to get config from Elio service?
-export const isConfigFromService: boolean = false;
+/**
+ * Do you want to get configuration values from Elio service?
+ */
+export const isConfigFromService: boolean = true;
 
 /**
  * Use this to change network
