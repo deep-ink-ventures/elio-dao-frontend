@@ -13,17 +13,36 @@ const ReviewProposal = (props: {
       s.updateIsTxnProcessing,
       s.proposalCreationValues,
     ]);
-  const { setProposalMetadata } = useElioDao();
+  const { createProposal, postProposalMetadata, setProposalMetadataOnChain } =
+    useElioDao();
 
   const submitProposal = async () => {
     updateIsTxnProcessing(true);
 
     if (proposalCreationValues) {
       // WIP here
-      setProposalMetadata(props.daoId, 1, proposalCreationValues);
-      // createProposal(props.daoId).then((data) => {
 
-      // });
+      await createProposal(props.daoId, async () => {
+        const proposalId = 22;
+        const metadata = await postProposalMetadata(
+          proposalId,
+          proposalCreationValues
+        );
+        if (!metadata) {
+          return;
+        }
+        console.log(
+          'metadata is posted:',
+          metadata,
+          typeof metadata.metadataUrl
+        );
+        await setProposalMetadataOnChain(
+          props.daoId,
+          proposalId,
+          metadata.metadataHash,
+          metadata.metadataUrl
+        );
+      });
     }
   };
 

@@ -44,6 +44,7 @@ const useElioDao = () => {
     updateCreateDaoSteps,
     handleTxnSuccessNotification,
     elioConfig,
+    updateShowCongrats,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.sorobanServer,
@@ -54,6 +55,7 @@ const useElioDao = () => {
     s.updateCreateDaoSteps,
     s.handleTxnSuccessNotification,
     s.elioConfig,
+    s.updateShowCongrats,
   ]);
 
   const handleTxnResponse = async (
@@ -194,8 +196,7 @@ const useElioDao = () => {
         currentWalletAccount!.publicKey
       );
       const txResponse = await sendTxn(signedTxn, elioConfig.networkPassphrase);
-      // SorobanClient.xdr.TransactionResult.fromXDR(txResponse.errorResultXdr)
-      console.log('tx response', txResponse);
+
       handleTxnResponse(txResponse, successMsg, errorMsg, cb);
     } catch (err) {
       handleErrors('Send Transaction failed', err);
@@ -447,6 +448,8 @@ const useElioDao = () => {
         () => {
           setTimeout(() => {
             fetchDaoDB(config.daoId);
+            updateShowCongrats(true);
+            updateIsTxnProcessing(false);
           }, 1000);
         }
       );
@@ -676,7 +679,7 @@ const useElioDao = () => {
     }
   };
 
-  const createProposal = async (daoId: string) => {
+  const createProposal = async (daoId: string, cb: Function) => {
     if (!elioConfig) {
       return;
     }
@@ -693,7 +696,8 @@ const useElioDao = () => {
         txn,
         'Proposal created successfully',
         'Proposal creation failed',
-        'votes'
+        'votes',
+        cb
       );
     } catch (err) {
       handleErrors('CreateProposal failed', err);
@@ -702,31 +706,34 @@ const useElioDao = () => {
 
   const setProposalMetadataOnChain = async (
     daoId: string,
-    proposalId: string,
-    metadata: { metadata_url: string; metadata_hash: string }
+    proposalId: number,
+    metadataUrl: string,
+    metadataHash: string
   ) => {
     const txn = await makeContractTxn(
       currentWalletAccount!.publicKey,
       elioConfig.votesContractAddress,
       'set_metadata',
       stringToScVal(daoId),
-      SorobanClient.nativeToScVal(proposalId),
-      stringToScVal(metadata?.metadata_url),
-      stringToScVal(metadata?.metadata_hash),
+      numberToU32ScVal(proposalId),
+      stringToScVal(metadataUrl),
+      stringToScVal(metadataHash),
       accountToScVal(currentWalletAccount!.publicKey)
     );
     await submitTxn(
       txn,
-      'Proposal created successfully',
-      'Proposal creation failed',
-      'votes'
+      'Proposal metadata set onchain successfully',
+      'Proposal metadata set onchain failed',
+      'votes',
+      () => {
+        fetchDaoDB(daoId);
+        updateIsTxnProcessing(false);
+      }
     );
   };
 
-  const setProposalMetadata = async (
-    daoId: string,
+  const postProposalMetadata = async (
     proposalId: number,
-
     proposalValues: ProposalCreationValues
   ) => {
     if (!elioConfig) {
@@ -750,29 +757,18 @@ const useElioDao = () => {
           },
         }
       );
-      const metadata = await metadataResponse.json();
-      if (!metadata?.metadata_url) {
-        handleErrors(`Not able to upload metadata Status:${metadata?.status}`);
+      const res = await metadataResponse.json();
+      const metadata = {
+        metadataHash: res?.metadata_hash.toString(),
+        metadataUrl: res?.metadata_url.toString(),
+      };
+      if (!metadata?.metadataUrl) {
+        handleErrors(`Not able to upload metadata Status:${res?.status}`);
         return;
       }
-      const txn = await makeContractTxn(
-        currentWalletAccount!.publicKey,
-        elioConfig.votesContractAddress,
-        'set_metadata',
-        stringToScVal(daoId),
-        SorobanClient.nativeToScVal(proposalId),
-        stringToScVal(metadata?.metadata_url),
-        stringToScVal(metadata?.metadata_hash),
-        accountToScVal(currentWalletAccount!.publicKey)
-      );
-      await submitTxn(
-        txn,
-        'Proposal created successfully',
-        'Proposal creation failed',
-        'votes'
-      );
+      return metadata;
     } catch (err) {
-      handleErrors('setProposalMetadata failed', err);
+      handleErrors('postProposalMetadata failed', err);
     }
   };
 
@@ -850,7 +846,7 @@ const useElioDao = () => {
     issueTokenSetConfig,
     changeOwner,
     createProposal,
-    setProposalMetadata,
+    postProposalMetadata,
     vote,
     transferDaoTokens,
     getDaoTokenBalance,

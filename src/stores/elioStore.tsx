@@ -661,7 +661,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   fetchProposalsDB: async (daoId) => {
     try {
       const response = await fetch(
-        `${SERVICE_URL}/proposals/?dao_id=${daoId}&limit=50`
+        `${SERVICE_URL}/proposals/?dao_id=${daoId}&limit=100`
       );
       const json = await response.json();
       const newProposals = json.results

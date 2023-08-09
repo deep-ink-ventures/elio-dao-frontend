@@ -33,6 +33,7 @@ export const DAO_UNITS: BigNumber = BigNumber(1000000000000000000);
 /** Block time in seconds */
 export const BLOCK_TIME: number = 5;
 
+/** In XLM */
 export const BASE_FEE: string = '100';
 
 export const CORE_CONTRACT_ADDRESS: string =

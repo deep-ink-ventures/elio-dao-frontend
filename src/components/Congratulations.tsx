@@ -3,16 +3,28 @@ import { useRouter } from 'next/router';
 
 import useElioStore from '@/stores/elioStore';
 import congratsImage from '@/svg/congrats.svg';
+import { useEffect } from 'react';
 
 const Congratulations = (props: { daoId: string | null }) => {
   const router = useRouter();
-  const [daos] = useElioStore((s) => [s.daos]);
+  const [daos, updateShowCongrats] = useElioStore((s) => [
+    s.daos,
+    s.updateShowCongrats,
+  ]);
 
   const dao = daos?.[0];
 
   const handleDashboard = () => {
     router.push(`/dao/${props.daoId}`);
+    updateShowCongrats(false);
   };
+
+  useEffect(() => {
+    setTimeout(() => {
+      router.push(`/dao/${props.daoId}`);
+      updateShowCongrats(false);
+    }, 3000);
+  });
 
   return (
     <div className='flex flex-col items-center'>

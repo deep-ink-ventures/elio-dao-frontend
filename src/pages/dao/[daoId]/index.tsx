@@ -7,7 +7,6 @@ import Proposals from '@/components/Proposals';
 import Spinner from '@/components/Spinner';
 import WalletConnect from '@/components/WalletConnect';
 import { DAO_UNITS } from '@/config';
-import useElioDao from '@/hooks/useElioDao';
 import type { DaoPage } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import arrowLeft from '@/svg/arrowLeft.svg';
@@ -33,8 +32,6 @@ const MainDaoPage = () => {
       s.fetchDaoDB,
     ]);
 
-  const { getGovConfig } = useElioDao();
-
   const daoTokenBalance = BigNumber(1000000).multipliedBy(DAO_UNITS);
 
   const handleChangePage = (pageParam: DaoPage) => {
@@ -45,7 +42,6 @@ const MainDaoPage = () => {
     if (!daoId) {
       return;
     }
-    getGovConfig(daoId as string);
     fetchDaoDB(daoId as string);
   }, [daoId, fetchDaoDB]);
 

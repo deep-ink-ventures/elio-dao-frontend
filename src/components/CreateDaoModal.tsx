@@ -24,12 +24,14 @@ const CreateDaoModal = () => {
     currentWalletAccount,
     updateIsStartModalOpen,
     handleErrors,
+    updateShowCongrats,
   ] = useElioStore((s) => [
     s.isStartModalOpen,
     s.isTxnProcessing,
     s.currentWalletAccount,
     s.updateIsStartModalOpen,
     s.handleErrors,
+    s.updateShowCongrats,
   ]);
   const { createDao } = useElioDao();
 
