@@ -293,9 +293,9 @@ export const bigNumberToI128ScVal = (number: BigNumber) => {
   const integerBigInt = BigInt(integer);
   // const decimalsBigInt = BigInt(decimals.replace('.', ''));
 
-  const value = BigInt(integerBigInt.toString());
+  // const value = BigInt(integerBigInt.toString() + decimalsBigInt.toString());
 
-  const scInt = new SorobanClient.ScInt(value);
+  const scInt = new SorobanClient.ScInt(integerBigInt);
 
   return scInt.toI128();
 };
