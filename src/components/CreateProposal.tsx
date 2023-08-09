@@ -4,10 +4,9 @@ import { ErrorMessage } from '@hookform/error-message';
 
 import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
-import { Controller,useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 import { PROPOSAL_CREATION_DEPOSIT_XLM } from '@/config';
-import useElioDao from '@/hooks/useElioDao';
 import type { DaoDetail } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import Spinner from './Spinner';
@@ -62,15 +61,12 @@ const CreateProposal = (props: {
     currentWalletAccount,
     proposalCreationValues,
     updateProposalCreationValues,
-    currentDao,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.proposalCreationValues,
     s.updateProposalCreationValues,
-    s.currentDao,
   ]);
-  const { getDaoTokenBalance } = useElioDao();
-  // todo make sure we fetch new token balance
+
   const hasEnoughTokens = !!currentWalletAccount?.nativeTokenBalance.gt(
     PROPOSAL_CREATION_DEPOSIT_XLM
   );
@@ -83,12 +79,6 @@ const CreateProposal = (props: {
     });
     props.handleChangePage('review');
   };
-
-  useEffect(() => {
-    if (currentDao?.daoId && currentWalletAccount?.publicKey) {
-      getDaoTokenBalance(currentDao?.daoId, currentWalletAccount?.publicKey);
-    }
-  }, [currentDao?.daoId, currentWalletAccount?.publicKey]);
 
   useEffect(() => {
     if (proposalCreationValues) {

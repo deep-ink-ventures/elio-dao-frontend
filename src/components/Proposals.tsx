@@ -4,10 +4,9 @@ import { useEffect, useState } from 'react';
 
 // import useGenesisStore from '@/stores/genesisStore';
 import Spinner from '@/components/Spinner';
+import { BLOCK_TIME } from '@/config';
 import useElioStore from '@/stores/elioStore';
 import plusBlack from '@/svg/plus-black.svg';
-
-import { BLOCK_TIME } from '@/config';
 import ProposalCard from './ProposalCard';
 
 const Proposals = (props: { daoId: string }) => {
@@ -17,12 +16,15 @@ const Proposals = (props: { daoId: string }) => {
     currentBlockNumber,
     fetchBlockNumber,
     updateCurrentBlockNumber,
+    fetchProposalsDB,
   ] = useElioStore((s) => [
     s.currentProposals,
     s.currentBlockNumber,
     s.fetchBlockNumber,
     s.updateCurrentBlockNumber,
+    s.fetchProposalsDB,
   ]);
+
   const filteredProposals = currentProposals?.filter((prop) => {
     return (
       prop.proposalId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,7 +63,7 @@ const Proposals = (props: { daoId: string }) => {
     }
 
     const timer = setTimeout(() => {
-      // fetchProposalsFromDB(props.daoId);
+      fetchProposalsDB(props.daoId);
       fetchBlockNumber();
     }, 500);
     // eslint-disable-next-line

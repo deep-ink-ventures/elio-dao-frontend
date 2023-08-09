@@ -11,7 +11,6 @@ import {
   VOTES_CONTRACT_ADDRESS,
   XLM_UNITS,
 } from '@/config';
-import { daoArray } from '@/stores/fakeData';
 import { splitCamelCase } from '@/utils';
 import {
   getNetworkDetails,
@@ -23,6 +22,7 @@ import * as SorobanClient from 'soroban-client';
 import * as StellarSdk from 'stellar-sdk';
 import { create } from 'zustand';
 
+import { AssetsHoldingsService } from '@/services/assets';
 import type {
   IncomingProposal,
   ProposalStatusNames,
@@ -33,7 +33,14 @@ import { createAccountSlice } from './account';
 import type { DaoSlice } from './dao';
 import { createDaoSlice } from './dao';
 
-interface ElioConfig {
+export interface ElioStats {
+  daoCount: number;
+  accountCount: number;
+  proposalCount: number;
+  voteCount: number;
+}
+
+export interface ElioConfig {
   depositToCreateDao: BigNumber;
   depositToCreateProposal: BigNumber;
   /** Block time in seconds */
@@ -279,6 +286,7 @@ export interface ElioState {
   showCongrats: boolean;
   currentBlockNumber: number | null;
   elioConfig: ElioConfig;
+  elioStats: ElioStats | null;
 }
 
 export interface ElioActions {
@@ -310,9 +318,11 @@ export interface ElioActions {
   ) => void;
   fetchDaosDB: () => void;
   fetchDaoDB: (daoId: string) => void;
+  fetchDaoTokenBalanceFromDB: (assetId: number, accountId: string) => void;
   updateShowCongrats: (showCongrats: boolean) => void;
   updateDaoFromChain: (dao: DaoDetail) => void;
   updateCurrentBlockNumber: (currentBlockNumber: number | null) => void;
+  updateDaoTokenBalance: (daoTokenBalance: BigNumber | null) => void;
   fetchProposalFaultyReports: (proposalId: string) => void;
   fetchElioConfig: () => void;
   fetchBlockNumber: () => void;
@@ -321,13 +331,14 @@ export interface ElioActions {
   fetchNativeTokenBalance: (
     publickey: string
   ) => Promise<string | null | undefined>;
+  fetchElioStats: () => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
 
 const useElioStore = create<ElioStore>()((set, get, store) => ({
-  currentDao: daoArray[0]!,
-  daos: daoArray,
+  currentDao: null,
+  daos: null,
   currentDaoFromChain: null,
   currentWalletAccount: null,
   isConnectModalOpen: false,
@@ -357,12 +368,14 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     networkPassphrase: NETWORK_PASSPHRASE.FUTURENET,
     rpcEndpoint: SOROBAN_RPC_ENDPOINT.FUTURENET,
   },
+  elioStats: null,
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
   updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
   updateCurrentWalletAccount: (currentWalletAccount) =>
     set({ currentWalletAccount }),
   updateDaoPage: (daoPage) => set(() => ({ daoPage })),
+  updateDaoTokenBalance: (daoTokenBalance) => set(() => ({ daoTokenBalance })),
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
   handleErrors: (
@@ -653,16 +666,30 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         return;
       }
       const horizonData = await response.json();
-      console.log('block number', horizonData.history_latest_ledger);
       set({ currentBlockNumber: Number(horizonData.history_latest_ledger) });
     } catch (err) {
       get().handleErrors('Cannot get block number', err);
     }
   },
+  fetchDaoTokenBalanceFromDB: async (assetId: number, accountId: string) => {
+    try {
+      const response = await AssetsHoldingsService.listAssetHoldings({
+        asset_id: assetId.toString(),
+        owner_id: accountId,
+      });
+
+      const daoTokenBalance = new BigNumber(
+        response.results?.[0]?.balance || 0
+      );
+      set({ daoTokenBalance });
+    } catch (err) {
+      get().handleErrors(err);
+    }
+  },
   fetchProposalsDB: async (daoId) => {
     try {
       const response = await fetch(
-        `${SERVICE_URL}/proposals/?dao_id=${daoId}&limit=50`
+        `${SERVICE_URL}/proposals/?dao_id=${daoId}&limit=100`
       );
       const json = await response.json();
       const newProposals = json.results
@@ -745,6 +772,23 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     } catch (err) {
       get().handleErrors(err);
       return null;
+    }
+  },
+  fetchElioStats: async () => {
+    try {
+      const response = await fetch(`${SERVICE_URL}/stats/`);
+
+      const data = await response.json();
+      set({
+        elioStats: {
+          daoCount: data.dao_count,
+          accountCount: data.account_count,
+          proposalCount: data.proposal_count,
+          voteCount: data.vote_count,
+        },
+      });
+    } catch (err) {
+      get().handleErrors('Cannot fetch Elio Stats', err);
     }
   },
 }));

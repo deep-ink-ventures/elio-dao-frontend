@@ -6,7 +6,9 @@ enum Network {
   Pubnet = 'PUBNET',
 }
 
-// do you want to get config from Elio service?
+/**
+ * Do you want to get configuration values from Elio service?
+ */
 export const isConfigFromService: boolean = true;
 
 /**
@@ -31,6 +33,7 @@ export const DAO_UNITS: BigNumber = BigNumber(1000000000000000000);
 /** Block time in seconds */
 export const BLOCK_TIME: number = 5;
 
+/** In XLM */
 export const BASE_FEE: string = '100';
 
 export const CORE_CONTRACT_ADDRESS: string =

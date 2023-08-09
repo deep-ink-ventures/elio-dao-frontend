@@ -6,7 +6,6 @@ import DaoDashboard from '@/components/DaoDashboard';
 import Proposals from '@/components/Proposals';
 import Spinner from '@/components/Spinner';
 import WalletConnect from '@/components/WalletConnect';
-import { DAO_UNITS } from '@/config';
 import type { DaoPage } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import arrowLeft from '@/svg/arrowLeft.svg';
@@ -23,16 +22,25 @@ const MainDaoPage = () => {
   const router = useRouter();
   const { daoId } = router.query;
 
-  const [currentWalletAccount, currentDao, updateDaoPage, daoPage, fetchDaoDB] =
-    useElioStore((s) => [
-      s.currentWalletAccount,
-      s.currentDao,
-      s.updateDaoPage,
-      s.daoPage,
-      s.fetchDaoDB,
-    ]);
-
-  const daoTokenBalance = BigNumber(1000000).multipliedBy(DAO_UNITS);
+  const [
+    currentWalletAccount,
+    currentDao,
+    updateDaoPage,
+    daoPage,
+    fetchDaoDB,
+    daoTokenBalance,
+    fetchDaoTokenBalanceFromDB,
+    updateDaoTokenBalance,
+  ] = useElioStore((s) => [
+    s.currentWalletAccount,
+    s.currentDao,
+    s.updateDaoPage,
+    s.daoPage,
+    s.fetchDaoDB,
+    s.daoTokenBalance,
+    s.fetchDaoTokenBalanceFromDB,
+    s.updateDaoTokenBalance,
+  ]);
 
   const handleChangePage = (pageParam: DaoPage) => {
     updateDaoPage(pageParam);
@@ -44,6 +52,22 @@ const MainDaoPage = () => {
     }
     fetchDaoDB(daoId as string);
   }, [daoId, fetchDaoDB]);
+
+  useEffect(() => {
+    if (currentDao?.daoAssetId && currentWalletAccount) {
+      fetchDaoTokenBalanceFromDB(
+        currentDao?.daoAssetId,
+        currentWalletAccount?.publicKey
+      );
+    } else {
+      updateDaoTokenBalance(new BigNumber(0));
+    }
+  }, [
+    currentDao,
+    currentWalletAccount,
+    fetchDaoTokenBalanceFromDB,
+    updateDaoTokenBalance,
+  ]);
 
   const displayImage = () => {
     if (!currentDao || !currentDao.images.medium) {

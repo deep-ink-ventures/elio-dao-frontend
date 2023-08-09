@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 
 import Congratulations from '@/components/Congratulations';
-import CouncilTokens from '@/components/CouncilTokens';
 import GovernanceForm from '@/components/GovernanceForm';
 import Loading from '@/components/Loading';
 import MetadataForm from '@/components/MetadataForm';
@@ -35,14 +34,17 @@ const Customize = () => {
     router.push(`/dao/${encodeURIComponent(daoId as string)}`);
   };
 
-  const fetchDaoAndMetadata = useCallback(async () => {
-    if (!daoId) {
+  const fetchDaoCb = useCallback(async () => {
+    if (!daoId && !hasMetadata) {
       return;
     }
     fetchDaoDB(daoId as string);
+  }, [daoId, currentWalletAccount, isTxnProcessing]);
+
+  const getDaoMetadataCb = useCallback(async () => {
     // fixme don't fetch metadata if we're already past the metadata stage
     await getDaoMetadata(daoId as string).then((data) => {
-      if (Array.isArray(data) && typeof data[0] === 'string') {
+      if (Array.isArray(data)) {
         setHasMetadata(true);
       }
     });
@@ -53,11 +55,18 @@ const Customize = () => {
       return;
     }
     const TO = setTimeout(async () => {
-      fetchDaoAndMetadata();
+      fetchDaoCb();
     }, 700);
     // eslint-disable-next-line
     return () => clearTimeout(TO);
-  }, []);
+  }, [isTxnProcessing]);
+
+  useEffect(() => {
+    if (!currentDao?.metadataUrl) {
+      return;
+    }
+    getDaoMetadataCb();
+  }, [getDaoMetadataCb]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -106,7 +115,7 @@ const Customize = () => {
       hasMetadata &&
       !currentDao.proposalDuration
     ) {
-      return <GovernanceForm daoId={daoId as string} />;
+      return <GovernanceForm />;
     }
 
     if (
@@ -116,7 +125,8 @@ const Customize = () => {
       !currentDao.setupComplete &&
       !showCongrats
     ) {
-      return <CouncilTokens daoId={daoId as string} />;
+      return <Congratulations daoId={daoId as string} />;
+      // return <CouncilTokens daoId={daoId as string} />;
     }
 
     if ((currentDao && currentDao.setupComplete) || showCongrats) {

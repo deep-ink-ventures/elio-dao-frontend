@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { DAO_UNITS } from '@/config';
 import type { ProposalDetail } from '@/stores/elioStore';
-import useGenesisStore from '@/stores/elioStore';
+import useElioStore from '@/stores/elioStore';
 import { getProposalEndTime } from '@/utils';
 import BigNumber from 'bignumber.js';
 
@@ -16,10 +16,9 @@ export const statusColors = {
 };
 
 const ProposalCard = (props: { p: ProposalDetail }) => {
-  const [currentDao] = useGenesisStore((s) => [s.currentDao]);
-  const currentBlockNumber = 10000;
+  const [currentDao] = useElioStore((s) => [s.currentDao]);
+  const [currentBlockNumber] = useElioStore((s) => [s.currentBlockNumber]);
 
-  // const dhmMemo = {d:0, h:0, m:0}
   const dhmMemo = useMemo(() => {
     return props.p?.birthBlock &&
       currentBlockNumber &&
@@ -52,16 +51,15 @@ const ProposalCard = (props: { p: ProposalDetail }) => {
     return againstPercentage.toString();
   }, [props.p]);
 
-  const proposalIsRunning = true;
-  // const proposalIsRunning = useMemo(() => {
-  //   if (
-  //     (props.p?.birthBlock || 0) + (currentDao?.proposalDuration || 14400) >
-  //     (currentBlockNumber || 0)
-  //   ) {
-  //     return true;
-  //   }
-  //   return false;
-  // }, [props.p, currentDao, currentBlockNumber]);
+  const proposalIsRunning = useMemo(() => {
+    if (
+      (props.p?.birthBlock || 0) + (currentDao?.proposalDuration || 14400) >
+      (currentBlockNumber || 0)
+    ) {
+      return true;
+    }
+    return false;
+  }, [props.p, currentDao, currentBlockNumber]);
 
   return (
     <div className='min-h-[180px] rounded-[8px] border-[0.3px] border-neutral-focus p-4 hover:cursor-pointer hover:outline'>
