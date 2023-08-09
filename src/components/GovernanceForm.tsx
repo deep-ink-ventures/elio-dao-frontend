@@ -5,9 +5,8 @@ import useElioStore from '@/stores/elioStore';
 import CustomizedModel from './CustomizedModel';
 import MajorityModel from './MajorityModel';
 
-const GovernanceForm = (props: { daoId: string | null }) => {
-  const [daos] = useElioStore((s) => [s.daos]);
-  const dao = daos?.[0]; // fixme
+const GovernanceForm = () => {
+  const [currentDao] = useElioStore((s) => [s.currentDao]);
   const [model, setModel] = useState('majority');
 
   const handleChangeTab = (mode: string) => {
@@ -29,7 +28,7 @@ const GovernanceForm = (props: { daoId: string | null }) => {
           max='100'></progress>
       </div>
       <div className='text-center'>
-        <h2 className='text-primary'>{dao?.daoName} Governance</h2>
+        <h2 className='text-primary'>{currentDao?.daoName} Governance</h2>
         <p className='px-10'>
           {`Choose the governance model. You can change this afterwards only via DAO votes, that follow the governance rules that you are now setting.`}
         </p>

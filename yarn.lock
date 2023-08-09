@@ -1258,10 +1258,15 @@
   resolved "https://registry.yarnpkg.com/@soroban-react/types/-/types-5.0.3.tgz#006ea36faf0601be05e2aa96c57b5127dd901305"
   integrity sha512-bzouh+upQOJ19qjtfGb2K9GN1r0n/dxtgsyK8Rml6hC19HZFHIjcmgpdwvvvSLXuU+9XPlBsTWJm/YhYxDiWew==
 
-"@stellar/freighter-api@^1.4.0", "@stellar/freighter-api@^1.5.1":
+"@stellar/freighter-api@^1.4.0":
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/@stellar/freighter-api/-/freighter-api-1.5.1.tgz#c3b97239a0ca35b70057280f2d914958addf7cf2"
   integrity sha512-WEnKEqd+xVLnOq6bJv+fLXod8JQyPjzpOKTpH4g7tG9MM1fmXzD3y2SXJlpCIw8kVqtiC4ynWOlSWX+TKO7KiQ==
+
+"@stellar/freighter-api@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@stellar/freighter-api/-/freighter-api-1.6.0.tgz#14deceba47be041ed13a325aad6d05add6646a08"
+  integrity sha512-Z6CRY+3+whzMspda6PiHEc4Rs9tdQkHLin9FopdnHhij/FEEAK+IiuF8Ki2ROcQweXdazb8N237aSim10s+Zgw==
 
 "@swc/helpers@0.5.1":
   version "0.5.1"

@@ -2,10 +2,7 @@ import { useMemo } from 'react';
 
 import { DAO_UNITS } from '@/config';
 import type { ProposalDetail } from '@/stores/elioStore';
-import {
-  default as useElioStore,
-  default as useGenesisStore,
-} from '@/stores/elioStore';
+import useElioStore from '@/stores/elioStore';
 import { getProposalEndTime } from '@/utils';
 import BigNumber from 'bignumber.js';
 
@@ -19,22 +16,9 @@ export const statusColors = {
 };
 
 const ProposalCard = (props: { p: ProposalDetail }) => {
-  const [currentDao] = useGenesisStore((s) => [s.currentDao]);
-  const [
-    currentProposal,
-    currentBlockNumber,
-    fetchBlockNumber,
-    updateCurrentBlockNumber,
-    fetchProposalDB,
-  ] = useElioStore((s) => [
-    s.currentProposal,
-    s.currentBlockNumber,
-    s.fetchBlockNumber,
-    s.updateCurrentBlockNumber,
-    s.fetchProposalDB,
-  ]);
+  const [currentDao] = useElioStore((s) => [s.currentDao]);
+  const [currentBlockNumber] = useElioStore((s) => [s.currentBlockNumber]);
 
-  // const dhmMemo = {d:0, h:0, m:0}
   const dhmMemo = useMemo(() => {
     return props.p?.birthBlock &&
       currentBlockNumber &&

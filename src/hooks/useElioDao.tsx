@@ -80,9 +80,6 @@ const useElioDao = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
       if (txResponse.status === 'SUCCESS') {
-        // eslint-disable-next-line
-
-        console.log('tx response2', txResponse);
         handleTxnSuccessNotification(txResponse, successMsg);
         if (cb) {
           cb();
@@ -208,6 +205,7 @@ const useElioDao = () => {
     txn: SorobanClient.Transaction<SorobanClient.Memo<SorobanClient.MemoType>>
   ) => {
     try {
+      console.log('Stimulating transaction...');
       const res = await sorobanServer.simulateTransaction(txn);
       if (res.error) {
         // eslint-disable-next-line
@@ -322,7 +320,6 @@ const useElioDao = () => {
         stringToScVal(daoId)
       );
       const val = await submitReadTxn(txn);
-      console.log('dao metadata', val);
       return val;
     } catch (err) {
       handleErrors('getDaoMetadata failed', err, 'core');
@@ -357,7 +354,7 @@ const useElioDao = () => {
         'core',
         () => {
           updateIsTxnProcessing(false);
-          getDaoMetadata(daoId);
+          fetchDaoDB(daoId);
         }
       );
     } catch (err) {
@@ -423,11 +420,7 @@ const useElioDao = () => {
     if (!elioConfig) {
       return;
     }
-    console.log('Setting governance config...');
     updateIsTxnProcessing(true);
-    console.log(
-      config.minimumThreshold.multipliedBy(BigNumber(DAO_UNITS)).toString()
-    );
     try {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
@@ -535,7 +528,6 @@ const useElioDao = () => {
       return;
     }
     const tokenContractAddress = await getAssetId(daoId);
-    console.log('token address from getDaoTokenBalance', tokenContractAddress);
     if (!tokenContractAddress) {
       handleErrors('Cannot get token contract address');
       return;
@@ -573,7 +565,6 @@ const useElioDao = () => {
           createTokenContract(daoId, daoOwnerPublicKey)
             .then(() => {
               setTimeout(() => {
-                console.log('get asset id');
                 getAssetId(daoId)
                   .then((tokenAddress) => {
                     if (!tokenAddress) {
@@ -671,7 +662,6 @@ const useElioDao = () => {
         stringToScVal(daoId)
       );
       const val = await submitReadTxn(txn);
-      console.log('gov config', val);
       return val;
     } catch (err) {
       handleErrors('getGovConfig failed', err);
@@ -722,8 +712,8 @@ const useElioDao = () => {
     );
     await submitTxn(
       txn,
-      'Proposal metadata set onchain successfully',
-      'Proposal metadata set onchain failed',
+      'Proposal metadata set on-chain successfully',
+      'Proposal metadata set on-chain failed',
       'votes',
       () => {
         fetchDaoDB(daoId);
@@ -764,11 +754,12 @@ const useElioDao = () => {
       };
       if (!metadata?.metadataUrl) {
         handleErrors(`Not able to upload metadata Status:${res?.status}`);
-        return;
+        return null;
       }
       return metadata;
     } catch (err) {
       handleErrors('postProposalMetadata failed', err);
+      return null;
     }
   };
 
@@ -806,7 +797,6 @@ const useElioDao = () => {
       return;
     }
     const tokenContractAddress = await getAssetId(daoId);
-    console.log('asset id', tokenContractAddress);
     if (!tokenContractAddress) {
       handleErrors('Cannot get token contract address');
       return;

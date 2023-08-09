@@ -28,18 +28,26 @@ const Customize = () => {
   const router = useRouter();
   const { daoId } = router.query;
   const [showPage, setShowPage] = useState(false);
-  // const [hasMetadata, setHasMetadata] = useState(false);
+  const [hasMetadata, setHasMetadata] = useState(false);
   const { getDaoMetadata } = useElioDao();
   const handleReturnToDashboard = () => {
     router.push(`/dao/${encodeURIComponent(daoId as string)}`);
   };
 
   const fetchDaoCb = useCallback(async () => {
-    if (!daoId) {
+    if (!daoId && !hasMetadata) {
       return;
     }
-    console.log('fetch dao');
     fetchDaoDB(daoId as string);
+  }, [daoId, currentWalletAccount, isTxnProcessing]);
+
+  const getDaoMetadataCb = useCallback(async () => {
+    // fixme don't fetch metadata if we're already past the metadata stage
+    await getDaoMetadata(daoId as string).then((data) => {
+      if (Array.isArray(data)) {
+        setHasMetadata(true);
+      }
+    });
   }, [daoId, currentWalletAccount, isTxnProcessing]);
 
   useEffect(() => {
@@ -51,12 +59,14 @@ const Customize = () => {
     }, 700);
     // eslint-disable-next-line
     return () => clearTimeout(TO);
-  }, [fetchDaoCb]);
+  }, [isTxnProcessing]);
 
   useEffect(() => {
-    if (!daoId) {
+    if (!currentDao?.metadataUrl) {
+      return;
     }
-  });
+    getDaoMetadataCb();
+  }, [getDaoMetadataCb]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -95,12 +105,17 @@ const Customize = () => {
       );
     }
 
-    if (!currentDao?.metadataHash) {
+    if (!currentDao?.metadataHash || !hasMetadata) {
       return <MetadataForm daoId={daoId as string} />;
     }
 
-    if (currentDao && currentDao.metadataHash && !currentDao.proposalDuration) {
-      return <GovernanceForm daoId={daoId as string} />;
+    if (
+      currentDao &&
+      currentDao.metadataHash &&
+      hasMetadata &&
+      !currentDao.proposalDuration
+    ) {
+      return <GovernanceForm />;
     }
 
     if (

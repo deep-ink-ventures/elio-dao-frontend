@@ -2,46 +2,61 @@ import ReactHtmlParser from 'react-html-parser';
 
 import useElioDao from '@/hooks/useElioDao';
 import useElioStore from '@/stores/elioStore';
+import { useEffect } from 'react';
 
 const ReviewProposal = (props: {
   daoId: string;
   handleChangePage: Function;
 }) => {
-  const [isTxnProcessing, updateIsTxnProcessing, proposalCreationValues] =
-    useElioStore((s) => [
-      s.isTxnProcessing,
-      s.updateIsTxnProcessing,
-      s.proposalCreationValues,
-    ]);
+  const [
+    elioStats,
+    isTxnProcessing,
+    updateIsTxnProcessing,
+    proposalCreationValues,
+    fetchElioStats,
+    handleErrors,
+  ] = useElioStore((s) => [
+    s.elioStats,
+    s.isTxnProcessing,
+    s.updateIsTxnProcessing,
+    s.proposalCreationValues,
+    s.fetchElioStats,
+    s.handleErrors,
+  ]);
   const { createProposal, postProposalMetadata, setProposalMetadataOnChain } =
     useElioDao();
 
+  useEffect(() => {
+    fetchElioStats();
+  }, [fetchElioStats]);
+
   const submitProposal = async () => {
     updateIsTxnProcessing(true);
-
     if (proposalCreationValues) {
       // WIP here
 
-      await createProposal(props.daoId, async () => {
-        const proposalId = 22;
-        const metadata = await postProposalMetadata(
-          proposalId,
-          proposalCreationValues
-        );
-        if (!metadata) {
+      await createProposal(props.daoId, () => {
+        if (!elioStats?.proposalCount) {
+          handleErrors('Cannot get proposal ID');
           return;
         }
-        console.log(
-          'metadata is posted:',
-          metadata,
-          typeof metadata.metadataUrl
-        );
-        await setProposalMetadataOnChain(
-          props.daoId,
-          proposalId,
-          metadata.metadataHash,
-          metadata.metadataUrl
-        );
+        setTimeout(async () => {
+          const proposalId = elioStats.proposalCount;
+          const metadata = await postProposalMetadata(
+            proposalId,
+            proposalCreationValues
+          );
+          if (!metadata) {
+            return;
+          }
+          console.log('metadata is posted:', metadata);
+          await setProposalMetadataOnChain(
+            props.daoId,
+            proposalId,
+            metadata.metadataHash,
+            metadata.metadataUrl
+          );
+        }, 3000);
       });
     }
   };

@@ -32,7 +32,14 @@ import { createAccountSlice } from './account';
 import type { DaoSlice } from './dao';
 import { createDaoSlice } from './dao';
 
-interface ElioConfig {
+export interface ElioStats {
+  daoCount: number;
+  accountCount: number;
+  proposalCount: number;
+  voteCount: number;
+}
+
+export interface ElioConfig {
   depositToCreateDao: BigNumber;
   depositToCreateProposal: BigNumber;
   /** Block time in seconds */
@@ -278,6 +285,7 @@ export interface ElioState {
   showCongrats: boolean;
   currentBlockNumber: number | null;
   elioConfig: ElioConfig;
+  elioStats: ElioStats | null;
 }
 
 export interface ElioActions {
@@ -320,6 +328,7 @@ export interface ElioActions {
   fetchNativeTokenBalance: (
     publickey: string
   ) => Promise<string | null | undefined>;
+  fetchElioStats: () => void;
 }
 
 export interface ElioStore extends ElioState, ElioActions {}
@@ -356,6 +365,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     networkPassphrase: NETWORK_PASSPHRASE.FUTURENET,
     rpcEndpoint: SOROBAN_RPC_ENDPOINT.FUTURENET,
   },
+  elioStats: null,
   updateCurrentDao: (currentDao) => set({ currentDao }),
   updateIsConnectModalOpen: (isConnectModalOpen) => set({ isConnectModalOpen }),
   updateIsTxnProcessing: (isTxnProcessing) => set({ isTxnProcessing }),
@@ -652,7 +662,6 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         return;
       }
       const horizonData = await response.json();
-      console.log('block number', horizonData.history_latest_ledger);
       set({ currentBlockNumber: Number(horizonData.history_latest_ledger) });
     } catch (err) {
       get().handleErrors('Cannot get block number', err);
@@ -744,6 +753,23 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
     } catch (err) {
       get().handleErrors(err);
       return null;
+    }
+  },
+  fetchElioStats: async () => {
+    try {
+      const response = await fetch(`${SERVICE_URL}/stats/`);
+
+      const data = await response.json();
+      set({
+        elioStats: {
+          daoCount: data.dao_count,
+          accountCount: data.account_count,
+          proposalCount: data.proposal_count,
+          voteCount: data.vote_count,
+        },
+      });
+    } catch (err) {
+      get().handleErrors('Cannot fetch Elio Stats', err);
     }
   },
 }));

@@ -29,7 +29,8 @@ const FaultyModal = (props: { propId: string; daoId: string }) => {
   });
 
   const onSubmit = async (data: FaultyDescription) => {
-    // console.log(data);
+    // eslint-disable-next-line
+    console.log(data);
   };
 
   const handleSelect = (e: any) => {

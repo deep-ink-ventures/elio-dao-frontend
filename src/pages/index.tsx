@@ -8,18 +8,25 @@ import scale from '@/svg/scale.svg';
 import sticker from '@/svg/sticker.svg';
 import MainLayout from '@/templates/MainLayout';
 import Image from 'next/image';
+import { useEffect } from 'react';
 
 const Index = () => {
-  const [currentWalletAccount, updateIsStartModalOpen] = useElioStore((s) => [
-    s.currentWalletAccount,
-    s.updateIsStartModalOpen,
-  ]);
+  const [currentWalletAccount, updateIsStartModalOpen, fetchElioStats] =
+    useElioStore((s) => [
+      s.currentWalletAccount,
+      s.updateIsStartModalOpen,
+      s.fetchElioStats,
+    ]);
 
   const handleStartModal = () => {
     if (currentWalletAccount?.publicKey) {
       updateIsStartModalOpen(true);
     }
   };
+
+  useEffect(() => {
+    fetchElioStats();
+  }, [fetchElioStats]);
 
   return (
     <MainLayout

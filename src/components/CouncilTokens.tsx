@@ -15,6 +15,7 @@ import plus from '@/svg/plus.svg';
 import { isStellarPublicKey, uiTokens } from '@/utils';
 import BigNumber from 'bignumber.js';
 
+// commented out the sections where we distribute tokens to the council and multisig creation.
 const CouncilTokens = (props: { daoId: string | null }) => {
   const [isTxnProcessing, currentDao] = useElioStore((s) => [
     s.isTxnProcessing,

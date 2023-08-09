@@ -35,7 +35,8 @@ const DaoDashboard = (props: { daoId: string }) => {
       </div>
       <div>
         <div className='flex flex-wrap gap-4'>
-          {currentDao?.setupComplete ||
+          {/* fixme should go back to use currentDao.setupComplete once we can transfer tokens */}
+          {currentDao?.proposalDuration ||
           currentWalletAccount?.publicKey !==
             currentDao?.daoOwnerAddress ? null : (
             <Link
@@ -82,13 +83,7 @@ const DaoDashboard = (props: { daoId: string }) => {
                 ? 'disable-link'
                 : ''
             }`} > */}
-          <button
-            className={`btn-primary btn w-[180px]`}
-            disabled={
-              !currentWalletAccount ||
-              daoTokenBalance?.isZero() ||
-              !daoTokenBalance?.gt(BigNumber(0))
-            }>
+          <button className={`btn-primary btn w-[180px]`} disabled>
             Send Tokens
           </button>
           {/* </Link> */}

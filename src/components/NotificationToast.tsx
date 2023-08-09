@@ -84,7 +84,7 @@ const NotificationToast = (props: ToastProps) => {
     const timeId = setTimeout(() => {
       setShow(!show);
       removeTxnNotification();
-    }, 6000);
+    }, 3000);
 
     return () => {
       clearTimeout(timeId);
