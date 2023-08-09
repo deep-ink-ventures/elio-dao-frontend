@@ -1,4 +1,4 @@
-import { DAO_UNITS,XLM_UNITS } from '@/config';
+import { DAO_UNITS, XLM_UNITS } from '@/config';
 import BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
 import { scValToNative } from 'soroban-client';

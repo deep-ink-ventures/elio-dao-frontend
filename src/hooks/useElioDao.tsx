@@ -750,7 +750,7 @@ const useElioDao = () => {
       return;
     }
     const tokenContractAddress = await getAssetId(daoId);
-    console.log('asset id', tokenContractAddress)
+    console.log('asset id', tokenContractAddress);
     if (!tokenContractAddress) {
       handleErrors('Cannot get token contract address');
       return;

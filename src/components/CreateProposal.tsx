@@ -4,7 +4,7 @@ import { ErrorMessage } from '@hookform/error-message';
 
 import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
-import { Controller,useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 import { PROPOSAL_CREATION_DEPOSIT_XLM } from '@/config';
 import useElioDao from '@/hooks/useElioDao';

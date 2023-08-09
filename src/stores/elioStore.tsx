@@ -23,6 +23,7 @@ import * as SorobanClient from 'soroban-client';
 import * as StellarSdk from 'stellar-sdk';
 import { create } from 'zustand';
 
+import { AssetsHoldingsService } from '@/services/assets';
 import type {
   IncomingProposal,
   ProposalStatusNames,
@@ -32,7 +33,6 @@ import type { AccountSlice } from './account';
 import { createAccountSlice } from './account';
 import type { DaoSlice } from './dao';
 import { createDaoSlice } from './dao';
-import { AssetsHoldingsService } from '@/services/assets';
 
 interface ElioConfig {
   depositToCreateDao: BigNumber;
