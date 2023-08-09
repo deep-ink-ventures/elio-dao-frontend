@@ -69,8 +69,11 @@ export const getProposalEndTime = (
 };
 
 // eslint-disable-next-line
-export const uiTokens = (rawAmount: BigNumber | null, tokenType?: 'xlm' | 'dao', unitName?: string) => {
-
+export const uiTokens = (
+  rawAmount: BigNumber | null,
+  tokenType?: 'xlm' | 'dao',
+  unitName?: string
+) => {
   const units = tokenType === 'xlm' ? XLM_UNITS : DAO_UNITS;
   const fmt = {
     prefix: '',
@@ -285,12 +288,12 @@ export const camelToSnakeCase = (str: string) =>
 
 export const bigNumberToI128ScVal = (number: BigNumber) => {
   const integer = number.integerValue().toFixed(0).toString();
-  const decimals = number.minus(integer).toFixed();
+  // const decimals = number.minus(integer).toFixed();
 
   const integerBigInt = BigInt(integer);
-  const decimalsBigInt = BigInt(decimals.replace('.', ''));
+  // const decimalsBigInt = BigInt(decimals.replace('.', ''));
 
-  const value = BigInt(integerBigInt.toString() + decimalsBigInt.toString());
+  const value = BigInt(integerBigInt.toString());
 
   const scInt = new SorobanClient.ScInt(value);
 

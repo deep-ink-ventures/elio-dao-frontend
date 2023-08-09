@@ -32,6 +32,7 @@ import type { AccountSlice } from './account';
 import { createAccountSlice } from './account';
 import type { DaoSlice } from './dao';
 import { createDaoSlice } from './dao';
+import { AssetsHoldingsService } from '@/services/assets';
 
 interface ElioConfig {
   depositToCreateDao: BigNumber;
@@ -310,9 +311,11 @@ export interface ElioActions {
   ) => void;
   fetchDaosDB: () => void;
   fetchDaoDB: (daoId: string) => void;
+  fetchDaoTokenBalanceFromDB: (assetId: number, accountId: string) => void;
   updateShowCongrats: (showCongrats: boolean) => void;
   updateDaoFromChain: (dao: DaoDetail) => void;
   updateCurrentBlockNumber: (currentBlockNumber: number | null) => void;
+  updateDaoTokenBalance: (daoTokenBalance: BigNumber | null) => void;
   fetchProposalFaultyReports: (proposalId: string) => void;
   fetchElioConfig: () => void;
   fetchBlockNumber: () => void;
@@ -363,6 +366,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   updateCurrentWalletAccount: (currentWalletAccount) =>
     set({ currentWalletAccount }),
   updateDaoPage: (daoPage) => set(() => ({ daoPage })),
+  updateDaoTokenBalance: (daoTokenBalance) => set(() => ({ daoTokenBalance })),
   updateIsStartModalOpen: (isStartModalOpen) =>
     set(() => ({ isStartModalOpen })),
   handleErrors: (
@@ -657,6 +661,21 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       set({ currentBlockNumber: Number(horizonData.history_latest_ledger) });
     } catch (err) {
       get().handleErrors('Cannot get block number', err);
+    }
+  },
+  fetchDaoTokenBalanceFromDB: async (assetId: number, accountId: string) => {
+    try {
+      const response = await AssetsHoldingsService.listAssetHoldings({
+        asset_id: assetId.toString(),
+        owner_id: accountId,
+      });
+
+      const daoTokenBalance = new BigNumber(
+        response.results?.[0]?.balance || 0
+      );
+      set({ daoTokenBalance });
+    } catch (err) {
+      get().handleErrors(err);
     }
   },
   fetchProposalsDB: async (daoId) => {
