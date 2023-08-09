@@ -1,4 +1,4 @@
-import { DAO_UNITS, XLM_UNITS } from '@/config';
+import { DAO_UNITS,XLM_UNITS } from '@/config';
 import BigNumber from 'bignumber.js';
 import * as SorobanClient from 'soroban-client';
 import { scValToNative } from 'soroban-client';
@@ -284,7 +284,16 @@ export const camelToSnakeCase = (str: string) =>
   str.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
 
 export const bigNumberToI128ScVal = (number: BigNumber) => {
-  const scInt = new SorobanClient.ScInt(BigInt(number.toString()));
+  const integer = number.integerValue().toFixed(0).toString();
+  const decimals = number.minus(integer).toFixed();
+
+  const integerBigInt = BigInt(integer);
+  const decimalsBigInt = BigInt(decimals.replace('.', ''));
+
+  const value = BigInt(integerBigInt.toString() + decimalsBigInt.toString());
+
+  const scInt = new SorobanClient.ScInt(value);
+
   return scInt.toI128();
 };
 
