@@ -1258,10 +1258,15 @@
   resolved "https://registry.yarnpkg.com/@soroban-react/types/-/types-5.0.3.tgz#006ea36faf0601be05e2aa96c57b5127dd901305"
   integrity sha512-bzouh+upQOJ19qjtfGb2K9GN1r0n/dxtgsyK8Rml6hC19HZFHIjcmgpdwvvvSLXuU+9XPlBsTWJm/YhYxDiWew==
 
-"@stellar/freighter-api@^1.4.0", "@stellar/freighter-api@^1.5.1":
+"@stellar/freighter-api@^1.4.0":
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/@stellar/freighter-api/-/freighter-api-1.5.1.tgz#c3b97239a0ca35b70057280f2d914958addf7cf2"
   integrity sha512-WEnKEqd+xVLnOq6bJv+fLXod8JQyPjzpOKTpH4g7tG9MM1fmXzD3y2SXJlpCIw8kVqtiC4ynWOlSWX+TKO7KiQ==
+
+"@stellar/freighter-api@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@stellar/freighter-api/-/freighter-api-1.6.0.tgz#14deceba47be041ed13a325aad6d05add6646a08"
+  integrity sha512-Z6CRY+3+whzMspda6PiHEc4Rs9tdQkHLin9FopdnHhij/FEEAK+IiuF8Ki2ROcQweXdazb8N237aSim10s+Zgw==
 
 "@swc/helpers@0.5.1":
   version "0.5.1"
@@ -2728,11 +2733,6 @@ crc@^3.5.0:
   integrity sha512-iX3mfgcTMIq3ZKLIsVFAbv7+Mc10kxabAGQb8HvjA1o3T1PIYprbakQ65d3I+2HGHt6nSKkM9PYjgoJO2KcFBQ==
   dependencies:
     buffer "^5.1.0"
-
-crc@^4.3.2:
-  version "4.3.2"
-  resolved "https://registry.yarnpkg.com/crc/-/crc-4.3.2.tgz#49b7821cbf2cf61dfd079ed93863bbebd5469b9a"
-  integrity sha512-uGDHf4KLLh2zsHa8D8hIQ1H/HtFQhyHrc0uhHBcoKGol/Xnb+MPYfUMw7cvON6ze/GUESTudKayDcJC5HnJv1A==
 
 create-ecdh@^4.0.0:
   version "4.0.4"
@@ -7634,10 +7634,10 @@ soroban-client@0.8.0:
     toml "^3.0.0"
     urijs "^1.19.1"
 
-soroban-client@^0.9.2:
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/soroban-client/-/soroban-client-0.9.2.tgz#5abe4ab69abc7af9a152038bef550f7e2a72ec6e"
-  integrity sha512-PPQLvAQTF/y56ev9V9wdMze/K49u1Cj6F9rkiUlRy++wCpSAVjiRYG+duolYvjkzUFPon56xlgAc7tuP4EolWA==
+soroban-client@^0.10.1:
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/soroban-client/-/soroban-client-0.10.1.tgz#b1c42d7e4629cad9e2cdfec1dbc692c87ec9209f"
+  integrity sha512-MAyDllFm7FETzwmdS+uGEp15TToo1aYtUxnVCs4dMl/f7P8Lb6whW664dYfyjvh8+mUOlVf+dlBY1qgJFlnDLQ==
   dependencies:
     axios "^1.4.0"
     bignumber.js "^9.1.1"
@@ -7647,7 +7647,7 @@ soroban-client@^0.9.2:
     eventsource "^2.0.2"
     lodash "^4.17.21"
     randombytes "^2.1.0"
-    stellar-base "10.0.0-soroban.4"
+    stellar-base "10.0.0-soroban.6"
     toml "^3.0.0"
     urijs "^1.19.1"
 
@@ -7740,16 +7740,14 @@ start-server-and-test@^1.15.2:
     ps-tree "1.2.0"
     wait-on "7.0.1"
 
-stellar-base@10.0.0-soroban.4:
-  version "10.0.0-soroban.4"
-  resolved "https://registry.yarnpkg.com/stellar-base/-/stellar-base-10.0.0-soroban.4.tgz#9baeaec1f750473cb0dc00c6fa0f3ec23cf7177d"
-  integrity sha512-Afl2Mlh+aXokIHhy2x67Df5ofbss83oAOHV7pHLI0fsPlxAgs7YtbClzkNxvpnXyxQI77PMIWFJbT17Y3dR/+A==
+stellar-base@10.0.0-soroban.6:
+  version "10.0.0-soroban.6"
+  resolved "https://registry.yarnpkg.com/stellar-base/-/stellar-base-10.0.0-soroban.6.tgz#b63e3d8e49866a0d1386b2f418c25cb0700f3457"
+  integrity sha512-672OQgps7BjyCvrQywOn7vc/NaaexsH2WrBl+EjlKMDsRp/na0fZcM7+053r9FYzK8nCcXgbOd5IXM6Hmb1pog==
   dependencies:
     base32.js "^0.1.0"
     bignumber.js "^9.1.1"
     buffer "^6.0.3"
-    crc "^4.3.2"
-    crypto-browserify "^3.12.0"
     js-xdr "^3.0.0"
     sha.js "^2.3.6"
     tweetnacl "^1.0.3"
