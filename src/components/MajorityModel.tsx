@@ -37,7 +37,7 @@ const MajorityModel = () => {
     await issueTokenSetConfig({
       daoId: currentDao.daoId,
       daoOwnerPublicKey: currentWalletAccount.publicKey,
-      proposalDuration: data.proposalDurationInDays * 17280,
+      proposalDuration: data.proposalDurationInDays * 120,
       // proposalTokenDeposit: BigNumber(data.proposalTokensCost),
       minimumThreshold: BigNumber(
         data.minimumThresholdPercentage / 100
@@ -63,7 +63,7 @@ const MajorityModel = () => {
               </h4>
               <p className='ml-1 text-sm'>
                 <span className='text-primary'>{currentDao?.daoId}</span> will
-                be the DAO token symbol (current max is 900,000,000)
+                be the DAO token symbol (current max is 1,000,000,000)
               </p>
             </div>
             <div>
@@ -75,7 +75,7 @@ const MajorityModel = () => {
                   {...register('tokensToIssue', {
                     required: 'Required',
                     min: { value: 1, message: 'Minimum is 1' },
-                    max: { value: 900000000, message: 'Max is 900,000,000' },
+                    max: { value: 1000000000, message: 'Max is 1,000,000,000' },
                     setValueAs: (tokens) => {
                       const bnTokens = BigNumber(tokens);
                       return bnTokens;
@@ -160,7 +160,7 @@ const MajorityModel = () => {
               <span className='text-lg font-medium text-red-600'>*</span>
             </h4>
             <p className='mb-2 ml-1 text-sm'>
-              Number of days the proposal will be up for voting.
+              Number of 10 Minutes the proposal will be up for voting.
             </p>
             <div className='relative w-[175px] flex-col'>
               <input
@@ -179,7 +179,9 @@ const MajorityModel = () => {
                   <p className='ml-2 mt-1 text-error'>{message}</p>
                 )}
               />
-              <div className='absolute left-[7.4em] top-3 opacity-70'>Days</div>
+              <div className='absolute left-[7.4em] top-3 opacity-70'>
+                10 Min
+              </div>
             </div>
           </div>
         </div>

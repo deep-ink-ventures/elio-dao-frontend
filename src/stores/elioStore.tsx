@@ -299,7 +299,7 @@ export interface ElioActions {
   addTxnNotification: (txnNotification: TxnNotification) => void;
   removeTxnNotification: () => void;
   updateProposalCreationValues: (
-    proposalCreationValues: ProposalCreationValues
+    proposalCreationValues: ProposalCreationValues | null
   ) => void;
   updateIsFaultyModalOpen: (isFaultyModalOpen: boolean) => void;
   updateIsFaultyReportsOpen: (isFaultyReportsOpen: boolean) => void;
@@ -698,6 +698,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
           return !!p.metadata_url === true;
         })
         .map((p: IncomingProposal) => {
+          console.log('proposal data from db', p);
           return {
             proposalId: p.id,
             daoId: p.dao_id,
@@ -715,9 +716,6 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
           };
         });
       set({ currentProposals: newProposals });
-      set({
-        currentBlockNumber: Number(response.headers.get('block-number')),
-      });
     } catch (err) {
       get().handleErrors(err);
     }

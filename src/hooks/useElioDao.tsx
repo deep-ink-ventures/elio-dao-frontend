@@ -45,6 +45,8 @@ const useElioDao = () => {
     handleTxnSuccessNotification,
     elioConfig,
     updateShowCongrats,
+    updateDaoPage,
+    updateProposalCreationValues,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.sorobanServer,
@@ -56,6 +58,8 @@ const useElioDao = () => {
     s.handleTxnSuccessNotification,
     s.elioConfig,
     s.updateShowCongrats,
+    s.updateDaoPage,
+    s.updateProposalCreationValues,
   ]);
 
   const handleTxnResponse = async (
@@ -620,7 +624,7 @@ const useElioDao = () => {
       const val = await submitReadTxn(txn);
       return val;
     } catch (err) {
-      handleErrors('getDao failed', err);
+      handleErrors('getDao failed', err, 'core');
       return null;
     }
   };
@@ -646,7 +650,7 @@ const useElioDao = () => {
         'core'
       );
     } catch (err) {
-      handleErrors('changeOwner failed', err);
+      handleErrors('changeOwner failed', err, 'core');
     }
   };
 
@@ -664,7 +668,7 @@ const useElioDao = () => {
       const val = await submitReadTxn(txn);
       return val;
     } catch (err) {
-      handleErrors('getGovConfig failed', err);
+      handleErrors('getGovConfig failed', err, 'votes');
       return null;
     }
   };
@@ -690,7 +694,7 @@ const useElioDao = () => {
         cb
       );
     } catch (err) {
-      handleErrors('CreateProposal failed', err);
+      handleErrors('CreateProposal failed', err, 'votes');
     }
   };
 
@@ -716,8 +720,13 @@ const useElioDao = () => {
       'Proposal metadata set on-chain failed',
       'votes',
       () => {
-        fetchDaoDB(daoId);
-        updateIsTxnProcessing(false);
+        setTimeout(() => {
+          fetchDaoDB(daoId);
+          updateIsTxnProcessing(false);
+          updateDaoPage('proposals');
+          updateProposalCreationValues(null);
+          router.push(`/dao/${daoId}`);
+        }, 1500);
       }
     );
   };
@@ -763,9 +772,6 @@ const useElioDao = () => {
     }
   };
 
-  // const createProposalAndMetadata() => {
-
-  // }
   const vote = async (daoId: string, proposalId: number, inFavor: boolean) => {
     if (!elioConfig) {
       return;
@@ -787,7 +793,6 @@ const useElioDao = () => {
     }
   };
 
-  // can use this to transfer token to an individual account too
   const transferDaoTokens = async (
     daoId: string,
     toPublicKeys: string[],

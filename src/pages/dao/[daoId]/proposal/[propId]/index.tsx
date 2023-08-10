@@ -12,7 +12,7 @@ import Spinner from '@/components/Spinner';
 import Tooltip from '@/components/Tooltip';
 import { statusColors } from '@/components/TransactionBadge';
 import WalletConnect from '@/components/WalletConnect';
-import { DAO_UNITS } from '@/config';
+import { BLOCK_TIME, DAO_UNITS } from '@/config';
 import { ProposalStatus } from '@/services/proposals';
 import ThumbDown from '@/svg/components/thumbdown';
 import ThumbUp from '@/svg/components/thumbup';
@@ -45,6 +45,8 @@ const Proposal = () => {
     updateIsFaultyReportsOpen,
     updateCurrentBlockNumber,
     fetchBlockNumber,
+    fetchProposalDB,
+    fetchDaoDB,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.daoTokenBalance,
@@ -60,10 +62,9 @@ const Proposal = () => {
     s.updateIsFaultyReportsOpen,
     s.updateCurrentBlockNumber,
     s.fetchBlockNumber,
+    s.fetchProposalDB,
+    s.fetchDaoDB,
   ]);
-  // const updateCurrentProposal = useGenesisStore((s) => s.updateCurrentProposal);
-  // const { makeVoteTxn, sendBatchTxns, makeFinalizeProposalTxn } =
-  //   useElioDao();
 
   const dhmMemo = useMemo(() => {
     return p?.birthBlock && currentBlockNumber && currentDao?.proposalDuration
@@ -111,33 +112,7 @@ const Proposal = () => {
     updateIsStartModalOpen(true);
   };
 
-  const handleVote = () => {
-    // fixme
-    // if (!p?.proposalId) {
-    //   return;
-    // }
-    // let txns = [];
-    // if (voteSelection === 'In Favor') {
-    //   txns = makeVoteTxn([], p?.proposalId, true);
-    // } else if (voteSelection === 'Against') {
-    //   txns = makeVoteTxn([], p?.proposalId, false);
-    // }
-    // sendBatchTxns(
-    //   txns,
-    //   `Voted ${voteSelection} Successfully`,
-    //   'Vote Transaction Failed',
-    //   () => {
-    //     setVoteSelection(null);
-    //     setIsRefreshing(true);
-    //     setTimeout(() => {
-    //       fetchOneProposalDB(daoId as string, propId as string);
-    //     }, 6000);
-    //     setTimeout(() => {
-    //       setIsRefreshing(false);
-    //     }, 6500);
-    //   }
-    // );
-  };
+  const handleVote = () => {};
 
   const handleBack = () => {
     updateDaoPage('proposals');
@@ -177,13 +152,13 @@ const Proposal = () => {
   useEffect(() => {
     if (daoId && propId) {
       const timer = setTimeout(() => {
-        // fetchProposalDB(daoId as string, propId as string);
-        // fetchDaoFromDB(daoId as string);
+        fetchProposalDB(daoId as string, propId as string);
+        fetchDaoDB(daoId as string);
         fetchProposalFaultyReports(propId as string);
         fetchBlockNumber();
         // eslint-disable-next-line
         return () => clearTimeout(timer);
-      }, 200);
+      }, 500);
     }
   }, [daoId, propId, fetchProposalFaultyReports]);
 
@@ -201,18 +176,12 @@ const Proposal = () => {
       return;
     }
     const timeout = setTimeout(() => {
+      console.log('block number', currentBlockNumber);
       updateCurrentBlockNumber(currentBlockNumber + 1);
-    }, 6000);
+    }, BLOCK_TIME * 1000);
     // eslint-disable-next-line
     return () => clearTimeout(timeout);
   }, [currentBlockNumber, updateCurrentBlockNumber]);
-
-  // useEffect(() => {
-  //   if (!apiConnection) {
-  //     createApiConnection();
-  //   }
-  //   // eslint-disable-next-line
-  // }, []);
 
   const displayVoteButton = () => {
     if (!currentWalletAccount) {
