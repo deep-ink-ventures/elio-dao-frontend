@@ -17,6 +17,11 @@ interface DaoCardProps {
 
 const DaoCard = (props: DaoCardProps) => {
   const [currentWalletAccount] = useElioStore((s) => [s.currentWalletAccount]);
+
+  const isOwner =
+    currentWalletAccount?.publicKey.toLowerCase() ===
+    props.daoOwnerAddress.toLowerCase();
+
   const displayImage = () => {
     if (!props.imageUrl) {
       return (
@@ -27,9 +32,12 @@ const DaoCard = (props: DaoCardProps) => {
             height={60}
             width={60}
           />
-          <div className='absolute'>
-            <Image src={mountain} alt='mountain' width={30} height={17}></Image>
-          </div>
+          <Image
+            className='absolute inset-0 m-auto'
+            src={mountain}
+            alt='mountain'
+            width={30}
+            height={17}></Image>
         </>
       );
     }
@@ -57,7 +65,16 @@ const DaoCard = (props: DaoCardProps) => {
         ) : null}
         <div className='card-body text-center'>
           <div className='mb-2 flex items-center justify-center'>
-            {displayImage()}
+            <div
+              className={cn('rounded-full p-1', {
+                'bg-gradient-to-t from-pink-500 via-red-500 to-yellow-500':
+                  isOwner,
+                'bg-[#403945]': !isOwner,
+              })}>
+              <div className='relative rounded-full bg-[#403945] p-1'>
+                {displayImage()}
+              </div>
+            </div>
           </div>
           <div className='flex flex-col items-center justify-center'>
             <h4
