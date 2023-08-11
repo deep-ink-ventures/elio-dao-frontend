@@ -1,8 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 
-// import useGenesisStore from '@/stores/genesisStore';
 import Spinner from '@/components/Spinner';
 import { BLOCK_TIME } from '@/config';
 import { ProposalStatus } from '@/services/proposals';

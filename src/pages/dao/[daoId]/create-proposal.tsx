@@ -27,24 +27,6 @@ const CreateProposalPage = () => {
     router.push(`/dao/${encodeURIComponent(daoId as string)}/`);
   };
 
-  // useEffect(() => {
-  //   if (!daoId) {
-  //     return;
-  //   }
-  //   const TO = setTimeout(() => {
-  //     fetchDaoDB(daoId as string);
-  //   }, 700);
-  //   // eslint-disable-next-line
-  //   return () => clearTimeout(TO);
-  // }, [daoId, fetchDaoDB]);
-
-  // useEffect(() => {
-  //   if (!apiConnection) {
-  //     createApiConnection();
-  //   }
-  //   // eslint-disable-next-line
-  // }, []);
-
   const display = () => {
     if (!currentWalletAccount?.publicKey) {
       return (
@@ -74,8 +56,8 @@ const CreateProposalPage = () => {
 
   return (
     <MainLayout
-      title='Create a DAO - GenesisDAO'
-      description='Create a DAO - GenesisDAO'>
+      title='Create a DAO - ElioDAO'
+      description='Create a DAO - ElioDAO'>
       <div
         className='mt-5 flex w-[65px] items-center justify-between hover:cursor-pointer hover:underline'
         onClick={handleBack}>

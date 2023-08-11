@@ -30,7 +30,7 @@ const Proposal = () => {
     'In Favor' | 'Against' | null
   >(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isStatusRefreshing] = useState(false);
+  const [isStatusRefreshing, setIsStatusRefreshing] = useState(false);
   const [
     currentWalletAccount,
     daoTokenBalance,
@@ -69,7 +69,7 @@ const Proposal = () => {
     s.fetchDaoTokenBalanceFromDB,
   ]);
 
-  const { vote } = useElioDao();
+  const { vote, finalizeProposal } = useElioDao();
 
   const fetchDaoTokenCb = useCallback(() => {
     if (currentDao?.daoAssetId && currentWalletAccount) {
@@ -135,16 +135,15 @@ const Proposal = () => {
     if (voteSelection === 'Against') {
       isInFavor = false;
     }
-    console.log('what favor of vote?', isInFavor);
     vote(daoId as string, Number(propId), isInFavor, () => {
       setVoteSelection(null);
       setIsRefreshing(true);
       setTimeout(() => {
         fetchProposalDB(daoId as string, propId as string);
-      }, 3000);
+      }, 5000);
       setTimeout(() => {
         setIsRefreshing(false);
-      }, 3500);
+      }, 5500);
     });
   };
 
@@ -162,25 +161,19 @@ const Proposal = () => {
   };
 
   const handleFinalize = () => {
-    // fixme
-    // if (!p?.proposalId) {
-    //   return;
-    // }
-    // const txn = makeFinalizeProposalTxn([], p?.proposalId);
-    // sendBatchTxns(
-    //   txn,
-    //   'Finalized Proposal Successfully',
-    //   'Transaction Failed',
-    //   () => {
-    //     setIsStatusRefreshing(true);
-    //     setTimeout(() => {
-    //       fetchOneProposalDB(daoId as string, propId as string);
-    //     }, 6000);
-    //     setTimeout(() => {
-    //       setIsStatusRefreshing(false);
-    //     }, 6500);
-    //   }
-    // );
+    if (!daoId || !propId) {
+      return;
+    }
+
+    finalizeProposal(daoId as string, Number(propId as string), () => {
+      setIsStatusRefreshing(true);
+      setTimeout(() => {
+        fetchProposalDB(daoId as string, propId as string);
+      }, 5000);
+      setTimeout(() => {
+        setIsStatusRefreshing(false);
+      }, 5000);
+    });
   };
 
   useEffect(() => {
@@ -195,7 +188,7 @@ const Proposal = () => {
         return () => clearTimeout(timer);
       }, 500);
     }
-  }, [daoId, propId, fetchProposalFaultyReports]);
+  }, [daoId, propId, fetchProposalFaultyReports, currentWalletAccount]);
 
   useEffect(() => {
     fetchDaoTokenCb();
@@ -231,7 +224,11 @@ const Proposal = () => {
       <Tooltip
         placement='top'
         content={`Please note, that creating a proposal requires a one-time deposit of 100 XLM`}>
-        <button className='btn-primary btn min-w-[250px]' onClick={handleVote}>
+        <button
+          className={cn('btn-primary btn min-w-[250px]', {
+            loading: isTxnProcessing,
+          })}
+          onClick={handleVote}>
           Vote
         </button>
       </Tooltip>
@@ -240,8 +237,8 @@ const Proposal = () => {
 
   return (
     <MainLayout
-      title='GenesisDAO - DAO Platform On Polkadot'
-      description='GenesisDAO - Create a DAO'>
+      title='ElioDAO - DAO Platform On Stellar Soroban'
+      description='ElioDAO - Create a DAO'>
       <div
         className='mt-5 flex w-[65px] items-center justify-between hover:cursor-pointer hover:underline'
         onClick={handleBack}>
