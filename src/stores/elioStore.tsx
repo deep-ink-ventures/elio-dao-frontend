@@ -747,7 +747,6 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         link: p.metadata?.url || null,
         setupComplete: p.setup_complete,
       };
-      console.log('prop: ', newProp);
       set({ currentProposal: newProp });
     } catch (err) {
       get().handleErrors(err);

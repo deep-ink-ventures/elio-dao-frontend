@@ -94,7 +94,6 @@ const useElioDao = () => {
       if (txResponse.status === 'FAILED') {
         // eslint-disable-next-line
         console.log(txResponse.status);
-        console.log(txResponse.resultXdr);
         handleErrors(errorMsg);
       }
 
@@ -121,8 +120,6 @@ const useElioDao = () => {
         unpreparedTxn,
         networkPassphraseStr
       );
-      // eslint-disable-next-line
-      console.log('prepared txn', preparedTxn.toXDR());
       return preparedTxn.toXDR();
     } catch (err) {
       handleErrors(
@@ -545,8 +542,6 @@ const useElioDao = () => {
         SorobanClient.nativeToScVal(targetPublicKey)
       );
       const val = await submitReadTxn(txn);
-      // eslint-disable-next-line
-      console.log('token balance', val);
       return val;
     } catch (err) {
       handleErrors('getDaoTokenBalance failed', err, 'assets');

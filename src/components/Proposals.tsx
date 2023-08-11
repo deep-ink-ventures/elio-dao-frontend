@@ -65,7 +65,6 @@ const Proposals = (props: { daoId: string }) => {
     }
 
     const timer = setTimeout(() => {
-      console.log('fetch proposals');
       fetchProposalsDB(props.daoId);
       fetchBlockNumber();
     }, 500);
