@@ -299,7 +299,7 @@ export interface ElioActions {
   addTxnNotification: (txnNotification: TxnNotification) => void;
   removeTxnNotification: () => void;
   updateProposalCreationValues: (
-    proposalCreationValues: ProposalCreationValues
+    proposalCreationValues: ProposalCreationValues | null
   ) => void;
   updateIsFaultyModalOpen: (isFaultyModalOpen: boolean) => void;
   updateIsFaultyReportsOpen: (isFaultyReportsOpen: boolean) => void;
@@ -708,9 +708,6 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
           };
         });
       set({ currentProposals: newProposals });
-      set({
-        currentBlockNumber: Number(response.headers.get('block-number')),
-      });
     } catch (err) {
       get().handleErrors(err);
     }

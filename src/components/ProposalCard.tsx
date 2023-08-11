@@ -18,7 +18,6 @@ export const statusColors = {
 const ProposalCard = (props: { p: ProposalDetail }) => {
   const [currentDao] = useElioStore((s) => [s.currentDao]);
   const [currentBlockNumber] = useElioStore((s) => [s.currentBlockNumber]);
-
   const dhmMemo = useMemo(() => {
     return props.p?.birthBlock &&
       currentBlockNumber &&

@@ -71,6 +71,7 @@ const NotificationToast = (props: ToastProps) => {
   const [show, setShow] = useState(true);
   const removeTxnNotification = useElioStore((s) => s.removeTxnNotification);
   const handleClose = () => {
+    removeTxnNotification();
     setShow(false);
   };
 
@@ -89,7 +90,6 @@ const NotificationToast = (props: ToastProps) => {
     return () => {
       clearTimeout(timeId);
     };
-    // eslint-disable-next-line
   });
 
   if (!show) {
