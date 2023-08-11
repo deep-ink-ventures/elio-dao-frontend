@@ -54,7 +54,11 @@ const MainDaoPage = () => {
   }, [daoId, fetchDaoDB]);
 
   useEffect(() => {
-    if (currentDao?.daoAssetId && currentWalletAccount) {
+    if (
+      currentDao?.daoId &&
+      currentDao.daoId === daoId &&
+      currentWalletAccount
+    ) {
       fetchDaoTokenBalanceFromDB(
         currentDao?.daoId,
         currentWalletAccount?.publicKey
@@ -65,6 +69,7 @@ const MainDaoPage = () => {
   }, [
     currentDao,
     currentWalletAccount,
+    daoId,
     fetchDaoTokenBalanceFromDB,
     updateDaoTokenBalance,
   ]);
@@ -151,7 +156,7 @@ const MainDaoPage = () => {
                     ) : (
                       <div className='flex flex-col'>
                         <p>You have</p>
-                        <p>
+                        <p key={daoId}>
                           {' '}
                           {uiTokens(
                             daoTokenBalance,
