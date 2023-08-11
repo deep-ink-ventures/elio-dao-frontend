@@ -86,6 +86,7 @@ const useElioDao = () => {
       }
       if (txResponse.status === 'SUCCESS') {
         handleTxnSuccessNotification(txResponse, successMsg);
+        updateIsTxnProcessing(false);
         if (cb) {
           cb();
         }
@@ -94,6 +95,7 @@ const useElioDao = () => {
       if (txResponse.status === 'FAILED') {
         // eslint-disable-next-line
         console.log(txResponse.status);
+        updateIsTxnProcessing(false);
         handleErrors(errorMsg);
       }
 
@@ -833,6 +835,35 @@ const useElioDao = () => {
     );
   };
 
+  const finalizeProposal = async (
+    daoId: string,
+    proposalId: number,
+    cb: Function
+  ) => {
+    if (!elioConfig) {
+      return;
+    }
+    try {
+      const txn = await makeContractTxn(
+        currentWalletAccount!.publicKey,
+        elioConfig.votesContractAddress,
+        'finalize_proposal',
+        stringToScVal(daoId),
+        numberToU32ScVal(proposalId)
+      );
+      console.log('finalize proposal');
+      await submitTxn(
+        txn,
+        'Proposal Finalized successfully',
+        'Proposal Finalizing failed',
+        'votes',
+        cb
+      );
+    } catch (err) {
+      handleErrors('Finalize Proposal failed', err);
+    }
+  };
+
   return {
     getTxnBuilder,
     getDaoMetadata,
@@ -853,6 +884,7 @@ const useElioDao = () => {
     getDaoTokenBalance,
     getGovConfig,
     setProposalMetadataOnChain,
+    finalizeProposal,
   };
 };
 

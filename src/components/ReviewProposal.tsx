@@ -55,7 +55,7 @@ const ReviewProposal = (props: {
             metadata.metadataUrl,
             metadata.metadataHash
           );
-        }, 3000);
+        }, 5000);
       });
     }
   };

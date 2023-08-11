@@ -14,8 +14,8 @@ const FaultyProposals = () => {
 
   return (
     <MainLayout
-      title='GenesisDAO - DAO Platform On Polkadot'
-      description='GenesisDAO - Create a DAO'>
+      title='ElioDAO - DAO Platform On Stellar Soroban'
+      description='ElioDAO - Create a DAO'>
       <div
         className='mt-5 flex w-[65px] items-center justify-between hover:cursor-pointer hover:underline'
         onClick={handleBack}>

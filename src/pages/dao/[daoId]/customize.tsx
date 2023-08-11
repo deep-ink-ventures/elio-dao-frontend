@@ -117,7 +117,7 @@ const Customize = () => {
     ) {
       return <GovernanceForm />;
     }
-
+    // fixme waiting on xfer to get fixed so we can transfer tokens
     if (
       currentDao &&
       currentDao.metadataHash &&
