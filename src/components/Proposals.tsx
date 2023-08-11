@@ -17,12 +17,14 @@ const Proposals = (props: { daoId: string }) => {
     fetchBlockNumber,
     updateCurrentBlockNumber,
     fetchProposalsDB,
+    isTxnProcessing,
   ] = useElioStore((s) => [
     s.currentProposals,
     s.currentBlockNumber,
     s.fetchBlockNumber,
     s.updateCurrentBlockNumber,
     s.fetchProposalsDB,
+    s.isTxnProcessing,
   ]);
 
   const filteredProposals = currentProposals?.filter((prop) => {
@@ -63,12 +65,13 @@ const Proposals = (props: { daoId: string }) => {
     }
 
     const timer = setTimeout(() => {
+      console.log('fetch proposals');
       fetchProposalsDB(props.daoId);
       fetchBlockNumber();
     }, 500);
     // eslint-disable-next-line
     return () => clearTimeout(timer);
-  }, [props.daoId]);
+  }, [props.daoId, isTxnProcessing]);
 
   const handleSearch = (e: any) => {
     setSearchTerm(e.target.value);

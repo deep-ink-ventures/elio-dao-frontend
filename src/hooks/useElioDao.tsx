@@ -9,6 +9,7 @@ import useElioStore from '@/stores/elioStore';
 import {
   accountToScVal,
   bigNumberToI128ScVal,
+  booleanToScVal,
   decodeXdr,
   hexToScVal,
   isStellarPublicKey,
@@ -746,6 +747,8 @@ const useElioDao = () => {
         url: proposalValues?.url,
       });
 
+      console.log('post this metadata', jsonData);
+
       const metadataResponse = await fetch(
         `${SERVICE_URL}/proposals/${proposalId}/metadata/`,
         {
@@ -756,10 +759,13 @@ const useElioDao = () => {
           },
         }
       );
+      if (metadataResponse.status > 400) {
+        handleErrors('Something is wrong with posting metadata');
+      }
       const res = await metadataResponse.json();
       const metadata = {
-        metadataHash: res?.metadata_hash.toString(),
-        metadataUrl: res?.metadata_url.toString(),
+        metadataHash: res?.metadata_hash?.toString(),
+        metadataUrl: res?.metadata_url?.toString(),
       };
       if (!metadata?.metadataUrl) {
         handleErrors(`Not able to upload metadata Status:${res?.status}`);
@@ -772,7 +778,12 @@ const useElioDao = () => {
     }
   };
 
-  const vote = async (daoId: string, proposalId: number, inFavor: boolean) => {
+  const vote = async (
+    daoId: string,
+    proposalId: number,
+    inFavor: boolean,
+    cb: Function
+  ) => {
     if (!elioConfig) {
       return;
     }
@@ -781,13 +792,13 @@ const useElioDao = () => {
       const txn = await makeContractTxn(
         currentWalletAccount!.publicKey,
         elioConfig.votesContractAddress,
-        'set_metadata',
+        'vote',
         stringToScVal(daoId),
-        SorobanClient.nativeToScVal(proposalId),
-        SorobanClient.nativeToScVal(inFavor),
+        numberToU32ScVal(proposalId),
+        booleanToScVal(inFavor),
         accountToScVal(currentWalletAccount!.publicKey)
       );
-      await submitTxn(txn, 'Voted successfully', 'Voting failed', 'votes');
+      await submitTxn(txn, 'Voted successfully', 'Voting failed', 'votes', cb);
     } catch (err) {
       handleErrors('vote failed', err);
     }
