@@ -128,6 +128,11 @@ export const numberToBuffer = (num: number) => {
   return buffer;
 };
 
+export const booleanToScVal = (boolean: boolean) => {
+  const b = SorobanClient.xdr.ScVal.scvBool(boolean);
+  return b;
+};
+
 export const numberToScVal = (num: number): SorobanClient.xdr.ScVal => {
   const b = numberToBuffer(num);
   const scVal = SorobanClient.xdr.ScVal.scvBytes(b);

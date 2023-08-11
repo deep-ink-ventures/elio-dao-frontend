@@ -36,7 +36,7 @@ const ReviewProposal = (props: {
       // WIP here
 
       await createProposal(props.daoId, () => {
-        if (!elioStats?.proposalCount) {
+        if (!elioStats) {
           handleErrors('Cannot get proposal ID');
           return;
         }
@@ -49,12 +49,11 @@ const ReviewProposal = (props: {
           if (!metadata) {
             return;
           }
-          console.log('metadata is posted:', metadata);
           await setProposalMetadataOnChain(
             props.daoId,
             proposalId,
-            metadata.metadataHash,
-            metadata.metadataUrl
+            metadata.metadataUrl,
+            metadata.metadataHash
           );
         }, 3000);
       });

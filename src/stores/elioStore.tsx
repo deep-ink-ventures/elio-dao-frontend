@@ -698,7 +698,6 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
           return !!p.metadata_url === true;
         })
         .map((p: IncomingProposal) => {
-          console.log('proposal data from db', p);
           return {
             proposalId: p.id,
             daoId: p.dao_id,

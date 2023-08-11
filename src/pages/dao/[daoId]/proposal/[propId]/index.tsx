@@ -1,9 +1,10 @@
+import useElioDao from '@/hooks/useElioDao';
 import useElioStore from '@/stores/elioStore';
 import BigNumber from 'bignumber.js';
 import cn from 'classnames';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactHtmlParser from 'react-html-parser';
 
 import FaultyModal from '@/components/FaultyModal';
@@ -28,7 +29,7 @@ const Proposal = () => {
   const [voteSelection, setVoteSelection] = useState<
     'In Favor' | 'Against' | null
   >(null);
-  const [isRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatusRefreshing] = useState(false);
   const [
     currentWalletAccount,
@@ -47,6 +48,7 @@ const Proposal = () => {
     fetchBlockNumber,
     fetchProposalDB,
     fetchDaoDB,
+    fetchDaoTokenBalanceFromDB,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.daoTokenBalance,
@@ -64,7 +66,20 @@ const Proposal = () => {
     s.fetchBlockNumber,
     s.fetchProposalDB,
     s.fetchDaoDB,
+    s.fetchDaoTokenBalanceFromDB,
   ]);
+
+  const { vote } = useElioDao();
+
+  const fetchDaoTokenCb = useCallback(() => {
+    if (currentDao?.daoAssetId && currentWalletAccount) {
+      console.log('fetch dao tokens');
+      fetchDaoTokenBalanceFromDB(
+        currentDao?.daoAssetId,
+        currentWalletAccount.publicKey
+      );
+    }
+  }, [currentDao, currentWalletAccount]);
 
   const dhmMemo = useMemo(() => {
     return p?.birthBlock && currentBlockNumber && currentDao?.proposalDuration
@@ -112,7 +127,26 @@ const Proposal = () => {
     updateIsStartModalOpen(true);
   };
 
-  const handleVote = () => {};
+  const handleVote = () => {
+    if (!daoId || !propId || !voteSelection) {
+      return;
+    }
+    let isInFavor = true;
+    if (voteSelection === 'Against') {
+      isInFavor = false;
+    }
+    console.log('what favor of vote?', isInFavor);
+    vote(daoId as string, Number(propId), isInFavor, () => {
+      setVoteSelection(null);
+      setIsRefreshing(true);
+      setTimeout(() => {
+        fetchProposalDB(daoId as string, propId as string);
+      }, 3000);
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 3500);
+    });
+  };
 
   const handleBack = () => {
     updateDaoPage('proposals');
@@ -150,8 +184,9 @@ const Proposal = () => {
   };
 
   useEffect(() => {
-    if (daoId && propId) {
+    if (daoId && propId && currentDao) {
       const timer = setTimeout(() => {
+        console.log('fetch everything');
         fetchProposalDB(daoId as string, propId as string);
         fetchDaoDB(daoId as string);
         fetchProposalFaultyReports(propId as string);
@@ -162,21 +197,15 @@ const Proposal = () => {
     }
   }, [daoId, propId, fetchProposalFaultyReports]);
 
-  // useEffect(() => {
-  //   if (currentDao?.daoAssetId && currentWalletAccount) {
-  //     fetchDaoTokenBalanceFromDB(
-  //       currentDao?.daoAssetId,
-  //       currentWalletAccount.publicKey
-  //     );
-  //   }
-  // }, [currentDao, currentWalletAccount, fetchDaoTokenBalanceFromDB]);
+  useEffect(() => {
+    fetchDaoTokenCb();
+  }, [fetchDaoTokenCb]);
 
   useEffect(() => {
     if (!currentBlockNumber) {
       return;
     }
     const timeout = setTimeout(() => {
-      console.log('block number', currentBlockNumber);
       updateCurrentBlockNumber(currentBlockNumber + 1);
     }, BLOCK_TIME * 1000);
     // eslint-disable-next-line
