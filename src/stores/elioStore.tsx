@@ -22,7 +22,7 @@ import * as SorobanClient from 'soroban-client';
 import * as StellarSdk from 'stellar-sdk';
 import { create } from 'zustand';
 
-import { AssetsHoldingsService } from '@/services/assets';
+import { DaoService } from '@/services/daos';
 import type {
   IncomingProposal,
   ProposalStatusNames,
@@ -318,7 +318,7 @@ export interface ElioActions {
   ) => void;
   fetchDaosDB: () => void;
   fetchDaoDB: (daoId: string) => void;
-  fetchDaoTokenBalanceFromDB: (assetId: number, accountId: string) => void;
+  fetchDaoTokenBalanceFromDB: (daoId: string, accountId: string) => void;
   updateShowCongrats: (showCongrats: boolean) => void;
   updateDaoFromChain: (dao: DaoDetail) => void;
   updateCurrentBlockNumber: (currentBlockNumber: number | null) => void;
@@ -671,16 +671,9 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       get().handleErrors('Cannot get block number', err);
     }
   },
-  fetchDaoTokenBalanceFromDB: async (assetId: number, accountId: string) => {
+  fetchDaoTokenBalanceFromDB: async (daoId: string, accountId: string) => {
     try {
-      const response = await AssetsHoldingsService.listAssetHoldings({
-        asset_id: assetId.toString(),
-        owner_id: accountId,
-      });
-
-      const daoTokenBalance = new BigNumber(
-        response.results?.[0]?.balance || 0
-      );
+      const daoTokenBalance = await DaoService.getBalance(daoId, accountId);
       set({ daoTokenBalance });
     } catch (err) {
       get().handleErrors(err);

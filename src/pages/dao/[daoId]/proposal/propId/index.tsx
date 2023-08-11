@@ -190,7 +190,7 @@ const Proposal = () => {
   // useEffect(() => {
   //   if (currentDao?.daoAssetId && currentWalletAccount) {
   //     fetchDaoTokenBalanceFromDB(
-  //       currentDao?.daoAssetId,
+  //       currentDao?.daoId,
   //       currentWalletAccount.publicKey
   //     );
   //   }
