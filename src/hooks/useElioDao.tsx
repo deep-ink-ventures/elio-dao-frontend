@@ -5,7 +5,7 @@ import type {
   GovConfigValues,
   ProposalCreationValues,
 } from '@/stores/elioStore';
-import useElioStore from '@/stores/elioStore';
+import useElioStore, { TxnResponse } from '@/stores/elioStore';
 import {
   accountToScVal,
   bigNumberToI128ScVal,
@@ -48,6 +48,8 @@ const useElioDao = () => {
     updateShowCongrats,
     updateDaoPage,
     updateProposalCreationValues,
+    addTxnNotification,
+    updateIsFaultyModalOpen,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.sorobanServer,
@@ -61,6 +63,8 @@ const useElioDao = () => {
     s.updateShowCongrats,
     s.updateDaoPage,
     s.updateProposalCreationValues,
+    s.addTxnNotification,
+    s.updateIsFaultyModalOpen,
   ]);
 
   const handleTxnResponse = async (
@@ -71,7 +75,10 @@ const useElioDao = () => {
   ) => {
     if (sendTxnResponse.errorResultXdr) {
       // eslint-disable-next-line
-      console.log(`ERROR: Cannot send transaction`, sendTxnResponse.errorResultXdr);
+      console.log(
+        `ERROR: Cannot send transaction`,
+        sendTxnResponse.errorResultXdr
+      );
     }
 
     if (sendTxnResponse.status === 'PENDING') {
@@ -864,6 +871,69 @@ const useElioDao = () => {
     }
   };
 
+  const reportFaultyProposal = async (
+    daoId: string,
+    publicKey: string,
+    proposalId: string,
+    reason: string
+  ) => {
+    updateIsTxnProcessing(true);
+
+    try {
+      const jsonData = JSON.stringify({
+        proposal_id: proposalId,
+        reason,
+      });
+      const sig = await doChallenge(daoId, publicKey);
+      if (!sig) {
+        handleErrors('Verification Challenge failed');
+        return;
+      }
+
+      const faultyProposalResponse = await fetch(
+        `${SERVICE_URL}/proposals/${proposalId}/report-faulted/`,
+        {
+          method: 'POST',
+          body: jsonData,
+          headers: {
+            'Content-Type': 'application/json',
+            Signature: sig,
+          },
+        }
+      );
+
+      const res = await faultyProposalResponse.json();
+      if (res?.reason?.detail?.includes('report maximum has already been')) {
+        handleErrors(res.reason.detail);
+      }
+
+      if (!res?.reason) {
+        handleErrors(`Not able to report faulty proposal: ${res?.detail}`);
+        return;
+      }
+      updateIsFaultyModalOpen(false);
+      updateIsTxnProcessing(false);
+      const successNoti = {
+        title: `${TxnResponse.Success}`,
+        message: 'Your faulty proposal report has been submitted. Thank you!',
+        type: TxnResponse.Success,
+        timestamp: Date.now(),
+      };
+      addTxnNotification(successNoti);
+    } catch (err) {
+      handleErrors(err);
+      updateIsFaultyModalOpen(false);
+      updateIsTxnProcessing(false);
+      const errNoti = {
+        title: `${TxnResponse.Error}`,
+        message: 'There was an issue submitted the report. Please try again. ',
+        type: TxnResponse.Error,
+        timestamp: Date.now(),
+      };
+      addTxnNotification(errNoti);
+    }
+  };
+
   return {
     getTxnBuilder,
     getDaoMetadata,
@@ -885,6 +955,7 @@ const useElioDao = () => {
     getGovConfig,
     setProposalMetadataOnChain,
     finalizeProposal,
+    reportFaultyProposal,
   };
 };
 
