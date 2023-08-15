@@ -75,7 +75,7 @@ const Proposal = () => {
     if (currentDao?.daoAssetId && currentWalletAccount) {
       console.log('fetch dao tokens');
       fetchDaoTokenBalanceFromDB(
-        currentDao?.daoAssetId,
+        currentDao?.daoId,
         currentWalletAccount.publicKey
       );
     }

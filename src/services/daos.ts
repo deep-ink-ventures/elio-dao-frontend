@@ -1,4 +1,6 @@
 import { SERVICE_URL } from '@/config';
+import BigNumber from 'bignumber.js';
+import { AssetsHoldingsService } from './assets';
 
 export interface Dao {
   id: string;
@@ -45,6 +47,23 @@ const get = async (daoId: string) => {
   return objResponse as Dao;
 };
 
+const getBalance = async (daoId: string, accountId: string) => {
+  const dao = await get(daoId);
+
+  if (dao.asset_id) {
+    const response = await AssetsHoldingsService.listAssetHoldings({
+      asset_id: dao?.asset_id?.toString(),
+      owner_id: accountId,
+    });
+
+    const daoTokenBalance = new BigNumber(response?.results?.[0]?.balance || 0);
+    return daoTokenBalance;
+  }
+
+  return null;
+};
+
 export const DaoService = {
   get,
+  getBalance,
 };
