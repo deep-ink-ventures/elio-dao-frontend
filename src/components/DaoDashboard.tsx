@@ -2,20 +2,32 @@ import useElioDao from '@/hooks/useElioDao';
 import Link from 'next/link';
 
 // import DestroyDao from '@/components/DestroyDao';
-import { DAO_UNITS } from '@/config';
 import useElioStore from '@/stores/elioStore';
-import BigNumber from 'bignumber.js';
+import { useState } from 'react';
 
 const DaoDashboard = (props: { daoId: string }) => {
-  const [currentWalletAccount, currentDao, isTxnProcessing, handleErrors] =
-    useElioStore((s) => [
-      s.currentWalletAccount,
-      s.currentDao,
-      s.isTxnProcessing,
-      s.handleErrors,
-    ]);
+  const [
+    currentWalletAccount,
+    currentDao,
+    isTxnProcessing,
+    handleErrors,
+    daoTokenBalance,
+  ] = useElioStore((s) => [
+    s.currentWalletAccount,
+    s.currentDao,
+    s.isTxnProcessing,
+    s.handleErrors,
+    s.daoTokenBalance,
+  ]);
   const { destroyDao } = useElioDao();
-  const daoTokenBalance = BigNumber(25000).multipliedBy(DAO_UNITS);
+  const [daoSetupComplete] = useState(
+    currentDao?.setupComplete || currentDao?.proposalDuration
+  );
+  const [allowCreateProposal] = useState(
+    currentWalletAccount?.publicKey &&
+      daoSetupComplete &&
+      !daoTokenBalance?.isZero()
+  );
 
   const handleDestroyDao = async () => {
     try {
@@ -36,7 +48,7 @@ const DaoDashboard = (props: { daoId: string }) => {
       <div>
         <div className='flex flex-wrap gap-4'>
           {/* fixme should go back to use currentDao.setupComplete once we can transfer tokens */}
-          {currentDao?.proposalDuration ||
+          {daoSetupComplete ||
           currentWalletAccount?.publicKey !==
             currentDao?.daoOwnerAddress ? null : (
             <Link
@@ -51,27 +63,17 @@ const DaoDashboard = (props: { daoId: string }) => {
               </button>
             </Link>
           )}
-          {/* <Link
+          <Link
             href={`/dao/${encodeURIComponent(
               currentDao?.daoId as string
             )}/create-proposal`}
-            className={`${
-              !currentWalletAccount ||
-              daoTokenBalance?.isZero() ||
-              !currentDao?.setupComplete
-                ? 'disable-link'
-                : ''
-            }`}> */}
-          <button
-            className={`btn-primary btn w-[180px]`}
-            disabled={
-              !currentWalletAccount ||
-              daoTokenBalance?.isZero() ||
-              !currentDao?.setupComplete
-            }>
-            Create Proposal
-          </button>
-          {/* </Link> */}
+            className={`${!allowCreateProposal ? 'disable-link' : ''}`}>
+            <button
+              className={`btn-primary btn w-[180px]`}
+              disabled={!allowCreateProposal}>
+              Create Proposal
+            </button>
+          </Link>
           {/* <Link
             href={`/dao/${encodeURIComponent(
               currentDao?.daoId as string
