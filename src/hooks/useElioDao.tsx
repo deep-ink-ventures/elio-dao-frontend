@@ -541,7 +541,7 @@ const useElioDao = () => {
         currentWalletAccount!.publicKey,
         tokenContractAddress,
         'balance',
-        SorobanClient.nativeToScVal(targetPublicKey)
+        accountToScVal(targetPublicKey)
       );
       const val = await submitReadTxn(txn);
       return val;
@@ -851,7 +851,6 @@ const useElioDao = () => {
         stringToScVal(daoId),
         numberToU32ScVal(proposalId)
       );
-      console.log('finalize proposal');
       await submitTxn(
         txn,
         'Proposal Finalized successfully',
@@ -860,7 +859,7 @@ const useElioDao = () => {
         cb
       );
     } catch (err) {
-      handleErrors('Finalize Proposal failed', err);
+      handleErrors('Finalize Proposal failed', err, 'votes');
     }
   };
 

@@ -164,6 +164,7 @@ const Proposal = () => {
     if (!daoId || !propId) {
       return;
     }
+    console.log('daoId', daoId, 'propId', Number(propId as string));
 
     finalizeProposal(daoId as string, Number(propId as string), () => {
       setIsStatusRefreshing(true);
