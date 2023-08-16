@@ -5,14 +5,12 @@ import useElioStore from '@/stores/elioStore';
 import congratsImage from '@/svg/congrats.svg';
 import { useEffect } from 'react';
 
-const Congratulations = (props: { daoId: string | null }) => {
+const Congratulations = (props: { daoId: string; daoName: string }) => {
   const router = useRouter();
-  const [daos, updateShowCongrats] = useElioStore((s) => [
-    s.daos,
+  const [updateShowCongrats, currentDao] = useElioStore((s) => [
     s.updateShowCongrats,
+    s.currentDao,
   ]);
-
-  const dao = daos?.[0];
 
   const handleDashboard = () => {
     router.push(`/dao/${props.daoId}`);
@@ -41,8 +39,8 @@ const Congratulations = (props: { daoId: string | null }) => {
       <div className='mb-5 text-center'>
         <h2 className='font-semibold text-primary'>Congratulations!</h2>
         <p>
-          <span className='text-lg font-bold'>{dao?.daoName}</span> has been
-          successfully set up!
+          <span className='text-lg font-bold'>{currentDao?.daoName}</span> has
+          been successfully set up!
         </p>
       </div>
       <div>

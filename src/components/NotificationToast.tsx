@@ -76,7 +76,7 @@ const NotificationToast = (props: ToastProps) => {
   };
 
   const makeExplorerLink = (hash: string) => {
-    const prefix = ``; // fixme
+    const prefix = `https://futurenet.stellarchain.io/transactions/`;
     return prefix + hash;
   };
 

@@ -122,15 +122,18 @@ const Customize = () => {
       currentDao &&
       currentDao.metadataHash &&
       currentDao.proposalDuration &&
-      !currentDao.setupComplete &&
       !showCongrats
     ) {
-      return <Congratulations daoId={daoId as string} />;
+      return (
+        <Congratulations daoId={daoId as string} daoName={currentDao.daoName} />
+      );
       // return <CouncilTokens daoId={daoId as string} />;
     }
 
     if ((currentDao && currentDao.setupComplete) || showCongrats) {
-      return <Congratulations daoId={daoId as string} />;
+      return (
+        <Congratulations daoId={daoId as string} daoName={currentDao.daoName} />
+      );
     }
     return null;
   };

@@ -4,8 +4,8 @@ import * as SorobanClient from 'soroban-client';
 import { scValToNative } from 'soroban-client';
 
 // @ts-ignore
-export const truncateMiddle = (str?, start = 4, end = 4) => {
-  if (str && str.length) {
+export const truncateMiddle = (str: string, start = 4, end = 4) => {
+  if (str.length) {
     if (str.length <= start + end) {
       return str;
     }

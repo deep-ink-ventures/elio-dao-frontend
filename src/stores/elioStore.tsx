@@ -314,7 +314,8 @@ export interface ElioActions {
   ) => void;
   handleTxnSuccessNotification: (
     response: SorobanClient.SorobanRpc.GetTransactionResponse,
-    successMsg: string
+    successMsg: string,
+    txnHash?: string
   ) => void;
   fetchDaosDB: () => void;
   fetchDaoDB: (daoId: string) => void;
@@ -450,7 +451,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
 
     get().addTxnNotification(newNoti);
   },
-  handleTxnSuccessNotification(txnResponse, successMsg) {
+  handleTxnSuccessNotification(txnResponse, successMsg, txnHash?) {
     // we don't turn off txnIsProcessing here
     if (txnResponse.status !== 'SUCCESS') {
       return;
@@ -461,9 +462,9 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       message: successMsg,
       type: TxnResponse.Success,
       timestamp: Date.now(),
-      // txnHash?: string;
+      txnHash,
     };
-    // get().updateIsTxnProcessing(false);
+
     get().addTxnNotification(noti);
   },
   addTxnNotification: (newNotification) => {

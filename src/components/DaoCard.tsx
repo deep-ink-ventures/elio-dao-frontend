@@ -20,7 +20,10 @@ interface DaoCardProps {
 
 const DaoCard = (props: DaoCardProps) => {
   const { daoName, daoId, daoOwnerAddress, imageUrl } = props;
-  const [currentWalletAccount] = useElioStore((s) => [s.currentWalletAccount]);
+  const [currentWalletAccount, updateDaoPage] = useElioStore((s) => [
+    s.currentWalletAccount,
+    s.updateDaoPage,
+  ]);
   const [daoBalance, setDaoBalance] = useState<BigNumber>();
 
   const fetchDaoBalance = async () => {
@@ -78,7 +81,11 @@ const DaoCard = (props: DaoCardProps) => {
   return (
     <div
       className={`card-compact relative z-0 m-1 w-64 py-4  shadow-xl hover:cursor-pointer md:w-56 md:pb-10 md:pt-4`}>
-      <Link href={`/dao/${encodeURIComponent(daoId)}`}>
+      <Link
+        href={`/dao/${encodeURIComponent(daoId)}`}
+        onClick={() => {
+          updateDaoPage('dashboard');
+        }}>
         {currentWalletAccount?.publicKey === daoOwnerAddress ? (
           <div className='absolute left-44 top-3 rounded-[15px] bg-primary px-2 py-1 text-xs md:left-40 md:top-3 md:block'>
             admin
@@ -111,7 +118,11 @@ const DaoCard = (props: DaoCardProps) => {
           <p className='text-sm text-accent'>{`DAO ID: ${daoId}`}</p>
         </div>
       </Link>
-      <Link href={`/dao/${encodeURIComponent(daoId)}`}>
+      <Link
+        href={`/dao/${encodeURIComponent(daoId)}`}
+        onClick={() => {
+          updateDaoPage('dashboard');
+        }}>
         <p className='absolute bottom-[10%] left-[33%] mt-5 hidden text-sm underline underline-offset-2 md:block'>{`See more >`}</p>
       </Link>
     </div>
