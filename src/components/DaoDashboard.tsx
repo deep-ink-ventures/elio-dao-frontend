@@ -85,9 +85,9 @@ const DaoDashboard = (props: { daoId: string }) => {
                 ? 'disable-link'
                 : ''
             }`} > */}
-          <button className={`btn-primary btn w-[180px]`} disabled>
+          {/* <button className={`btn-primary btn w-[180px]`} disabled>
             Send Tokens
-          </button>
+          </button> */}
           {/* </Link> */}
 
           <button

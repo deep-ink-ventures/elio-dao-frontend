@@ -69,6 +69,7 @@ const useElioDao = () => {
     errorMsg: string,
     cb?: Function
   ) => {
+    console.log('sendTxnResponse', sendTxnResponse);
     if (sendTxnResponse.errorResultXdr) {
       // eslint-disable-next-line
       console.log(`ERROR: Cannot send transaction`, sendTxnResponse.errorResultXdr);
@@ -85,7 +86,12 @@ const useElioDao = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
       if (txResponse.status === 'SUCCESS') {
-        handleTxnSuccessNotification(txResponse, successMsg);
+        console.log('txResponse', txResponse);
+        handleTxnSuccessNotification(
+          txResponse,
+          successMsg,
+          sendTxnResponse.hash
+        );
         updateIsTxnProcessing(false);
         if (cb) {
           cb();
@@ -197,7 +203,6 @@ const useElioDao = () => {
         currentWalletAccount!.publicKey
       );
       const txResponse = await sendTxn(signedTxn, elioConfig.networkPassphrase);
-
       handleTxnResponse(txResponse, successMsg, errorMsg, cb);
     } catch (err) {
       handleErrors('Send Transaction failed', err);
