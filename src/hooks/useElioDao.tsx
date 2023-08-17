@@ -513,7 +513,7 @@ const useElioDao = () => {
     }
   };
 
-  const getAssetId = async (daoId: string) => {
+  const getAssetAddress = async (daoId: string) => {
     if (!elioConfig || !currentWalletAccount) {
       return;
     }
@@ -527,7 +527,7 @@ const useElioDao = () => {
       const tokenAddress = (await submitReadTxn(txn)) as string;
       return tokenAddress;
     } catch (err) {
-      handleErrors('getAssetId failed', err, 'core');
+      handleErrors('getAssetAddress failed', err, 'core');
       return null;
     }
   };
@@ -536,7 +536,7 @@ const useElioDao = () => {
     if (!elioConfig || !isStellarPublicKey(targetPublicKey)) {
       return;
     }
-    const tokenContractAddress = await getAssetId(daoId);
+    const tokenContractAddress = await getAssetAddress(daoId);
     if (!tokenContractAddress) {
       handleErrors('Cannot get token contract address');
       return;
@@ -566,13 +566,13 @@ const useElioDao = () => {
     daoId: string;
     tokenSupply: BigNumber;
   } & GovConfigValues) => {
-    getAssetId(daoId)
+    getAssetAddress(daoId)
       .then((tokenContractAddress) => {
         if (!tokenContractAddress) {
           createTokenContract(daoId, daoOwnerPublicKey)
             .then(() => {
               setTimeout(() => {
-                getAssetId(daoId)
+                getAssetAddress(daoId)
                   .then((tokenAddress) => {
                     if (!tokenAddress) {
                       handleErrors('Cannot get token address');
@@ -591,7 +591,7 @@ const useElioDao = () => {
                       })
                       .catch((err) => handleErrors('mintToken failed', err));
                   })
-                  .catch((err) => handleErrors('getAssetId failed', err));
+                  .catch((err) => handleErrors('getAssetAddress failed', err));
               }, 6000);
             })
             .catch((err) => handleErrors('createTokenContract failed', err));
@@ -610,7 +610,7 @@ const useElioDao = () => {
             .catch((err) => handleErrors('mintToken failed', err));
         }
       })
-      .catch((err) => handleErrors('getAssetId failed', err));
+      .catch((err) => handleErrors('getAssetAddress failed', err));
   };
 
   const getDao = async (daoId: string) => {
@@ -814,7 +814,7 @@ const useElioDao = () => {
     if (!currentWalletAccount) {
       return;
     }
-    const tokenContractAddress = await getAssetId(daoId);
+    const tokenContractAddress = await getAssetAddress(daoId);
     if (!tokenContractAddress) {
       handleErrors('Cannot get token contract address');
       return;
@@ -872,7 +872,7 @@ const useElioDao = () => {
     getTxnBuilder,
     getDaoMetadata,
     getDao,
-    getAssetId,
+    getAssetAddress,
     createTokenContract,
     makeContractTxn,
     createDao,

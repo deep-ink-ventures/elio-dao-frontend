@@ -28,7 +28,7 @@ const Congratulations = (props: { daoId: string; daoName: string }) => {
     <div className='flex flex-col items-center'>
       <div>
         <progress
-          className='progress progress-success h-[10px] w-[400px]'
+          className='progress-success progress h-[10px] w-[400px]'
           value='100'
           max='100'
         />
