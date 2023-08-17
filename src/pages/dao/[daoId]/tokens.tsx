@@ -14,7 +14,7 @@ const Tokens = () => {
     </MainLayout>;
   }
 
-  if (!currentDao?.daoAssetId) {
+  if (!currentDao?.daoAssetAddress) {
     return (
       <MainLayout
         title='Tokens page for DAOS'
@@ -33,7 +33,7 @@ const Tokens = () => {
           <div className='max-w-md'>
             <h1 className='text-3xl font-bold'>{`Transfer ${daoId} tokens`}</h1>
             <TransferForm
-              assetId={currentDao.daoAssetId as number}
+              assetAddress={currentDao.daoAssetAddress as string}
               daoId={daoId as string}
             />
           </div>

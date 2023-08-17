@@ -9,7 +9,7 @@ import useElioStore from '@/stores/elioStore';
 import { uiTokens } from '@/utils';
 import BigNumber from 'bignumber.js';
 
-const TransferForm = (props: { assetId: number; daoId: string }) => {
+const TransferForm = (props: { assetAddress: string; daoId: string }) => {
   const [isTxnProcessing, currentWalletAccount] = useElioStore((s) => [
     s.isTxnProcessing,
     s.currentWalletAccount,
@@ -40,11 +40,11 @@ const TransferForm = (props: { assetId: number; daoId: string }) => {
   };
 
   useEffect(() => {
-    setValue('assetId', props.assetId);
+    setValue('assetAddress', props.assetAddress);
     if (isSubmitSuccessful) {
       reset(
         {
-          assetId: props.assetId,
+          assetAddress: props.assetAddress,
           toAddress: '',
           amount: BigNumber(0),
         },

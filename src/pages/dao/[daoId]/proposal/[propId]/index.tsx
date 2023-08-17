@@ -72,7 +72,7 @@ const Proposal = () => {
   const { vote, finalizeProposal } = useElioDao();
 
   const fetchDaoTokenCb = useCallback(() => {
-    if (currentDao?.daoAssetId && currentWalletAccount) {
+    if (currentDao?.daoAssetAddress && currentWalletAccount) {
       console.log('fetch dao tokens');
       fetchDaoTokenBalanceFromDB(
         currentDao?.daoId,

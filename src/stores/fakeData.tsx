@@ -8,7 +8,9 @@ export const daoArray: DaoDetail[] = [
     daoCreatorAddress:
       'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
     setupComplete: true,
-    daoAssetId: 1,
+    daoAssetAddress: 'CCLGOYKZ3ZGCKIANMY2Y3BT6HSIQLTCVWUSH4T4T43YTQCN7TZ5EPRVN',
+    daoAssetId:
+      '96676159de4c25200d66358d867e3c9105cc55b5247e4f93e6f13809bf9e7a47',
     metadataUrl: null,
     metadataHash: null,
     proposalDuration: 14400,
@@ -30,7 +32,9 @@ export const daoArray: DaoDetail[] = [
     daoCreatorAddress:
       'GDOEZWRJHC4X4V5Q5ZDJJ7RLLY3QF4QQKC6CYC76JTGXGKS3PK6EHKZP',
     setupComplete: true,
-    daoAssetId: 2,
+    daoAssetAddress: 'CCLGOYKZ3ZGCKIANMY2Y3BT6HSIQLTCVWUSH4T4E43YTQCN7TZ5EPRVN',
+    daoAssetId:
+      '96676159de4c25200d66358d867e3c9105cc55b5242e4f93e6f13809bf9e7a47',
     metadataUrl: 'https://example.com/metadata',
     metadataHash: 'abcdefg',
     proposalDuration: 14400,
@@ -52,7 +56,9 @@ export const daoArray: DaoDetail[] = [
     daoCreatorAddress:
       'GCDTNDOCT2CWJVHGOKADQ7IEUPHQTPCHPDYKITMUGZAMAOBQ36VPO22V',
     setupComplete: true,
-    daoAssetId: 3,
+    daoAssetAddress: 'CCLGOYKZ3ZGCKIANMY2Y3BT6HSIQLTCVWUSH4E4T43YTQCN7TZ5EPRVN',
+    daoAssetId:
+      '96676159de4c25200d66358d867e3c9105cc55b5247e4f93e6f13839bf9e7a47',
     metadataUrl: null,
     metadataHash: null,
     proposalDuration: 14400,

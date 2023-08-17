@@ -13,7 +13,7 @@ interface DaoCardProps {
   daoId: string;
   daoName: string;
   daoOwnerAddress: string;
-  daoAssetId: number | null;
+  daoAssetAddress: string | null;
   imageUrl: string | null;
   setupComplete: boolean;
 }

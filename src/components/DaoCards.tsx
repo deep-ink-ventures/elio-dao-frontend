@@ -13,7 +13,7 @@ const DaoCards = ({ daos }: { daos: DaoDetail[] | null }) => {
               key={dao.daoId}
               daoId={dao.daoId}
               daoName={dao.daoName}
-              daoAssetId={dao.daoAssetId}
+              daoAssetAddress={dao.daoAssetAddress}
               daoOwnerAddress={dao.daoOwnerAddress}
               imageUrl={dao.images.small}
               setupComplete={dao.setupComplete}

@@ -171,7 +171,7 @@ export interface TxnNotification {
 }
 
 export interface TransferFormValues {
-  assetId: number;
+  assetAddress: string;
   toAddress: string;
   amount: BigNumber;
 }
@@ -235,7 +235,8 @@ export interface DaoDetail {
   daoOwnerAddress: string;
   daoCreatorAddress: string;
   setupComplete: boolean;
-  daoAssetId: number | null;
+  daoAssetAddress: string | null;
+  daoAssetId: string | null;
   proposalDuration: number | null;
   // proposalTokenDeposit: number | null;
   minimumMajority: number | null;
@@ -515,6 +516,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         return {
           daoId: dao.id,
           daoName: dao.name,
+          daoAssetAddress: dao.asset_address,
           daoAssetId: dao.asset_id,
           daoOwnerAddress: dao.owner_id,
           daoCreatorAddress: dao.creator_id,
@@ -554,6 +556,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         proposalDuration: null,
         // proposalTokenDeposit: null,
         minimumMajority: null,
+        daoAssetAddress: null,
         daoAssetId: null,
         metadataUrl: null,
         metadataHash: null,
@@ -577,10 +580,12 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
       const d = await response.json();
       daoDetail.daoId = d.id;
       daoDetail.daoName = d.name;
+      daoDetail.daoAssetAddress = d.asset_address;
       daoDetail.daoAssetId = d.asset_id;
       daoDetail.daoOwnerAddress = d.owner_id;
       daoDetail.daoCreatorAddress = d.creator_id;
       daoDetail.proposalDuration = d.proposal_duration;
+      // fixme
       // daoDetail.proposalTokenDeposit = d.proposal_token_deposit;
       daoDetail.minimumMajority = d.minimum_majority_per_1024;
       daoDetail.metadataUrl = d.metadata_url;
