@@ -43,6 +43,7 @@ const ReviewProposal = (props: {
         setTimeout(async () => {
           const proposalId = elioStats.proposalCount;
           const metadata = await postProposalMetadata(
+            props.daoId,
             proposalId,
             proposalCreationValues
           );

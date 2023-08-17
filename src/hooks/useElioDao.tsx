@@ -5,7 +5,7 @@ import type {
   GovConfigValues,
   ProposalCreationValues,
 } from '@/stores/elioStore';
-import useElioStore from '@/stores/elioStore';
+import useElioStore, { TxnResponse } from '@/stores/elioStore';
 import {
   accountToScVal,
   bigNumberToI128ScVal,
@@ -15,8 +15,9 @@ import {
   isStellarPublicKey,
   numberToU32ScVal,
   stringToScVal,
+  toBase64,
 } from '@/utils';
-import { signTransaction } from '@stellar/freighter-api';
+import { signBlob, signTransaction } from '@stellar/freighter-api';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import * as SorobanClient from 'soroban-client';
@@ -48,6 +49,8 @@ const useElioDao = () => {
     updateShowCongrats,
     updateDaoPage,
     updateProposalCreationValues,
+    addTxnNotification,
+    updateIsFaultyModalOpen,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.sorobanServer,
@@ -61,6 +64,8 @@ const useElioDao = () => {
     s.updateShowCongrats,
     s.updateDaoPage,
     s.updateProposalCreationValues,
+    s.addTxnNotification,
+    s.updateIsFaultyModalOpen,
   ]);
 
   const handleTxnResponse = async (
@@ -72,7 +77,10 @@ const useElioDao = () => {
     console.log('sendTxnResponse', sendTxnResponse);
     if (sendTxnResponse.errorResultXdr) {
       // eslint-disable-next-line
-      console.log(`ERROR: Cannot send transaction`, sendTxnResponse.errorResultXdr);
+      console.log(
+        `ERROR: Cannot send transaction`,
+        sendTxnResponse.errorResultXdr
+      );
     }
 
     if (sendTxnResponse.status === 'PENDING') {
@@ -252,6 +260,36 @@ const useElioDao = () => {
     return txn;
   };
 
+  /**
+   * Authenticate users access to post request
+   */
+  const doChallenge = async (daoId: string, publicKey: string) => {
+    try {
+      const challengeRes = await fetch(
+        `${SERVICE_URL}/daos/${daoId}/challenge/`
+      );
+      const { challenge } = await challengeRes.json();
+
+      if (!challenge) {
+        handleErrors('Error in retrieving ownership-validation challenge');
+        return null;
+      }
+      const signerResult = await signBlob(toBase64(challenge), {
+        accountToSign: currentWalletAccount?.publicKey,
+      });
+
+      if (!signerResult) {
+        handleErrors('Not able to validate ownership');
+        return null;
+      }
+
+      return toBase64(signerResult);
+    } catch (err) {
+      handleErrors(err);
+      return null;
+    }
+  };
+
   const createDao = async (createDaoData: CreateDaoData) => {
     if (!elioConfig) {
       return;
@@ -292,6 +330,15 @@ const useElioDao = () => {
 
   // post dao metadata to the DB
   const postDaoMetadata = async (daoId: string, data: DaoMetadataValues) => {
+    if (!currentWalletAccount) {
+      return;
+    }
+
+    const sig = await doChallenge(daoId, currentWalletAccount.publicKey);
+    if (!sig) {
+      handleErrors('Cannot get valid signature for metadata post request');
+      return;
+    }
     const jsonData = JSON.stringify({
       email: data.email,
       description_short: data.shortOverview,
@@ -306,6 +353,7 @@ const useElioDao = () => {
         body: jsonData,
         headers: {
           'Content-Type': 'application/json',
+          Signature: sig,
         },
       }
     );
@@ -368,35 +416,6 @@ const useElioDao = () => {
       );
     } catch (err) {
       handleErrors('set DAO Metadata failed', err, 'core');
-    }
-  };
-
-  // to authenticate user access to post metadata to the DB
-  const doChallenge = async (daoId: string, publicKey: string) => {
-    try {
-      const challengeRes = await fetch(
-        `${SERVICE_URL}/daos/${daoId}/challenge/`
-      );
-      const challengeString = await challengeRes.json();
-      if (!challengeString.challenge) {
-        handleErrors('Error in retrieving ownership-validation challenge');
-        return null;
-      }
-      const signerResult = await signTxn(
-        challengeString.challenge,
-        elioConfig?.networkPassphrase || NETWORK_PASSPHRASE[NETWORK],
-        publicKey
-      );
-
-      if (!signerResult) {
-        handleErrors('Not able to validate ownership');
-        return null;
-      }
-
-      return signerResult;
-    } catch (err) {
-      handleErrors(err);
-      return null;
     }
   };
 
@@ -735,21 +754,25 @@ const useElioDao = () => {
   };
 
   const postProposalMetadata = async (
+    daoId: string,
     proposalId: number,
     proposalValues: ProposalCreationValues
   ) => {
-    if (!elioConfig) {
+    if (!elioConfig || !currentWalletAccount) {
       return;
     }
     updateIsTxnProcessing(true);
     try {
+      const sig = await doChallenge(daoId, currentWalletAccount?.publicKey);
+      if (!sig) {
+        handleErrors('Cannot pass authentication challenge');
+        return;
+      }
       const jsonData = JSON.stringify({
         title: proposalValues?.title,
         description: proposalValues?.description,
         url: proposalValues?.url,
       });
-
-      console.log('post this metadata', jsonData);
 
       const metadataResponse = await fetch(
         `${SERVICE_URL}/proposals/${proposalId}/metadata/`,
@@ -758,6 +781,7 @@ const useElioDao = () => {
           body: jsonData,
           headers: {
             'Content-Type': 'application/json',
+            Signature: sig,
           },
         }
       );
@@ -868,6 +892,69 @@ const useElioDao = () => {
     }
   };
 
+  const reportFaultyProposal = async (
+    daoId: string,
+    publicKey: string,
+    proposalId: string,
+    reason: string
+  ) => {
+    updateIsTxnProcessing(true);
+
+    try {
+      const jsonData = JSON.stringify({
+        proposal_id: proposalId,
+        reason,
+      });
+      const sig = await doChallenge(daoId, publicKey);
+      if (!sig) {
+        handleErrors('Verification Challenge failed');
+        return;
+      }
+
+      const faultyProposalResponse = await fetch(
+        `${SERVICE_URL}/proposals/${proposalId}/report-faulted/`,
+        {
+          method: 'POST',
+          body: jsonData,
+          headers: {
+            'Content-Type': 'application/json',
+            Signature: sig,
+          },
+        }
+      );
+
+      const res = await faultyProposalResponse.json();
+      if (res?.reason?.detail?.includes('report maximum has already been')) {
+        handleErrors(res.reason.detail);
+      }
+
+      if (!res?.reason) {
+        handleErrors(`Not able to report faulty proposal: ${res?.detail}`);
+        return;
+      }
+      updateIsFaultyModalOpen(false);
+      updateIsTxnProcessing(false);
+      const successNoti = {
+        title: `${TxnResponse.Success}`,
+        message: 'Your faulty proposal report has been submitted. Thank you!',
+        type: TxnResponse.Success,
+        timestamp: Date.now(),
+      };
+      addTxnNotification(successNoti);
+    } catch (err) {
+      handleErrors(err);
+      updateIsFaultyModalOpen(false);
+      updateIsTxnProcessing(false);
+      const errNoti = {
+        title: `${TxnResponse.Error}`,
+        message: 'There was an issue submitted the report. Please try again. ',
+        type: TxnResponse.Error,
+        timestamp: Date.now(),
+      };
+      addTxnNotification(errNoti);
+    }
+  };
+
   return {
     getTxnBuilder,
     getDaoMetadata,
@@ -889,6 +976,7 @@ const useElioDao = () => {
     getGovConfig,
     setProposalMetadataOnChain,
     finalizeProposal,
+    reportFaultyProposal,
   };
 };
 

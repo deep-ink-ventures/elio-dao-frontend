@@ -3,6 +3,7 @@ import Modal from 'antd/lib/modal';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import useElioDao from '@/hooks/useElioDao';
 import useElioStore from '../stores/elioStore';
 
 interface FaultyDescription {
@@ -11,12 +12,19 @@ interface FaultyDescription {
 
 const FaultyModal = (props: { propId: string; daoId: string }) => {
   const [faultyReason, setFaultyReason] = useState('');
-  const [isFaultyModalOpen, updateIsFaultyModalOpen, isTxnProcessing] =
-    useElioStore((s) => [
-      s.isFaultyModalOpen,
-      s.updateIsFaultyModalOpen,
-      s.isTxnProcessing,
-    ]);
+  const [
+    isFaultyModalOpen,
+    updateIsFaultyModalOpen,
+    isTxnProcessing,
+    currentWalletAccount,
+  ] = useElioStore((s) => [
+    s.isFaultyModalOpen,
+    s.updateIsFaultyModalOpen,
+    s.isTxnProcessing,
+    s.currentWalletAccount,
+  ]);
+
+  const { reportFaultyProposal } = useElioDao();
 
   const {
     register,
@@ -38,7 +46,14 @@ const FaultyModal = (props: { propId: string; daoId: string }) => {
   };
 
   const handleSubmitReason = () => {
-    // console.log('submit reasons');
+    if (currentWalletAccount?.publicKey) {
+      reportFaultyProposal(
+        props.daoId,
+        currentWalletAccount.publicKey,
+        props.propId,
+        faultyReason
+      );
+    }
   };
 
   return (
@@ -102,6 +117,7 @@ const FaultyModal = (props: { propId: string; daoId: string }) => {
           {!faultyReason.includes('Other') ? (
             <div className='mt-4 flex justify-center'>
               <button
+                disabled={isTxnProcessing || !currentWalletAccount?.publicKey}
                 className={`btn-primary btn w-[400px] ${
                   isTxnProcessing ? 'loading' : ''
                 }`}
@@ -138,6 +154,7 @@ const FaultyModal = (props: { propId: string; daoId: string }) => {
               </div>
               <div>
                 <button
+                  disabled={isTxnProcessing || !currentWalletAccount?.publicKey}
                   className={`btn-primary btn w-[400px] ${
                     isTxnProcessing ? 'loading' : ''
                   }`}>
