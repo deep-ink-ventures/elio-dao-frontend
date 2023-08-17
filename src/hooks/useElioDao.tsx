@@ -754,21 +754,25 @@ const useElioDao = () => {
   };
 
   const postProposalMetadata = async (
+    daoId: string,
     proposalId: number,
     proposalValues: ProposalCreationValues
   ) => {
-    if (!elioConfig) {
+    if (!elioConfig || !currentWalletAccount) {
       return;
     }
     updateIsTxnProcessing(true);
     try {
+      const sig = await doChallenge(daoId, currentWalletAccount?.publicKey);
+      if (!sig) {
+        handleErrors('Cannot pass authentication challenge');
+        return;
+      }
       const jsonData = JSON.stringify({
         title: proposalValues?.title,
         description: proposalValues?.description,
         url: proposalValues?.url,
       });
-
-      console.log('post this metadata', jsonData);
 
       const metadataResponse = await fetch(
         `${SERVICE_URL}/proposals/${proposalId}/metadata/`,
@@ -777,6 +781,7 @@ const useElioDao = () => {
           body: jsonData,
           headers: {
             'Content-Type': 'application/json',
+            Signature: sig,
           },
         }
       );
