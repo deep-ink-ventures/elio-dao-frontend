@@ -320,3 +320,7 @@ export const splitCamelCase = (str: string): string => {
   }
   return result.trim();
 };
+
+export const toBase64 = (str: string): string => {
+  return Buffer.from(str, 'utf-8').toString('base64');
+};

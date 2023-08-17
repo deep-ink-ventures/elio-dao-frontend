@@ -15,8 +15,9 @@ import {
   isStellarPublicKey,
   numberToU32ScVal,
   stringToScVal,
+  toBase64,
 } from '@/utils';
-import { signTransaction } from '@stellar/freighter-api';
+import { signBlob, signTransaction } from '@stellar/freighter-api';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import * as SorobanClient from 'soroban-client';
@@ -252,6 +253,36 @@ const useElioDao = () => {
     return txn;
   };
 
+  /**
+   * Authenticate users access to post request
+   */
+  const doChallenge = async (daoId: string, publicKey: string) => {
+    try {
+      const challengeRes = await fetch(
+        `${SERVICE_URL}/daos/${daoId}/challenge/`
+      );
+      const { challenge } = await challengeRes.json();
+
+      if (!challenge) {
+        handleErrors('Error in retrieving ownership-validation challenge');
+        return null;
+      }
+      const signerResult = await signBlob(toBase64(challenge), {
+        accountToSign: currentWalletAccount?.publicKey,
+      });
+
+      if (!signerResult) {
+        handleErrors('Not able to validate ownership');
+        return null;
+      }
+
+      return toBase64(signerResult);
+    } catch (err) {
+      handleErrors(err);
+      return null;
+    }
+  };
+
   const createDao = async (createDaoData: CreateDaoData) => {
     if (!elioConfig) {
       return;
@@ -292,6 +323,15 @@ const useElioDao = () => {
 
   // post dao metadata to the DB
   const postDaoMetadata = async (daoId: string, data: DaoMetadataValues) => {
+    if (!currentWalletAccount) {
+      return;
+    }
+
+    const sig = await doChallenge(daoId, currentWalletAccount.publicKey);
+    if (!sig) {
+      handleErrors('Cannot get valid signature for metadata post request');
+      return;
+    }
     const jsonData = JSON.stringify({
       email: data.email,
       description_short: data.shortOverview,
@@ -306,6 +346,7 @@ const useElioDao = () => {
         body: jsonData,
         headers: {
           'Content-Type': 'application/json',
+          Signature: sig,
         },
       }
     );
@@ -368,35 +409,6 @@ const useElioDao = () => {
       );
     } catch (err) {
       handleErrors('set DAO Metadata failed', err, 'core');
-    }
-  };
-
-  // to authenticate user access to post metadata to the DB
-  const doChallenge = async (daoId: string, publicKey: string) => {
-    try {
-      const challengeRes = await fetch(
-        `${SERVICE_URL}/daos/${daoId}/challenge/`
-      );
-      const challengeString = await challengeRes.json();
-      if (!challengeString.challenge) {
-        handleErrors('Error in retrieving ownership-validation challenge');
-        return null;
-      }
-      const signerResult = await signTxn(
-        challengeString.challenge,
-        elioConfig?.networkPassphrase || NETWORK_PASSPHRASE[NETWORK],
-        publicKey
-      );
-
-      if (!signerResult) {
-        handleErrors('Not able to validate ownership');
-        return null;
-      }
-
-      return signerResult;
-    } catch (err) {
-      handleErrors(err);
-      return null;
     }
   };
 
