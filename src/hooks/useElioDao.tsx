@@ -505,14 +505,19 @@ const useElioDao = () => {
         txn,
         'Created token contract successfully',
         'Token contract creation failed',
-        'core'
+        'core',
+        () => {}
       );
     } catch (err) {
       handleErrors('Token contract creation failed', err, 'core');
     }
   };
 
-  const mintToken = async (tokenAddress: string, supply: BigNumber) => {
+  const mintToken = async (
+    tokenAddress: string,
+    supply: BigNumber,
+    cb: Function
+  ) => {
     updateIsTxnProcessing(true);
     try {
       const txn = await makeContractTxn(
@@ -526,7 +531,8 @@ const useElioDao = () => {
         txn,
         'Tokens minted successfully',
         'Token minting failed',
-        'assets'
+        'assets',
+        cb
       );
     } catch (err) {
       handleErrors('Token minting failed', err, 'assets');
@@ -598,36 +604,34 @@ const useElioDao = () => {
                       handleErrors('Cannot get token address');
                       return;
                     }
-                    mintToken(tokenAddress as string, tokenSupply)
-                      .then(() => {
-                        setTimeout(() => {
-                          setGovernanceConfig({
-                            daoId,
-                            proposalDuration,
-                            minimumThreshold,
-                            daoOwnerPublicKey,
-                          });
-                        }, 3000);
-                      })
-                      .catch((err) => handleErrors('mintToken failed', err));
+                    mintToken(tokenAddress as string, tokenSupply, () => {
+                      setTimeout(() => {
+                        setGovernanceConfig({
+                          daoId,
+                          proposalDuration,
+                          minimumThreshold,
+                          daoOwnerPublicKey,
+                        });
+                      }, 3000);
+                    });
                   })
                   .catch((err) => handleErrors('getAssetAddress failed', err));
               }, 6000);
             })
-            .catch((err) => handleErrors('createTokenContract failed', err));
+            .catch((err) =>
+              handleErrors('createTokenContract failed', err, 'core')
+            );
         } else {
-          mintToken(tokenContractAddress as string, tokenSupply)
-            .then(() => {
+          mintToken(tokenContractAddress as string, tokenSupply, () => {
+            setTimeout(() => {
               setGovernanceConfig({
                 daoId,
                 proposalDuration,
                 minimumThreshold,
                 daoOwnerPublicKey,
-              }).catch((err) =>
-                handleErrors('setGovernanceConfig failed', err)
-              );
-            })
-            .catch((err) => handleErrors('mintToken failed', err));
+              });
+            }, 3000);
+          }).catch((err) => handleErrors('mintToken failed', err, 'assets'));
         }
       })
       .catch((err) => handleErrors('getAssetAddress failed', err));
