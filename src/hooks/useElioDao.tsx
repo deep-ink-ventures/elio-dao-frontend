@@ -43,7 +43,6 @@ const useElioDao = () => {
     handleErrors,
     updateIsStartModalOpen,
     fetchDaoDB,
-    updateCreateDaoSteps,
     handleTxnSuccessNotification,
     elioConfig,
     updateShowCongrats,
@@ -58,7 +57,6 @@ const useElioDao = () => {
     s.handleErrors,
     s.updateIsStartModalOpen,
     s.fetchDaoDB,
-    s.updateCreateDaoSteps,
     s.handleTxnSuccessNotification,
     s.elioConfig,
     s.updateShowCongrats,
@@ -100,16 +98,18 @@ const useElioDao = () => {
           successMsg,
           sendTxnResponse.hash
         );
-        updateIsTxnProcessing(false);
+        // turn off processing state when there's no more next steps
         if (cb) {
           cb();
+        } else {
+          updateIsTxnProcessing(false);
         }
       }
 
       if (txResponse.status === 'FAILED') {
         // eslint-disable-next-line
         console.log(txResponse.status);
-        updateIsTxnProcessing(false);
+        updateIsTxnProcessing(false); // delay here and pass onto the next state controller
         handleErrors(errorMsg);
       }
 
@@ -318,7 +318,6 @@ const useElioDao = () => {
             fetchDaoDB(createDaoData.daoId);
             updateIsStartModalOpen(false);
             updateIsTxnProcessing(false);
-            updateCreateDaoSteps(2);
             router.push(`/dao/${createDaoData.daoId}/customize`);
           }, 3500);
         }
@@ -384,7 +383,7 @@ const useElioDao = () => {
     }
   };
 
-  /** Set metadata onchain */
+  /** Post metadata then set metadata onchain */
   const setDaoMetadata = async (
     publicKey: string,
     daoId: string,
@@ -410,8 +409,10 @@ const useElioDao = () => {
         'Set Metadata Transaction failed',
         'core',
         () => {
-          updateIsTxnProcessing(false);
-          fetchDaoDB(daoId);
+          setTimeout(() => {
+            updateIsTxnProcessing(false);
+            fetchDaoDB(daoId);
+          }, 2000);
         }
       );
     } catch (err) {
@@ -504,14 +505,19 @@ const useElioDao = () => {
         txn,
         'Created token contract successfully',
         'Token contract creation failed',
-        'core'
+        'core',
+        () => {}
       );
     } catch (err) {
       handleErrors('Token contract creation failed', err, 'core');
     }
   };
 
-  const mintToken = async (tokenAddress: string, supply: BigNumber) => {
+  const mintToken = async (
+    tokenAddress: string,
+    supply: BigNumber,
+    cb: Function
+  ) => {
     updateIsTxnProcessing(true);
     try {
       const txn = await makeContractTxn(
@@ -525,7 +531,8 @@ const useElioDao = () => {
         txn,
         'Tokens minted successfully',
         'Token minting failed',
-        'assets'
+        'assets',
+        cb
       );
     } catch (err) {
       handleErrors('Token minting failed', err, 'assets');
@@ -597,36 +604,34 @@ const useElioDao = () => {
                       handleErrors('Cannot get token address');
                       return;
                     }
-                    mintToken(tokenAddress as string, tokenSupply)
-                      .then(() => {
-                        setTimeout(() => {
-                          setGovernanceConfig({
-                            daoId,
-                            proposalDuration,
-                            minimumThreshold,
-                            daoOwnerPublicKey,
-                          });
-                        }, 3000);
-                      })
-                      .catch((err) => handleErrors('mintToken failed', err));
+                    mintToken(tokenAddress as string, tokenSupply, () => {
+                      setTimeout(() => {
+                        setGovernanceConfig({
+                          daoId,
+                          proposalDuration,
+                          minimumThreshold,
+                          daoOwnerPublicKey,
+                        });
+                      }, 3000);
+                    });
                   })
                   .catch((err) => handleErrors('getAssetAddress failed', err));
               }, 6000);
             })
-            .catch((err) => handleErrors('createTokenContract failed', err));
+            .catch((err) =>
+              handleErrors('createTokenContract failed', err, 'core')
+            );
         } else {
-          mintToken(tokenContractAddress as string, tokenSupply)
-            .then(() => {
+          mintToken(tokenContractAddress as string, tokenSupply, () => {
+            setTimeout(() => {
               setGovernanceConfig({
                 daoId,
                 proposalDuration,
                 minimumThreshold,
                 daoOwnerPublicKey,
-              }).catch((err) =>
-                handleErrors('setGovernanceConfig failed', err)
-              );
-            })
-            .catch((err) => handleErrors('mintToken failed', err));
+              });
+            }, 3000);
+          }).catch((err) => handleErrors('mintToken failed', err, 'assets'));
         }
       })
       .catch((err) => handleErrors('getAssetAddress failed', err));

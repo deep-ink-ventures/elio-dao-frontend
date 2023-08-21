@@ -49,6 +49,7 @@ const Proposal = () => {
     fetchProposalDB,
     fetchDaoDB,
     fetchDaoTokenBalanceFromDB,
+    updateIsTxnProcessing,
   ] = useElioStore((s) => [
     s.currentWalletAccount,
     s.daoTokenBalance,
@@ -67,6 +68,7 @@ const Proposal = () => {
     s.fetchProposalDB,
     s.fetchDaoDB,
     s.fetchDaoTokenBalanceFromDB,
+    s.updateIsTxnProcessing,
   ]);
 
   const { vote, finalizeProposal } = useElioDao();
@@ -138,6 +140,7 @@ const Proposal = () => {
     vote(daoId as string, Number(propId), isInFavor, () => {
       setVoteSelection(null);
       setIsRefreshing(true);
+      updateIsTxnProcessing(false);
       setTimeout(() => {
         fetchProposalDB(daoId as string, propId as string);
       }, 5000);
