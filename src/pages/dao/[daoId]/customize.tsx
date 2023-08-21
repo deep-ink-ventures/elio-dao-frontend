@@ -118,6 +118,7 @@ const Customize = () => {
       return <GovernanceForm />;
     }
     // fixme waiting on xfer to get fixed so we can transfer tokens
+    // fixme add back currentDao.setUpComplete
     if (
       currentDao &&
       currentDao.metadataHash &&
@@ -130,7 +131,7 @@ const Customize = () => {
       // return <CouncilTokens daoId={daoId as string} />;
     }
 
-    if ((currentDao && currentDao.setupComplete) || showCongrats) {
+    if (currentDao || showCongrats) {
       return (
         <Congratulations daoId={daoId as string} daoName={currentDao.daoName} />
       );
