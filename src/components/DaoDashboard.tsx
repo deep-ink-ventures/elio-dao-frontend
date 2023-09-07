@@ -3,7 +3,6 @@ import Link from 'next/link';
 
 // import DestroyDao from '@/components/DestroyDao';
 import useElioStore from '@/stores/elioStore';
-import { useState } from 'react';
 
 const DaoDashboard = (props: { daoId: string }) => {
   const [
@@ -20,14 +19,13 @@ const DaoDashboard = (props: { daoId: string }) => {
     s.daoTokenBalance,
   ]);
   const { destroyDao } = useElioDao();
-  const [daoSetupComplete] = useState(
-    currentDao?.setupComplete || currentDao?.proposalDuration
-  );
-  const [allowCreateProposal] = useState(
+
+  const isSetupComplete = currentDao?.setupComplete;
+
+  const allowCreateProposal =
     currentWalletAccount?.publicKey &&
-      daoSetupComplete &&
-      !daoTokenBalance?.isZero()
-  );
+    isSetupComplete &&
+    !daoTokenBalance?.isZero();
 
   const handleDestroyDao = async () => {
     try {
@@ -48,7 +46,7 @@ const DaoDashboard = (props: { daoId: string }) => {
       <div>
         <div className='flex flex-wrap gap-4'>
           {/* fixme should go back to use currentDao.setupComplete once we can transfer tokens */}
-          {daoSetupComplete ||
+          {isSetupComplete ||
           currentWalletAccount?.publicKey !==
             currentDao?.daoOwnerAddress ? null : (
             <Link

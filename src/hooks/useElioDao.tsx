@@ -33,6 +33,7 @@ export enum TxnStatus {
   PENDING = 'pending',
   SUCCESS = 'success',
 }
+
 const useElioDao = () => {
   const router = useRouter();
 
@@ -45,7 +46,6 @@ const useElioDao = () => {
     fetchDaoDB,
     handleTxnSuccessNotification,
     elioConfig,
-    updateShowCongrats,
     updateDaoPage,
     updateProposalCreationValues,
     addTxnNotification,
@@ -59,7 +59,6 @@ const useElioDao = () => {
     s.fetchDaoDB,
     s.handleTxnSuccessNotification,
     s.elioConfig,
-    s.updateShowCongrats,
     s.updateDaoPage,
     s.updateProposalCreationValues,
     s.addTxnNotification,
@@ -100,7 +99,7 @@ const useElioDao = () => {
         );
         // turn off processing state when there's no more next steps
         if (cb) {
-          cb();
+          cb(txResponse);
         } else {
           updateIsTxnProcessing(false);
         }
@@ -186,7 +185,7 @@ const useElioDao = () => {
     >,
     successMsg: string,
     errorMsg: string,
-    contractName: ContractName, // add contract name for handle error code
+    contractName: ContractName | 'none', // add contract name for handle error code
     cb?: Function
   ) => {
     if (!elioConfig) {
@@ -211,9 +210,10 @@ const useElioDao = () => {
         currentWalletAccount!.publicKey
       );
       const txResponse = await sendTxn(signedTxn, elioConfig.networkPassphrase);
-      handleTxnResponse(txResponse, successMsg, errorMsg, cb);
+      return await handleTxnResponse(txResponse, successMsg, errorMsg, cb);
     } catch (err) {
       handleErrors('Send Transaction failed', err);
+      return null;
     }
   };
 
@@ -470,7 +470,6 @@ const useElioDao = () => {
         () => {
           setTimeout(() => {
             fetchDaoDB(config.daoId);
-            updateShowCongrats(true);
             updateIsTxnProcessing(false);
           }, 1000);
         }
@@ -960,6 +959,129 @@ const useElioDao = () => {
     }
   };
 
+  const makeInstallMulticliqueTxns = async (policyData: {
+    source: string;
+    policy: 'ELIO_DAO';
+  }) => {
+    try {
+      const response = await fetch(
+        'https://service.elio-dao.org/multiclique/accounts/install',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(policyData),
+        }
+      );
+      const data = await response.json();
+      const { core_xdr } = data;
+      const { policy_xdr } = data;
+      return {
+        coreTransaction: new SorobanClient.Transaction(
+          core_xdr,
+          elioConfig.networkPassphrase
+        ),
+        policyTransaction: new SorobanClient.Transaction(
+          policy_xdr,
+          elioConfig.networkPassphrase
+        ),
+      };
+    } catch (err) {
+      handleErrors('Error in installing Multiclique policy', err);
+      return null;
+    }
+  };
+
+  const getMulticliqueAddresses = async (policyData: {
+    source: string;
+    policy: 'ELIO_DAO';
+  }) => {
+    const txns = await makeInstallMulticliqueTxns(policyData);
+
+    if (!txns) {
+      return;
+    }
+
+    const coreResult = await submitTxn(
+      txns.coreTransaction,
+      'Multiclique core contract installed',
+      'Error in Multiclique core contract installation',
+      'multicliqueCore'
+    );
+
+    if (!coreResult?.resultMetaXdr) {
+      throw new Error('Cannot get multiclique core address');
+    }
+
+    const policyResult = await submitTxn(
+      txns.policyTransaction,
+      'Multiclique policy contract installed',
+      'Error in Multiclique policy installation',
+      'multicliquePolicy'
+    );
+
+    if (!policyResult?.resultMetaXdr) {
+      throw new Error('Cannot get multiclique policy address');
+    }
+
+    return {
+      coreAddress: SorobanClient.xdr.TransactionMeta.fromXDR(
+        coreResult.resultMetaXdr,
+        'base64'
+      )
+        .v3()
+        ?.sorobanMeta()
+        ?.returnValue()
+        .address()
+        .contractId(),
+      policyAddress: SorobanClient.xdr.TransactionMeta.fromXDR(
+        policyResult.resultMetaXdr,
+        'base64'
+      )
+        .v3()
+        ?.sorobanMeta()
+        ?.returnValue()
+        .address()
+        .contractId(),
+    };
+  };
+
+  const initMulticliqueCore = async (
+    coreContractAddy: string,
+    signerAddresses: string[],
+    threshold: number
+  ) => {
+    if (!currentWalletAccount) {
+      return;
+    }
+
+    const rawKeys = signerAddresses.map((addy) => {
+      return SorobanClient.Keypair.fromPublicKey(addy).rawPublicKey();
+    });
+    const coreContract = new SorobanClient.Contract(coreContractAddy);
+    const txnBuilder = await getTxnBuilder(currentWalletAccount?.publicKey);
+    const txn = txnBuilder
+      .addOperation(
+        // An operation to call increment on the contract
+        coreContract.call(
+          'init',
+          SorobanClient.nativeToScVal(rawKeys),
+          numberToU32ScVal(threshold)
+        )
+      )
+      .setTimeout(0)
+      .build();
+
+    const res = await submitTxn(
+      txn,
+      'Initialized Multiclique ',
+      'Error in initializing Multiclique',
+      'multicliqueCore'
+    );
+    console.log(res);
+  };
+
   return {
     getTxnBuilder,
     getDaoMetadata,
@@ -982,6 +1104,8 @@ const useElioDao = () => {
     setProposalMetadataOnChain,
     finalizeProposal,
     reportFaultyProposal,
+    getMulticliqueAddresses,
+    initMulticliqueCore,
   };
 };
 

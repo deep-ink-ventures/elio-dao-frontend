@@ -17,12 +17,23 @@ import BigNumber from 'bignumber.js';
 
 // commented out the sections where we distribute tokens to the council and multisig creation.
 const CouncilTokens = (props: { daoId: string | null }) => {
-  const [isTxnProcessing, currentDao, currentWalletAccount] = useElioStore(
-    (s) => [s.isTxnProcessing, s.currentDao, s.currentWalletAccount]
-  );
+  const [
+    isTxnProcessing,
+    currentDao,
+    currentWalletAccount,
+    daoTokenBalance,
+    fetchDaoTokenBalanceFromDB,
+    updateDaoTokenBalance,
+  ] = useElioStore((s) => [
+    s.isTxnProcessing,
+    s.currentDao,
+    s.currentWalletAccount,
+    s.daoTokenBalance,
+    s.fetchDaoTokenBalanceFromDB,
+    s.updateDaoTokenBalance,
+  ]);
   const { transferDaoTokens } = useElioDao();
 
-  const daoTokenBalance = BigNumber(1000000).multipliedBy(DAO_UNITS);
   const [membersCount, setMembersCount] = useState(2);
   const formMethods = useForm<CouncilTokensValues>({
     defaultValues: {
@@ -287,6 +298,18 @@ const CouncilTokens = (props: { daoId: string | null }) => {
       );
     });
   };
+
+  useEffect(() => {
+    if (currentDao?.daoId && currentWalletAccount) {
+      console.log('fetch balance');
+      fetchDaoTokenBalanceFromDB(
+        currentDao?.daoId,
+        currentWalletAccount?.publicKey
+      );
+    } else {
+      updateDaoTokenBalance(new BigNumber(0));
+    }
+  }, [currentDao, currentWalletAccount, fetchDaoTokenBalanceFromDB]);
 
   return (
     <div className='flex flex-col items-center gap-y-5'>
