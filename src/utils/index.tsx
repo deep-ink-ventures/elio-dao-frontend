@@ -236,7 +236,6 @@ export const bigNumberToScVal = (
   // left-pad with zeros up to 16 bytes
   const padded = Buffer.alloc(16);
   buf.copy(padded, padded.length - buf.length);
-  console.debug({ value: bigNum.toString(), padded });
 
   if (bigNum.isNegative()) {
     // Set the top bit

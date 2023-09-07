@@ -246,3 +246,36 @@ a {
 .ql-editor {
   @apply text-lg
 }
+
+.description-display a {
+  tab-size:4;
+  @apply underline hover:cursor-pointer text-blue-400 hover:text-blue-300
+}
+
+.description-display ol li {
+  list-style: decimal;
+  list-style-position: inside;
+  display: list-item;
+  margin-left: 1em;
+  tab-size:4;
+  @apply mb-2
+}
+
+.description-display ul li {
+  list-style: disc;
+  list-style-position: inside;
+  display: list-item;
+  margin-left: 1em;
+  tab-size:4;
+  @apply mb-2
+}
+
+.description-display h1, h2 {
+  @apply text-3xl
+}
+
+.selected-tab { 
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 2.79%, rgba(255, 255, 255, 0) 83.46%);
+  backdrop-filter: blur(2px);
+  @apply border-r-4 border-primary;
+}

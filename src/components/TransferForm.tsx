@@ -26,6 +26,7 @@ const TransferForm = (props: { assetAddress: string; daoId: string }) => {
   const onSubmit: SubmitHandler<TransferFormValues> = async (
     data: TransferFormValues
   ) => {
+    // eslint-disable-next-line
     console.log(data);
   };
 
