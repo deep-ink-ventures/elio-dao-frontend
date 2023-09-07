@@ -3,26 +3,45 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
-import { DAO_UNITS } from '@/config';
 import useElioDao from '@/hooks/useElioDao';
 import type {
+  CouncilFormValues,
   CouncilTokensValues,
-  IssueTokensValues,
 } from '@/stores/elioStore';
 import useElioStore from '@/stores/elioStore';
 import d from '@/svg/delete.svg';
 import plus from '@/svg/plus.svg';
-import { isStellarPublicKey, truncateMiddle, uiTokens } from '@/utils';
+import { isStellarPublicKey, truncateMiddle } from '@/utils';
 import BigNumber from 'bignumber.js';
 
 // commented out the sections where we distribute tokens to the council and multisig creation.
 const CouncilTokens = (props: { daoId: string | null }) => {
-  const [isTxnProcessing, currentDao, currentWalletAccount] = useElioStore(
-    (s) => [s.isTxnProcessing, s.currentDao, s.currentWalletAccount]
-  );
-  const { transferDaoTokens } = useElioDao();
+  const [
+    isTxnProcessing,
+    currentDao,
+    currentWalletAccount,
+    daoTokenBalance,
+    fetchDaoTokenBalanceFromDB,
+    updateDaoTokenBalance,
+    handleErrors,
+    updateIsTxnProcessing,
+    fetchDaoDB,
+    updateShowCongrats,
+  ] = useElioStore((s) => [
+    s.isTxnProcessing,
+    s.currentDao,
+    s.currentWalletAccount,
+    s.daoTokenBalance,
+    s.fetchDaoTokenBalanceFromDB,
+    s.updateDaoTokenBalance,
+    s.handleErrors,
+    s.updateIsTxnProcessing,
+    s.fetchDaoDB,
+    s.updateShowCongrats,
+  ]);
+  const { getMulticliqueAddresses, initMulticliqueCore, changeOwner } =
+    useElioDao();
 
-  const daoTokenBalance = BigNumber(1000000).multipliedBy(DAO_UNITS);
   const [membersCount, setMembersCount] = useState(2);
   const formMethods = useForm<CouncilTokensValues>({
     defaultValues: {
@@ -35,13 +54,13 @@ const CouncilTokens = (props: { daoId: string | null }) => {
         },
       ],
       councilThreshold: 2,
-      tokenRecipients: [
-        {
-          walletAddress: '',
-          tokens: new BigNumber(0),
-        },
-      ],
-      treasuryTokens: new BigNumber(0),
+      // tokenRecipients: [
+      //   {
+      //     walletAddress: '',
+      //     tokens: new BigNumber(0),
+      //   },
+      // ],
+      // treasuryTokens: new BigNumber(0),
     },
   });
 
@@ -52,6 +71,43 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     control,
     formState: { errors },
   } = formMethods;
+
+  const onSubmit = async (data: CouncilFormValues) => {
+    if (!props.daoId || !currentWalletAccount) {
+      return;
+    }
+    const otherMembersAddresses = data.councilMembers.map((member) => {
+      return member.walletAddress;
+    });
+
+    const signerAddresses = [data.creatorWallet, ...otherMembersAddresses];
+
+    const multicliqueData = {
+      source: currentWalletAccount.publicKey,
+      policy_preset: 'ELIO_DAO',
+    };
+    try {
+      await getMulticliqueAddresses(
+        multicliqueData,
+        (addresses: { coreAddress: string; policyAddress: string }) => {
+          initMulticliqueCore(
+            addresses,
+            signerAddresses,
+            data.councilThreshold,
+            async () => {
+              await changeOwner(props.daoId!, addresses.coreAddress, () => {
+                updateIsTxnProcessing(false);
+                fetchDaoDB(props.daoId!);
+                updateShowCongrats(true);
+              });
+            }
+          );
+        }
+      );
+    } catch (err) {
+      handleErrors('Error in transferring ownership to multisig', err);
+    }
+  };
 
   const tokensValues = useWatch({
     control,
@@ -86,27 +142,14 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     name: 'councilMembers',
   });
 
-  const {
-    fields: tokenRecipientsFields,
-    append: tokenRecipientsAppend,
-    remove: tokenRecipientsRemove,
-  } = useFieldArray({
-    control,
-    name: 'tokenRecipients',
-  });
-
-  const onSubmit = async (data: IssueTokensValues) => {
-    if (!props.daoId) {
-      return;
-    }
-    const toPublicKeys = data.tokenRecipients.map((item) => {
-      return item.walletAddress;
-    });
-    const amounts = data.tokenRecipients.map((item) => {
-      return item.tokens;
-    });
-    await transferDaoTokens(props.daoId, toPublicKeys, amounts);
-  };
+  // const {
+  //   fields: tokenRecipientsFields,
+  //   append: tokenRecipientsAppend,
+  //   remove: tokenRecipientsRemove,
+  // } = useFieldArray({
+  //   control,
+  //   name: 'tokenRecipients',
+  // });
 
   useEffect(() => {
     setValue('treasuryTokens', remain);
@@ -121,103 +164,103 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     });
   };
 
-  const handleAddRecipient = () => {
-    tokenRecipientsAppend({
-      walletAddress: '',
-      tokens: BigNumber(0),
-    });
-  };
+  // const handleAddRecipient = () => {
+  //   tokenRecipientsAppend({
+  //     walletAddress: '',
+  //     tokens: BigNumber(0),
+  //   });
+  // };
 
-  const recipientsFields = () => {
-    if (!daoTokenBalance) {
-      return <div className='text-center'>Please issue tokens first</div>;
-    }
-    return tokenRecipientsFields.map((item, index) => {
-      return (
-        <div className='flex' key={item.id} data-k={item.id}>
-          <div className='flex'>
-            <div className='w-[370px] flex-col'>
-              <p className='pl-8'>Wallet Address</p>
-              <div className='flex'>
-                <div className='mr-4 flex flex-col justify-center'>
-                  {index + 1}
-                </div>
-                <input
-                  type='text'
-                  placeholder='Wallet Address'
-                  className='input-primary input text-xs'
-                  {...register(`tokenRecipients.${index}.walletAddress`, {
-                    required: 'Required',
-                    validate: {
-                      isValidAddress: (v) => {
-                        if (isStellarPublicKey(v)) {
-                          return true;
-                        }
-                        return 'Not a valid address';
-                      },
-                    },
-                  })}
-                />
-              </div>
-              <ErrorMessage
-                errors={errors}
-                name={`tokenRecipients.${index}.walletAddress`}
-                render={({ message }) => (
-                  <p className='mt-1 pl-8 text-error'>{message}</p>
-                )}
-              />
-            </div>
-            <div className='mx-3 flex flex-col'>
-              <p className='ml-1'>Number of Tokens</p>
-              <input
-                type='number'
-                className='input-primary input text-center'
-                {...register(`tokenRecipients.${index}.tokens`, {
-                  required: 'Required',
-                  min: { value: 1, message: 'Minimum is 1' },
-                  setValueAs: (tokens) => {
-                    const bnTokens = BigNumber(tokens);
-                    return bnTokens.multipliedBy(BigNumber(DAO_UNITS));
-                  },
-                })}
-              />
-              <ErrorMessage
-                errors={errors}
-                name={`tokenRecipients.${index}.tokens`}
-                render={({ message }) => (
-                  <p className='ml-2 mt-1 text-error'>{message}</p>
-                )}
-              />
-            </div>
-            <div className='flex w-[65px] items-center justify-center pt-5'>
-              {/* {watch(`tokenRecipients.${index}.tokens`)
-                .div(daoTokenBalance)
-                .mul(new BN(100))
-                .gte(new BN(100))
-                ? 'NaN'
-                : watch(`tokenRecipients.${index}.tokens`)
-                    ?.div(daoTokenBalance)
-                    .mul(new BN(100))
-                    .toString()}{' '}
-              % */}
-            </div>
-          </div>
-          <div className='ml-3 flex items-center pt-5'>
-            <Image
-              className='duration-150 hover:cursor-pointer hover:brightness-125 active:brightness-90'
-              src={d}
-              width={18}
-              height={18}
-              alt='delete button'
-              onClick={() => {
-                tokenRecipientsRemove(index);
-              }}
-            />
-          </div>
-        </div>
-      );
-    });
-  };
+  // const recipientsFields = () => {
+  //   if (!daoTokenBalance) {
+  //     return <div className='text-center'>Please issue tokens first</div>;
+  //   }
+  //   return tokenRecipientsFields.map((item, index) => {
+  //     return (
+  //       <div className='flex' key={item.id} data-k={item.id}>
+  //         <div className='flex'>
+  //           <div className='w-[370px] flex-col'>
+  //             <p className='pl-8'>Wallet Address</p>
+  //             <div className='flex'>
+  //               <div className='mr-4 flex flex-col justify-center'>
+  //                 {index + 1}
+  //               </div>
+  //               <input
+  //                 type='text'
+  //                 placeholder='Wallet Address'
+  //                 className='input-primary input text-xs'
+  //                 {...register(`tokenRecipients.${index}.walletAddress`, {
+  //                   required: 'Required',
+  //                   validate: {
+  //                     isValidAddress: (v) => {
+  //                       if (isStellarPublicKey(v)) {
+  //                         return true;
+  //                       }
+  //                       return 'Not a valid address';
+  //                     },
+  //                   },
+  //                 })}
+  //               />
+  //             </div>
+  //             <ErrorMessage
+  //               errors={errors}
+  //               name={`tokenRecipients.${index}.walletAddress`}
+  //               render={({ message }) => (
+  //                 <p className='mt-1 pl-8 text-error'>{message}</p>
+  //               )}
+  //             />
+  //           </div>
+  //           <div className='mx-3 flex flex-col'>
+  //             <p className='ml-1'>Number of Tokens</p>
+  //             <input
+  //               type='number'
+  //               className='input-primary input text-center'
+  //               {...register(`tokenRecipients.${index}.tokens`, {
+  //                 required: 'Required',
+  //                 min: { value: 1, message: 'Minimum is 1' },
+  //                 setValueAs: (tokens) => {
+  //                   const bnTokens = BigNumber(tokens);
+  //                   return bnTokens.multipliedBy(BigNumber(DAO_UNITS));
+  //                 },
+  //               })}
+  //             />
+  //             <ErrorMessage
+  //               errors={errors}
+  //               name={`tokenRecipients.${index}.tokens`}
+  //               render={({ message }) => (
+  //                 <p className='ml-2 mt-1 text-error'>{message}</p>
+  //               )}
+  //             />
+  //           </div>
+  //           <div className='flex w-[65px] items-center justify-center pt-5'>
+  //             {/* {watch(`tokenRecipients.${index}.tokens`)
+  //               .div(daoTokenBalance)
+  //               .mul(new BN(100))
+  //               .gte(new BN(100))
+  //               ? 'NaN'
+  //               : watch(`tokenRecipients.${index}.tokens`)
+  //                   ?.div(daoTokenBalance)
+  //                   .mul(new BN(100))
+  //                   .toString()}{' '}
+  //             % */}
+  //           </div>
+  //         </div>
+  //         <div className='ml-3 flex items-center pt-5'>
+  //           <Image
+  //             className='duration-150 hover:cursor-pointer hover:brightness-125 active:brightness-90'
+  //             src={d}
+  //             width={18}
+  //             height={18}
+  //             alt='delete button'
+  //             onClick={() => {
+  //               tokenRecipientsRemove(index);
+  //             }}
+  //           />
+  //         </div>
+  //       </div>
+  //     );
+  //   });
+  // };
 
   const membersFields = () => {
     return councilMembersFields.map((item, index) => {
@@ -257,7 +300,14 @@ const CouncilTokens = (props: { daoId: string | null }) => {
                 className='input-primary input text-xs'
                 {...register(`councilMembers.${index}.walletAddress`, {
                   required: 'Required',
-                  // fixme add validation
+                  validate: {
+                    isValidAddress: (v) => {
+                      if (isStellarPublicKey(v)) {
+                        return true;
+                      }
+                      return 'Not a valid address';
+                    },
+                  },
                 })}
               />
               <ErrorMessage
@@ -287,6 +337,17 @@ const CouncilTokens = (props: { daoId: string | null }) => {
       );
     });
   };
+
+  useEffect(() => {
+    if (currentDao?.daoId && currentWalletAccount) {
+      fetchDaoTokenBalanceFromDB(
+        currentDao?.daoId,
+        currentWalletAccount?.publicKey
+      );
+    } else {
+      updateDaoTokenBalance(new BigNumber(0));
+    }
+  }, [currentDao, currentWalletAccount, fetchDaoTokenBalanceFromDB]);
 
   return (
     <div className='flex flex-col items-center gap-y-5'>
@@ -398,7 +459,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
             Member(s)
           </p>
         </div>
-        <div className='card mb-5 flex w-full items-center justify-center gap-y-6 border-none py-5 hover:brightness-100'>
+        {/* <div className='card mb-5 flex w-full items-center justify-center gap-y-6 border-none py-5 hover:brightness-100'>
           <div className='flex flex-col gap-y-4'>
             <div className='w-full text-center'>
               <h4 className='text-center'>Recipients</h4>
@@ -412,8 +473,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
             {daoTokenBalance ? (
               <button
                 className='btn border-white bg-[#403945] text-white hover:bg-[#403945] hover:brightness-110'
-                type='button'
-                onClick={handleAddRecipient}>
+                type='button'>
                 <Image
                   src={plus}
                   width={17}
@@ -444,7 +504,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
         <div className='mt-6 flex w-full justify-end'>
           <button
             className={`btn-primary btn mr-3 w-48 ${

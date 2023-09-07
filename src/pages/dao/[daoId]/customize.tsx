@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 
 import Congratulations from '@/components/Congratulations';
+import CouncilTokens from '@/components/CouncilTokens';
 import GovernanceForm from '@/components/GovernanceForm';
 import Loading from '@/components/Loading';
 import MetadataForm from '@/components/MetadataForm';
@@ -125,10 +126,7 @@ const Customize = () => {
       currentDao.proposalDuration &&
       !showCongrats
     ) {
-      return (
-        <Congratulations daoId={daoId as string} daoName={currentDao.daoName} />
-      );
-      // return <CouncilTokens daoId={daoId as string} />;
+      return <CouncilTokens daoId={daoId as string} />;
     }
 
     if (currentDao || showCongrats) {

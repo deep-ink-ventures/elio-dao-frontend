@@ -57,7 +57,12 @@ interface PageSlices {
   dao: DaoSlice;
   account: AccountSlice;
 }
-export type ContractName = 'core' | 'votes' | 'assets';
+export type ContractName =
+  | 'core'
+  | 'votes'
+  | 'assets'
+  | 'multicliqueCore'
+  | 'multicliquePolicy';
 
 export interface ContractErrorCodes {
   core: {
@@ -67,6 +72,12 @@ export interface ContractErrorCodes {
     [key: string]: string;
   };
   assets: {
+    [key: string]: string;
+  };
+  multicliqueCore: {
+    [key: string]: string;
+  };
+  multicliquePolicy: {
     [key: string]: string;
   };
 }
@@ -103,6 +114,26 @@ export const contractErrorCodes: ContractErrorCodes = {
     5: 'CanOnlyBeMintedOnce',
     6: 'InsufficientBalance',
     7: 'NoCheckpoint',
+  },
+  multicliqueCore: {
+    0: 'ContractPolicyExists',
+    1: 'ContractPolicyDoesNotExist',
+    3: 'UnknownSigner',
+    4: 'DefaultThresholdNotMet',
+    5: 'PolicyThresholdNotMet',
+    6: 'SignerDoesNotExist',
+    7: 'AlreadyInitialized',
+    8: 'InvalidThreshold',
+    9: 'SignerAlreadyAdded',
+    10: 'NewConditionError',
+    11: 'UnauthorizedAction',
+    12: 'InvalidParameter',
+    13: 'NetworkIssue',
+    14: 'TimeoutError',
+  },
+  multicliquePolicy: {
+    0: 'AlreadyInitialized',
+    1: 'SpendLimitExceeded',
   },
 };
 

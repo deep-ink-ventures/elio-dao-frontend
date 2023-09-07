@@ -75,7 +75,6 @@ const Proposal = () => {
 
   const fetchDaoTokenCb = useCallback(() => {
     if (currentDao?.daoAssetAddress && currentWalletAccount) {
-      console.log('fetch dao tokens');
       fetchDaoTokenBalanceFromDB(
         currentDao?.daoId,
         currentWalletAccount.publicKey
@@ -167,7 +166,6 @@ const Proposal = () => {
     if (!daoId || !propId) {
       return;
     }
-    console.log('daoId', daoId, 'propId', Number(propId as string));
 
     finalizeProposal(daoId as string, Number(propId as string), () => {
       setIsStatusRefreshing(true);
@@ -183,7 +181,6 @@ const Proposal = () => {
   useEffect(() => {
     if (daoId && propId && currentDao) {
       const timer = setTimeout(() => {
-        console.log('fetch everything');
         fetchProposalDB(daoId as string, propId as string);
         fetchDaoDB(daoId as string);
         fetchProposalFaultyReports(propId as string);

@@ -62,7 +62,7 @@ const ExploreDaos = () => {
   return (
     <div
       id='explorer'
-      className='container mb-20 flex min-h-[600px] flex-col px-2 py-5 md:px-6 '>
+      className='container m-auto mb-20 flex min-h-[600px] flex-col px-2 py-5 md:px-6'>
       <div className='mb-5 flex h-16 flex-col items-center justify-center px-2 md:mb-0 md:flex-row md:justify-between'>
         <div className='my-3 flex items-center md:mb-0'>
           <div className='mr-2'>

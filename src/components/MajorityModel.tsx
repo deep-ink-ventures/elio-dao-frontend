@@ -7,9 +7,19 @@ import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
 const MajorityModel = () => {
-  const [currentDao, isTxnProcessing, currentWalletAccount] = useElioStore(
-    (s) => [s.currentDao, s.isTxnProcessing, s.currentWalletAccount]
-  );
+  const [
+    currentDao,
+    isTxnProcessing,
+    currentWalletAccount,
+    fetchDaoDB,
+    updateIsTxnProcessing,
+  ] = useElioStore((s) => [
+    s.currentDao,
+    s.isTxnProcessing,
+    s.currentWalletAccount,
+    s.fetchDaoDB,
+    s.updateIsTxnProcessing,
+  ]);
 
   const { issueTokenSetConfig } = useElioDao();
   const {
@@ -34,15 +44,26 @@ const MajorityModel = () => {
     if (!currentWalletAccount?.publicKey || !currentDao?.daoId) {
       return;
     }
-    await issueTokenSetConfig({
+
+    const minThreshold = BigNumber(
+      data.minimumThresholdPercentage / 100
+    ).multipliedBy(data.tokensToIssue);
+
+    const govConfigData = {
       daoId: currentDao.daoId,
       daoOwnerPublicKey: currentWalletAccount.publicKey,
       proposalDuration: data.proposalDurationInDays * 120,
       // proposalTokenDeposit: BigNumber(data.proposalTokensCost),
-      minimumThreshold: BigNumber(
-        data.minimumThresholdPercentage / 100
-      ).multipliedBy(data.tokensToIssue),
+      minimumThreshold: minThreshold,
       tokenSupply: data.tokensToIssue,
+    };
+
+    await issueTokenSetConfig(govConfigData, async () => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 3000);
+      });
+      fetchDaoDB(currentDao.daoId);
+      updateIsTxnProcessing(false);
     });
   };
 

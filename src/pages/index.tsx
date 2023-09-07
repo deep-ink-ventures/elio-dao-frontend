@@ -32,7 +32,7 @@ const Index = () => {
     <MainLayout
       title='elioDAO - DAO Platform On Stellar'
       description='Create a DAO. No code required'>
-      <div className='flex-col'>
+      <div className='flex-col justify-center align-middle'>
         <div className='mb-8 flex-col items-center justify-center border-b-2 border-dashed border-content-primary/50 pt-2'>
           <div className='md:my-4 md:py-5'>
             <h1 className='text-center'>
@@ -63,7 +63,7 @@ const Index = () => {
             </div>
           </div>
         </div>
-        <div className='container mb-8 flex min-h-[400px] flex-wrap justify-around py-4 md:flex-nowrap'>
+        <div className='container m-auto mb-8 flex min-h-[400px] flex-wrap justify-around py-4 md:flex-nowrap'>
           <div className='flex min-w-[50%] flex-auto flex-col items-center text-center'>
             <div className='mx-10 mb-5 px-14 md:px-28'>
               <h4 className='mt-6'>
