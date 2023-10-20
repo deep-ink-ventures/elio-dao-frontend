@@ -222,16 +222,29 @@ const useElioDao = () => {
     try {
       // eslint-disable-next-line
       console.log('Stimulating transaction...');
-      const res = await sorobanServer.simulateTransaction(txn);
-      if (res.error) {
-        // eslint-disable-next-line
-        console.log('Cannot stimulate transaction', res.error)
+      const resObj = (await sorobanServer.simulateTransaction(
+        txn
+      )) as SorobanClient.SorobanRpc.SimulateTransactionResponse;
+      let response: SorobanClient.SorobanRpc.SimulateTransactionResponse;
+
+      if (Object.keys(resObj).includes('error')) {
+        response =
+          resObj as SorobanClient.SorobanRpc.SimulateTransactionErrorResponse;
+        throw new Error(response.error);
+      } else if (Object.keys(resObj).includes('transactionData')) {
+        response =
+          resObj as unknown as SorobanClient.SorobanRpc.SimulateTransactionSuccessResponse;
+        if (response?.result) {
+          return decodeXdr(response.result.retval.toXDR().toString('base64'));
+        }
+        return null;
+      } else {
+        response =
+          resObj as SorobanClient.SorobanRpc.SimulateTransactionRestoreResponse;
+        if (response?.result) {
+          return decodeXdr(response.result.retval.toXDR().toString('base64'));
+        }
       }
-      const xdr = res?.results?.[0]?.xdr;
-      if (!xdr) {
-        return;
-      }
-      return decodeXdr(xdr as string);
     } catch (err) {
       handleErrors('Cannot submit read transaction', err);
       return null;
@@ -1047,7 +1060,11 @@ const useElioDao = () => {
               await new Promise((resolve) => {
                 setTimeout(resolve, 2000);
               });
-              if (!coreResult?.resultMetaXdr) {
+              if (
+                !coreResult ||
+                coreResult.status === 'FAILED' ||
+                !coreResult?.resultMetaXdr
+              ) {
                 throw new Error('Cannot get multiclique core address');
               }
 
@@ -1055,10 +1072,19 @@ const useElioDao = () => {
                 throw new Error('Cannot get multiclique policy address');
               }
 
-              const coreId = SorobanClient.xdr.TransactionMeta.fromXDR(
-                coreResult.resultMetaXdr,
-                'base64'
-              )
+              // OLD
+              // const coreId = SorobanClient.xdr.TransactionMeta.fromXDR(
+              //   coreResult.resultMetaXdr,
+              //   'base64'
+              // )
+              //   .v3()
+              //   ?.sorobanMeta()
+              //   ?.returnValue()
+              //   .address()
+              //   .contractId();
+
+              // NEW
+              const coreId = coreResult.resultMetaXdr
                 .v3()
                 ?.sorobanMeta()
                 ?.returnValue()

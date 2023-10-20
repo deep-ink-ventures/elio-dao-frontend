@@ -538,9 +538,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
   },
   fetchDaosDB: async () => {
     try {
-      const getDaosResponse = await fetch(
-        `${SERVICE_URL}/daos/?order_by=id&limit=100`
-      );
+      const getDaosResponse = await fetch(`${SERVICE_URL}/daos/?limit=100`);
       const daosRes = await getDaosResponse.json();
       const daosArr = daosRes.results;
       const newDaos: DaoDetail[] = daosArr?.map((dao: any) => {
