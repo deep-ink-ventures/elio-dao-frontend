@@ -230,20 +230,22 @@ const useElioDao = () => {
       if (Object.keys(resObj).includes('error')) {
         response =
           resObj as SorobanClient.SorobanRpc.SimulateTransactionErrorResponse;
-        throw new Error(response.error);
-      } else if (Object.keys(resObj).includes('transactionData')) {
+        // eslint-disable-next-line
+          console.log('response.error', response.error)
+        return null;
+      }
+      if (Object.keys(resObj).includes('transactionData')) {
         response =
           resObj as unknown as SorobanClient.SorobanRpc.SimulateTransactionSuccessResponse;
         if (response?.result) {
           return decodeXdr(response.result.retval.toXDR().toString('base64'));
         }
         return null;
-      } else {
-        response =
-          resObj as SorobanClient.SorobanRpc.SimulateTransactionRestoreResponse;
-        if (response?.result) {
-          return decodeXdr(response.result.retval.toXDR().toString('base64'));
-        }
+      }
+      response =
+        resObj as SorobanClient.SorobanRpc.SimulateTransactionRestoreResponse;
+      if (response?.result) {
+        return decodeXdr(response.result.retval.toXDR().toString('base64'));
       }
     } catch (err) {
       handleErrors('Cannot submit read transaction', err);
@@ -1195,6 +1197,7 @@ const useElioDao = () => {
     makeInstallMulticliqueTxns,
     getMulticliqueAddresses,
     initMulticliqueCore,
+    submitTxn,
   };
 };
 

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
 import useElioDao from '@/hooks/useElioDao';
+import useMC from '@/hooks/useMC';
+
 import type {
   CouncilFormValues,
   CouncilTokensValues,
@@ -11,6 +13,7 @@ import type {
 import useElioStore from '@/stores/elioStore';
 import d from '@/svg/delete.svg';
 import plus from '@/svg/plus.svg';
+import type { MultiCliqueAccount } from '@/types/multiCliqueAccount';
 import { isStellarPublicKey, truncateMiddle } from '@/utils';
 import BigNumber from 'bignumber.js';
 
@@ -27,6 +30,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     updateIsTxnProcessing,
     fetchDaoDB,
     updateShowCongrats,
+    elioConfig,
   ] = useElioStore((s) => [
     s.isTxnProcessing,
     s.currentDao,
@@ -38,9 +42,16 @@ const CouncilTokens = (props: { daoId: string | null }) => {
     s.updateIsTxnProcessing,
     s.fetchDaoDB,
     s.updateShowCongrats,
+    s.elioConfig,
   ]);
-  const { getMulticliqueAddresses, initMulticliqueCore, changeOwner } =
-    useElioDao();
+  const { changeOwner } = useElioDao();
+  const {
+    installCoreContract,
+    installPolicyContract,
+    createMultisigDB,
+    initMulticliqueCore,
+    initMulticliquePolicy,
+  } = useMC();
 
   const [membersCount, setMembersCount] = useState(2);
   const formMethods = useForm<CouncilTokensValues>({
@@ -73,7 +84,7 @@ const CouncilTokens = (props: { daoId: string | null }) => {
   } = formMethods;
 
   const onSubmit = async (data: CouncilFormValues) => {
-    if (!props.daoId || !currentWalletAccount) {
+    if (!props.daoId || !currentWalletAccount || !currentDao?.daoAssetAddress) {
       return;
     }
     const otherMembersAddresses = data.councilMembers.map((member) => {
@@ -82,30 +93,66 @@ const CouncilTokens = (props: { daoId: string | null }) => {
 
     const signerAddresses = [data.creatorWallet, ...otherMembersAddresses];
 
-    const multicliqueData = {
-      source: currentWalletAccount.publicKey,
-      policy_preset: 'ELIO_DAO',
+    const creatorSignatory = {
+      name: data.creatorName,
+      address: data.creatorWallet,
     };
+
+    const otherSignatories = data.councilMembers.map((member) => {
+      return {
+        name: member.name,
+        address: member.walletAddress,
+      };
+    });
+
     try {
-      await getMulticliqueAddresses(
-        multicliqueData,
-        (addresses: { coreAddress: string; policyAddress: string }) => {
-          initMulticliqueCore(
-            addresses,
-            signerAddresses,
-            data.councilThreshold,
-            async () => {
-              await changeOwner(props.daoId!, addresses.coreAddress, () => {
-                updateIsTxnProcessing(false);
-                fetchDaoDB(props.daoId!);
-                updateShowCongrats(true);
-              });
-            }
-          );
-        }
-      );
-    } catch (err) {
-      handleErrors('Error in transferring ownership to multisig', err);
+      updateIsTxnProcessing(true);
+
+      await installCoreContract(async (coreAddress: string) => {
+        await initMulticliqueCore(
+          coreAddress,
+          signerAddresses,
+          data.councilThreshold,
+          async () => {
+            await installPolicyContract((policyAddress: string) => {
+              initMulticliquePolicy(
+                policyAddress,
+                {
+                  multiclique: coreAddress,
+                  elioCore: elioConfig?.coreContractAddress,
+                  elioVotes: elioConfig?.votesContractAddress,
+                  elioAssets: currentDao?.daoAssetAddress!!,
+                },
+                async () => {
+                  const multisigPayload: MultiCliqueAccount = {
+                    name: `${currentDao?.daoName} Multisig`,
+                    address: coreAddress,
+                    signatories: [creatorSignatory, ...otherSignatories],
+                    defaultThreshold: data.councilThreshold,
+                    policy: {
+                      address: policyAddress,
+                      name: 'ELIO_DAO',
+                      active: false,
+                    },
+                  };
+                  const multisig = await createMultisigDB(multisigPayload);
+                  if (multisig) {
+                    changeOwner(currentDao?.daoId, multisig.address, () => {
+                      updateIsTxnProcessing(false);
+                      updateShowCongrats(true);
+                      fetchDaoDB(currentDao?.daoId);
+                    });
+                  }
+                }
+              );
+            });
+          }
+        );
+      });
+    } catch (error) {
+      handleErrors('Error in creating MultiClique Account', error);
+    } finally {
+      updateIsTxnProcessing(false);
     }
   };
 
@@ -344,10 +391,11 @@ const CouncilTokens = (props: { daoId: string | null }) => {
         currentDao?.daoId,
         currentWalletAccount?.publicKey
       );
+      fetchDaoDB(currentDao?.daoId);
     } else {
       updateDaoTokenBalance(new BigNumber(0));
     }
-  }, [currentDao, currentWalletAccount, fetchDaoTokenBalanceFromDB]);
+  }, []);
 
   return (
     <div className='flex flex-col items-center gap-y-5'>
@@ -508,8 +556,8 @@ const CouncilTokens = (props: { daoId: string | null }) => {
         <div className='mt-6 flex w-full justify-end'>
           <button
             className={`btn-primary btn mr-3 w-48 ${
-              !daoTokenBalance ? 'btn-disabled' : ''
-            } ${isTxnProcessing ? 'loading' : ''}`}
+              isTxnProcessing ? 'loading' : ''
+            }`}
             type='submit'>
             {`${isTxnProcessing ? 'Processing' : 'Approve and Sign'}`}
           </button>
