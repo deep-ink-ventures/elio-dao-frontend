@@ -305,7 +305,7 @@ export const bigNumberToI128ScVal = (number: BigNumber) => {
 };
 
 export const numberToU32ScVal = (number: number) => {
-  return SorobanClient.xdr.ScVal.scvU32(number);
+  return SorobanClient.xdr.ScVal.scvU32(Number(number));
 };
 
 export const splitCamelCase = (str: string): string => {
