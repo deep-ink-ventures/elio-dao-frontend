@@ -25,6 +25,19 @@ export const createMultiCliqueAccount = async (
   return formattedMultiCliqueAccount;
 };
 
+export const getMultiCliqueAccount = async (address: string) => {
+  const response = await fetch(
+    `${SERVICE_URL}/multiclique/accounts/${address}/`
+  );
+
+  const objResponse: RawMultiCliqueAccount = await response.json();
+
+  const formattedResponse = keysToCamelCase(objResponse);
+
+  return formattedResponse;
+};
+
 export const McAccountService = {
   createMultiCliqueAccount,
+  getMultiCliqueAccount,
 };

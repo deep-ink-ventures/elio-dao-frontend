@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { DaoService } from '@/services/daos';
+import { McAccountService } from '@/services/multiCliqueAccount';
 import useElioStore from '@/stores/elioStore';
 import mountain from '@/svg/mountain.svg';
 import placeholderImage from '@/svg/placeholderImage.svg';
@@ -25,6 +26,7 @@ const DaoCard = (props: DaoCardProps) => {
     s.updateDaoPage,
   ]);
   const [daoBalance, setDaoBalance] = useState<BigNumber>();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const fetchDaoBalance = async () => {
     if (currentWalletAccount?.publicKey) {
@@ -39,8 +41,37 @@ const DaoCard = (props: DaoCardProps) => {
     }
   };
 
+  const fetchSignatories = async () => {
+    try {
+      if (
+        daoOwnerAddress &&
+        currentWalletAccount?.publicKey !== daoOwnerAddress
+      ) {
+        const mcAccount = await McAccountService.getMultiCliqueAccount(
+          daoOwnerAddress
+        );
+
+        if (mcAccount.signatories?.length) {
+          setIsAdmin(
+            !!(
+              currentWalletAccount?.publicKey &&
+              mcAccount.signatories
+                .map((signatory) => signatory.address.toLowerCase())
+                ?.includes(currentWalletAccount.publicKey.toLowerCase())
+            )
+          );
+        }
+      } else {
+        setIsAdmin(currentWalletAccount?.publicKey === daoOwnerAddress);
+      }
+    } catch (ex) {
+      console.info('Multisig account not found');
+    }
+  };
+
   useEffect(() => {
     fetchDaoBalance();
+    fetchSignatories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWalletAccount, daoId]);
 
@@ -86,7 +117,7 @@ const DaoCard = (props: DaoCardProps) => {
         onClick={() => {
           updateDaoPage('dashboard');
         }}>
-        {currentWalletAccount?.publicKey === daoOwnerAddress ? (
+        {isAdmin ? (
           <div className='absolute left-44 top-3 rounded-[15px] bg-primary px-2 py-1 text-xs md:left-40 md:top-3 md:block'>
             admin
           </div>
