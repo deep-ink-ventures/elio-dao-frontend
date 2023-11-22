@@ -639,7 +639,7 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
           daoDetail.daoOwnerAddress
         );
 
-        if (mcResponse.signatories.length) {
+        if (mcResponse?.signatories?.length) {
           daoDetail.signatories = mcResponse.signatories;
         }
       } catch (ex) {
