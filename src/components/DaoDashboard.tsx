@@ -94,7 +94,12 @@ const DaoDashboard = (props: { daoId: string }) => {
             }`}
             disabled={
               !currentWalletAccount ||
-              currentWalletAccount.publicKey !== currentDao?.daoOwnerAddress
+              (currentWalletAccount.publicKey !== currentDao?.daoOwnerAddress &&
+                !currentDao?.signatories?.some(
+                  (signatory) =>
+                    signatory.address.toLowerCase() ===
+                    currentWalletAccount.publicKey.toLowerCase()
+                ))
             }
             onClick={handleDestroyDao}>
             Destroy DAO

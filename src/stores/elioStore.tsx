@@ -23,11 +23,13 @@ import * as StellarSdk from 'stellar-sdk';
 import { create } from 'zustand';
 
 import { DaoService } from '@/services/daos';
+import { McAccountService } from '@/services/multiCliqueAccount';
 import type {
   IncomingProposal,
   ProposalStatusNames,
 } from '@/services/proposals';
 import { proposalStatusNames } from '@/services/proposals';
+import { Signatory } from '@/types/multiCliqueAccount';
 import type { AccountSlice } from './account';
 import { createAccountSlice } from './account';
 import type { DaoSlice } from './dao';
@@ -282,6 +284,7 @@ export interface DaoDetail {
     medium: string | null;
     large: string | null;
   };
+  signatories?: Signatory[];
 }
 
 export interface WalletAccount {
@@ -629,6 +632,18 @@ const useElioStore = create<ElioStore>()((set, get, store) => ({
         daoDetail.images.small = d.metadata.images.logo.small.url;
         daoDetail.images.medium = d.metadata.images.logo.medium.url;
         daoDetail.images.large = d.metadata.images.logo.large.url;
+      }
+
+      try {
+        const mcResponse = await McAccountService.getMultiCliqueAccount(
+          daoDetail.daoOwnerAddress
+        );
+
+        if (mcResponse.signatories.length) {
+          daoDetail.signatories = mcResponse.signatories;
+        }
+      } catch (ex) {
+        console.info('Multisig account not found');
       }
 
       get().updateCurrentDao(daoDetail);
