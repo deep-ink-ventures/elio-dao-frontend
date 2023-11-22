@@ -98,7 +98,7 @@ const DaoDashboard = (props: { daoId: string }) => {
                 !currentDao?.signatories?.some(
                   (signatory) =>
                     signatory.address.toLowerCase() ===
-                    currentWalletAccount.publicKey.toLowerCase()
+                    currentWalletAccount?.publicKey?.toLowerCase()
                 ))
             }
             onClick={handleDestroyDao}>
